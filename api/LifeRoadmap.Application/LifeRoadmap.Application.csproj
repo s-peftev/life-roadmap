@@ -11,10 +11,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="Interfaces\" />
     <Folder Include="DTOs\" />
+    <Folder Include="Interfaces\Persistence\Repositories\" />
+    <Folder Include="Interfaces\Services\" />
     <Folder Include="UseCases\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
   </ItemGroup>
 
 </Project>

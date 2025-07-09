@@ -3,9 +3,47 @@
 
 ![Architecture Diagram](docs/architecture.png)
 
+life-roadmap/
+│
+├── api/
+│   ├── LifeRoadmap.Application/             ← Core business logic, use cases, DTOs, contracts (depends on Domain)
+│   │   ├── Configuration/
+│   │   │   └── Mapping/                      ← AutoMapper profiles (Domain / DTO)
+│   │   ├── DTOs/                             ← Data Transfer Objects
+│   │   ├── Interfaces/
+│   │   │   ├── Persistence/                  ← Repository related interfaces
+│   │   │   │   └── Repositories/             
+│   │   │   └── Services/                     ← Interfaces for services
+│   │   └── UseCases/                         ← Use cases
+│   │
+│   ├── LifeRoadmap.Domain/                  ← Core domain layer (no dependencies)
+│   │   ├── Enums/                            ← Domain enums
+│   │   └── Models/                           ← Domain models
+│   │
+│   ├── LifeRoadmap.Infrastructure/          ← Infrastructure logic and data access (depends on Domain, Application and Database)
+│   │   ├── Configuration/
+│   │   │   └── Mapping/                      ← AutoMapper profile (Entity / Domain)
+│   │   ├── Persistence/
+│   │   │   └── Repositories/                 ← Repository implementations
+│   │   └── Services/                         ← Service implementations for business logic
+│   │
+│   ├── LifeRoadmap.Database/                ← EF Core (Database-First) layer (no dependencies)
+│   │   └── Entities/                         ← Scaffolded entities from the SQL Server database
+│   │
+│   └── LifeRoadmap.WebApi/                  ← HTTP API layer (entry point) (depends on Application and Infrastructure)
+│       ├── Controllers/                      ← HTTP endpoints (API controllers)
+│       ├── Exceptions/                       ← Exceptions
+│       ├── Middleware/                       ← Cross-cutting middlewares
+│       └── Program.cs                        ← App startup and configuration
+│
+├── db/
+│   └── LifeRoadmap.DatabaseProject/         ← SQL Server Database Project (.sql schema scripts)
+│
+└── client/                                  ← Angular frontend
+
 ### Layers description
 
-- **Domain** – The core of the application. Contains business entities, value objects, and enums. Pure logic, no dependencies.
+- **Domain** – The core of the application. Contains business models and enums. Pure logic, no dependencies.
 
 - **Database** – EF Core scaffolded entities and DbContext generated from SQL Server (Database-First approach). No logic.
 
