@@ -3,6 +3,7 @@
 
 ![Architecture Diagram](docs/architecture.png)
 
+```plaintext
 life-roadmap/
 │
 ├── api/
@@ -40,6 +41,7 @@ life-roadmap/
 │   └── LifeRoadmap.DatabaseProject/         ← SQL Server Database Project (.sql schema scripts)
 │
 └── client/                                  ← Angular frontend
+```
 
 ### Layers description
 
