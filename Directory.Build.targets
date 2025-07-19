@@ -1,5 +1,0 @@
-<Project>
-  <Target Name="ScaffoldDb">
-    <Exec Command='dotnet ef dbcontext scaffold "Server=localhost;Database=LifeRoadmapDb;Trusted_Connection=True;TrustServerCertificate=true" Microsoft.EntityFrameworkCore.SqlServer --output-dir Entities --context-dir . --context AppDbContext --no-onconfiguring --force --project api/LifeRoadmap.Database' />
-  </Target>
-</Project>
