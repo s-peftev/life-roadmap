@@ -8,6 +8,7 @@ namespace LR.Infrastructure.DependencyInjection
         public static void AddInfrastructure(this IServiceCollection services, string connectionString)
         {
             PersistanceResolver.AddPersistance(services, connectionString);
+            IdentityResolver.AddIdentityServices(services);
         }
     }
 }
