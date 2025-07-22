@@ -69,6 +69,6 @@
     <Build Include="dbo\Tables\AspNetUserLogins.sql" />
     <Build Include="dbo\Tables\AspNetUserRoles.sql" />
     <Build Include="dbo\Tables\AspNetUserTokens.sql" />
-    <Build Include="dbo\Tables\UserProfile.sql" />
+    <Build Include="dbo\Tables\UserProfiles.sql" />
   </ItemGroup>
 </Project>
