@@ -6,5 +6,6 @@ namespace LR.Persistance.Identity
     public class AppUser : IdentityUser
     {
         public UserProfile Profile { get; set; } = null!;
+        public ICollection<AppUserRole> UserRoles { get; set; } = [];
     }
 }
