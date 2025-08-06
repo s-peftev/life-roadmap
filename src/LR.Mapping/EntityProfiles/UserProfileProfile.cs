@@ -2,11 +2,11 @@
 using LR.Application.DTOs.User;
 using LR.Domain.Entities.Users;
 
-namespace LR.Mapping.DtoToEntity
+namespace LR.Mapping.EntityProfiles
 {
-    public class UserRegisterDtoToUserProfileMapping : Profile
+    public class UserProfileProfile : Profile
     {
-        public UserRegisterDtoToUserProfileMapping() 
+        public UserProfileProfile() 
         {
             CreateMap<UserRegisterDto, UserProfile>();
         }

@@ -1,27 +1,27 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using LR.API.Models.ResponseModels;
 using LR.Application.DTOs.User;
 using LR.Domain.Entities.Users;
-using LR.Persistance;
 using LR.Persistance.Identity;
+using LR.Persistance;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace LR.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountTest(
+    public class AccountController(
         AppDbContext _context,
         UserManager<AppUser> _userManager,
         IMapper _mapper
         ) : ControllerBase
     {
         [HttpPost]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody]UserRegisterDto request)
-        { 
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] UserRegisterDto request)
+        {
             if (await IsUserExistsAsync(request.UserName!))
                 return BadRequest("The username is taken.");
 

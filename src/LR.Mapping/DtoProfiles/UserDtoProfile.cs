@@ -2,11 +2,11 @@
 using LR.Application.DTOs.User;
 using LR.Persistance.Identity;
 
-namespace LR.Mapping.EntityToDto
+namespace LR.Mapping.DtoProfiles
 {
-    public class AppUserToUserDtoMapping : Profile
+    public class UserDtoProfile : Profile
     {
-        public AppUserToUserDtoMapping() 
+        public UserDtoProfile() 
         {
             CreateMap<AppUser, UserDto>()
                 .ForMember(dest => dest.FirstName, 
