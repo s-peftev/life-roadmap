@@ -11,13 +11,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LR.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
     public class AccountController(
         AppDbContext _context,
         UserManager<AppUser> _userManager,
         IMapper _mapper
-        ) : ControllerBase
+        ) : BaseApiController
     {
         [HttpPost]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] UserRegisterDto request)
