@@ -37,6 +37,7 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "LR.Client", "..\LR.Client\"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "54679"
+		SlnRelativePath = "..\LR.Client\"
 	EndProjectSection
 EndProject
 Global
