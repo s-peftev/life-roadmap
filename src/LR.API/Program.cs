@@ -28,6 +28,9 @@ var app = builder.Build();
 
 app.MapControllers();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();

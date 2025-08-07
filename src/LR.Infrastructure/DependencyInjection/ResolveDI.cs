@@ -12,7 +12,7 @@ namespace LR.Infrastructure.DependencyInjection
             var connectionString = configuration.GetConnectionString("DefaultConnection")!;
 
             PersistanceResolver.AddPersistance(services, connectionString);
-            IdentityResolver.AddIdentityServices(services);
+            IdentityResolver.AddIdentityServices(services, configuration);
             UtilsResolver.AddUtils(services);
             AutoMapperRegistration.RegisterProfiles(services);
             ConfigurationResolver.AddConfigurationServices(services, configuration);
