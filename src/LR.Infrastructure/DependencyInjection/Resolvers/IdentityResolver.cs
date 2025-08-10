@@ -13,7 +13,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
 {
     internal static class IdentityResolver
     {
-        private const int MIN_PASSWORD_LENGTH = 8;
+        private const int MinPasswordLenght = 8;
         internal static void AddIdentityServices(IServiceCollection services, IConfiguration configuration)
         {
             services.AddDataProtection();
@@ -24,7 +24,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     opt.Password.RequireDigit = true;
                     opt.Password.RequireLowercase = true;
                     opt.Password.RequireUppercase = true;
-                    opt.Password.RequiredLength = MIN_PASSWORD_LENGTH;
+                    opt.Password.RequiredLength = MinPasswordLenght;
                 })
                 .AddRoles<AppRole>()
                 .AddRoleManager<RoleManager<AppRole>>()

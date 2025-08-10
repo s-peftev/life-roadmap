@@ -1,21 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LR.API.Models.RequestModels
+namespace LR.Application.Requests
 {
-    public class RegisterRequest
+    public class UserRegisterRequest
     {
         [Required]
         [StringLength(20, MinimumLength = 4)]
         public string? UserName { get; set; }
         [Required]
+        [StringLength(20, MinimumLength = 8)]
+        public string? Password { get; set; }
         public string? FirstName { get; set; }
-        [Required]
         public string? LastName { get; set; }
-        [Required]
         [EmailAddress]
         public string? Email { get; set; }
-        [Required]
-        [StringLength(20, MinimumLength = 4)]
-        public string? Password { get; set; }
+
     }
 }

@@ -1,6 +1,6 @@
 ﻿using LR.Application.DTOs.User;
 
-namespace LR.API.Models.ResponseModels
+namespace LR.Application.Responses
 {
     public class UserListResponse(IEnumerable<UserDto> users)
     {

@@ -4,7 +4,6 @@ using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -28,8 +27,8 @@ namespace LR.Infrastructure.Utils
             var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, tokenUserDto.Id.ToString()),
-                new Claim(ClaimTypes.NameIdentifier, tokenUserDto.UserName),
+                new Claim(ClaimTypes.NameIdentifier, tokenUserDto.Id.ToString()),
+                new Claim(ClaimTypes.Name, tokenUserDto.UserName),
             };
 
             if (!string.IsNullOrWhiteSpace(tokenUserDto.Email))

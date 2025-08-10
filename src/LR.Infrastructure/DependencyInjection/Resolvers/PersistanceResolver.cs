@@ -1,4 +1,7 @@
-﻿using LR.Persistance;
+﻿using LR.Domain.Interfaces;
+using LR.Domain.Interfaces.Repositories;
+using LR.Persistance;
+using LR.Persistance.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +13,9 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
         {
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
+            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
         }
     }
 }

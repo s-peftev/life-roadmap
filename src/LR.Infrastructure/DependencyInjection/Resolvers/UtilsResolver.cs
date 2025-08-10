@@ -8,7 +8,11 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
     {
         internal static void AddUtils(IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
+
             services.AddTransient<ITokenService, TokenService>();
+
+            services.AddScoped<IAccountService, AccountService>();
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace LR.Domain.Entities.Users
 {
@@ -15,6 +14,8 @@ namespace LR.Domain.Entities.Users
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiresAtUtc { get; set; }
         [Required]
         [StringLength(450)]
         public string UserId { get; set; } = null!;
