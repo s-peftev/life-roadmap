@@ -1,5 +1,6 @@
 ﻿using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
+using LR.Domain.Entities.Users;
 using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -52,13 +53,18 @@ namespace LR.Infrastructure.Utils
             return (jwtToken, expires);
         }
 
-        public string GenerateRefreshToken()
+        public RefreshToken GenerateRefreshToken(string userId, int ExpirationTimeInDays)
         {
             var randomNumber = new byte[64];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
-
-            return Convert.ToBase64String(randomNumber);
+            
+            return new() 
+            {
+                Token = Convert.ToBase64String(randomNumber),
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(ExpirationTimeInDays),
+                UserId = userId
+            };
         }
 
         public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, 

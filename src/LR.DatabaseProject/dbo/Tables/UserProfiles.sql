@@ -6,8 +6,6 @@
     [BirthDate]                 DATE              NULL,
     [CreatedAt]                 DATETIME2         NOT NULL DEFAULT GETUTCDATE(),
     [UpdatedAt]                 DATETIME2         NULL,
-    [RefreshToken]              NVARCHAR(MAX)     NULL,
-    [RefreshTokenExpiresAtUtc]  DATETIME2         NULL,
 
     CONSTRAINT [PK_UserProfiles] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [UQ_UserProfiles_UserId] UNIQUE ([UserId]),

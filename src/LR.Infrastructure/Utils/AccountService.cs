@@ -6,24 +6,30 @@ using LR.Domain.Entities.Users;
 using LR.Domain.Exceptions.User;
 using LR.Infrastructure.Exceptions.Account;
 using LR.Infrastructure.Extensions;
+using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 namespace LR.Infrastructure.Utils
 {
     public class AccountService(
         ITokenService tokenService,
-        UserManager<AppUser> userManager,
+        IOptions<JwtOptions> jwtOptions,
+        IOptions<RefreshTokenOptions> refreshTokenOptions,
         IMapper mapper,
-        IUserProfileService userProfileService
+        IUserProfileService userProfileService,
+        IRefreshTokenService refreshTokenService,
+        UserManager<AppUser> userManager
         ) : IAccountService
     {
-        private const int RefreshTokenExpirationDays = 7;
-
         private readonly ITokenService _tokenService = tokenService;
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+        private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IMapper _mapper = mapper;
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly IUserProfileService _userProfileService = userProfileService;
+        private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
 
         public async Task RegisterAsync(UserRegisterDto userRegisterDto)
         {
@@ -71,31 +77,30 @@ namespace LR.Infrastructure.Utils
 
         public async Task LoginAsync(UserLoginDto userLoginDto)
         {
-            var user = await _userManager.GetByUserNameWithProfileAndRolesAsync(userLoginDto.UserName);
+            var user = await _userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
             if (user is null || !await _userManager.CheckPasswordAsync(user, userLoginDto.Password))
             {
                 throw new LoginFailedException(userLoginDto.UserName);
             }
 
-
             await SaveTokensAndSetCookiesAsync(user);
         }
 
-        public async Task RefreshToken(string? refreshToken)
+        public async Task RefreshToken(string? refreshTokenValue)
         {
-            if (string.IsNullOrEmpty(refreshToken))
+            if (string.IsNullOrEmpty(refreshTokenValue))
             {
                 throw new RefreshTokenException("Refresh token is missing.");
             }
 
-            var userProfile = await _userProfileService.GetByUserProfileByRefreshTokenAsync(refreshToken) 
-                ?? throw new RefreshTokenException("Unable to retrieve user profile for refresh token.");
+            var refreshToken = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue) 
+                ?? throw new RefreshTokenException("Could not find the refresh token.");
 
-            var user = await _userManager.FindByIdAsync(userProfile.UserId)
+            var user = await _userManager.GetByIdWithRolesAsync(refreshToken.UserId)
                 ?? throw new RefreshTokenException("Unable to retrieve user for refresh token."); ;
 
-            if (userProfile.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
+            if (refreshToken.ExpiresAtUtc < DateTime.UtcNow)
             {
                 throw new RefreshTokenException("Refresh token is expired.");
             }
@@ -103,37 +108,44 @@ namespace LR.Infrastructure.Utils
             await SaveTokensAndSetCookiesAsync(user);
         }
 
-        public async Task LogoutAsync(string userId)
+        public async Task LogoutAsync(string? refreshTokenValue)
         {
-            var user = await _userManager.GetByIdWithProfileAsync(userId)
-                ?? throw new LogoutFailedException("Could not found user to logout.");
+            if (string.IsNullOrEmpty(refreshTokenValue))
+            {
+                throw new RefreshTokenException("Refresh token is missing.");
+            }
 
-            user.Profile.RefreshToken = null;
-            user.Profile.RefreshTokenExpiresAtUtc = null;
+            var refreshToken = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue)
+                ?? throw new RefreshTokenException("Could not find the refresh token.");
 
-            await _userProfileService.SaveChangesAsync();
+
+            refreshToken.IsRevoked = true;
+            refreshToken.RevokedAtUtc = DateTime.UtcNow;
+
+            await _refreshTokenService.SaveChangesAsync();
         }
 
         private async Task SaveTokensAndSetCookiesAsync(AppUser user)
         {
             var (jwtToken, expirationDateInUtc) =
                 _tokenService.GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
-            var refreshToken = _tokenService.GenerateRefreshToken();
-
-            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(RefreshTokenExpirationDays);
-
-            user.Profile.RefreshToken = refreshToken;
-            user.Profile.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+            var refreshToken = _tokenService
+                .GenerateRefreshToken(user.Id, _refreshTokenOptions.ExpirationTimeInDays);
 
             try
             {
-                await _userProfileService.SaveChangesAsync();
+                _refreshTokenService.Add(refreshToken);
+                await _refreshTokenService.SaveChangesAsync();
 
-                _tokenService
-                    .WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-                _tokenService
-                    .WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", refreshToken, refreshTokenExpirationDateInUtc);
+                _tokenService.WriteAuthTokenAsHttpOnlyCookie(
+                    _jwtOptions.TokenName,
+                    jwtToken,
+                    expirationDateInUtc);
 
+                _tokenService.WriteAuthTokenAsHttpOnlyCookie(
+                    _refreshTokenOptions.TokenName,
+                    refreshToken.Token,
+                    refreshToken.ExpiresAtUtc);
             }
             catch (Exception ex)
             {

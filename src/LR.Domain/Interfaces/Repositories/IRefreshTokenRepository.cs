@@ -2,7 +2,7 @@
 
 namespace LR.Domain.Interfaces.Repositories
 {
-    public interface IUserProfileRepository : IRepository<UserProfile, Guid>
+    public interface IRefreshTokenRepository : IRepository<RefreshToken, Guid>
     {
     }
 }

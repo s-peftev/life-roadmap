@@ -10,6 +10,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
         {
             services.AddScoped(typeof(IEntityService<,>), typeof(EntityService<,>));
             services.AddScoped<IUserProfileService, UserProfileService>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         }
     }
 }

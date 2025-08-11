@@ -16,6 +16,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
 
             services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
             services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         }
     }
 }

@@ -8,13 +8,5 @@ namespace LR.Application.Services
         : EntityService<UserProfile, Guid>(repository), IUserProfileService
     {
         private readonly IUserProfileRepository _userProfileRepository = repository;
-
-        public async Task<UserProfile?> GetByUserProfileByRefreshTokenAsync(string refreshToken)
-        {
-            var userProfile = await _userProfileRepository
-                .GetByUserProfileByRefreshTokenAsync(refreshToken);
-
-            return userProfile;
-        }
     }
 }

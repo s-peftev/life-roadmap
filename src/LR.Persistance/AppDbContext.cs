@@ -12,6 +12,7 @@ namespace LR.Persistance
             IdentityUserToken<string>>(options)
     {
         public DbSet<UserProfile> UserProfiles { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -23,6 +24,15 @@ namespace LR.Persistance
                     .HasOne<AppUser>()
                     .WithOne(u => u.Profile)
                     .HasForeignKey<UserProfile>(p => p.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<RefreshToken>(entity =>
+            {
+                entity
+                    .HasOne<AppUser>()
+                    .WithMany(u => u.RefreshTokens)
+                    .HasForeignKey(rt => rt.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 

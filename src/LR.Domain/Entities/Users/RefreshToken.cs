@@ -1,0 +1,14 @@
+﻿namespace LR.Domain.Entities.Users
+{
+    public class RefreshToken
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Token { get; set; } = null!;
+        public DateTime ExpiresAtUtc { get; set; }
+        public bool IsRevoked { get; set; }
+        public DateTime? RevokedAtUtc { get; set; }
+        public string? DeviceInfo { get; set; }
+        public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+        public string UserId { get; set; } = null!;
+    }
+}

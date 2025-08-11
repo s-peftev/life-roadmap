@@ -4,19 +4,25 @@ using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests;
 using LR.Infrastructure.Extensions;
+using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace LR.API.Controllers
 {
     public class AuthController(
         IAccountService accountService,
         IMapper mapper,
+        IOptions<JwtOptions> jwtOptions,
+        IOptions<RefreshTokenOptions> refreshTokenOptions,
         IValidator<UserRegisterRequest> registerValidator,
         IValidator<UserLoginRequest> loginValidator
         ) : BaseApiController
     {
         private readonly IAccountService _accountService = accountService;
         private readonly IMapper _mapper = mapper;
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+        private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
         private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
 
@@ -51,7 +57,7 @@ namespace LR.API.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            var refreshToken = Request.Cookies["REFRESH_TOKEN"];
+            var refreshToken = Request.Cookies[_refreshTokenOptions.TokenName];
             await _accountService.RefreshToken(refreshToken);
 
             return Ok(new { message = "Tokens successfully updated" });
@@ -59,12 +65,12 @@ namespace LR.API.Controllers
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
-        { 
-            var userId = User.GetUserId();
-            await _accountService.LogoutAsync(userId);
+        {
+            var refreshToken = Request.Cookies[_refreshTokenOptions.TokenName];
+            await _accountService.LogoutAsync(refreshToken);
 
-            Response.Cookies.Delete("ACCESS_TOKEN");
-            Response.Cookies.Delete("REFRESH_TOKEN");
+            Response.Cookies.Delete(_jwtOptions.TokenName);
+            Response.Cookies.Delete(_refreshTokenOptions.TokenName);
 
             return Ok(new { message = "Logout successful" });
         }

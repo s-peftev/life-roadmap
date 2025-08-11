@@ -4,6 +4,5 @@ namespace LR.Application.Interfaces.Services
 {
     public interface IUserProfileService : IEntityService<UserProfile, Guid>
     {
-        Task<UserProfile?> GetByUserProfileByRefreshTokenAsync(string refreshToken);
     }
 }

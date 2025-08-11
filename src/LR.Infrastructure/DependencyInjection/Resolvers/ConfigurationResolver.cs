@@ -9,6 +9,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
         internal static void AddConfigurationServices(IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
+            services.Configure<RefreshTokenOptions>(configuration.GetSection("RefreshTokenOptions"));
         }
     }
 }
