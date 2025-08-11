@@ -98,12 +98,21 @@ namespace LR.Infrastructure.Utils
                 ?? throw new RefreshTokenException("Could not find the refresh token.");
 
             var user = await _userManager.GetByIdWithRolesAsync(refreshToken.UserId)
-                ?? throw new RefreshTokenException("Unable to retrieve user for refresh token."); ;
+                ?? throw new RefreshTokenException("Unable to retrieve user for refresh token.");
+
+            if (refreshToken.IsRevoked)
+            {
+                throw new RefreshTokenException("Refresh token is revoked.");
+            }
 
             if (refreshToken.ExpiresAtUtc < DateTime.UtcNow)
             {
                 throw new RefreshTokenException("Refresh token is expired.");
             }
+
+            refreshToken.IsRevoked = true;
+            refreshToken.RevokedAtUtc = DateTime.UtcNow;
+            await _refreshTokenService.SaveChangesAsync();
 
             await SaveTokensAndSetCookiesAsync(user);
         }
