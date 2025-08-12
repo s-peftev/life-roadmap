@@ -75,7 +75,7 @@ namespace LR.Infrastructure.Utils
             }
         }
 
-        public async Task LoginAsync(UserLoginDto userLoginDto)
+        public async Task<TokenPairDto> LoginAsync(UserLoginDto userLoginDto)
         {
             var user = await _userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
@@ -84,10 +84,10 @@ namespace LR.Infrastructure.Utils
                 throw new LoginFailedException(userLoginDto.UserName);
             }
 
-            await SaveTokensAndSetCookiesAsync(user);
+            return await SaveTokensAndSetCookiesAsync(user);
         }
 
-        public async Task RefreshToken(string? refreshTokenValue)
+        public async Task<TokenPairDto> RefreshToken(string? refreshTokenValue)
         {
             if (string.IsNullOrEmpty(refreshTokenValue))
             {
@@ -114,7 +114,7 @@ namespace LR.Infrastructure.Utils
             refreshToken.RevokedAtUtc = DateTime.UtcNow;
             await _refreshTokenService.SaveChangesAsync();
 
-            await SaveTokensAndSetCookiesAsync(user);
+            return await SaveTokensAndSetCookiesAsync(user);
         }
 
         public async Task LogoutAsync(string? refreshTokenValue)
@@ -134,9 +134,9 @@ namespace LR.Infrastructure.Utils
             await _refreshTokenService.SaveChangesAsync();
         }
 
-        private async Task SaveTokensAndSetCookiesAsync(AppUser user)
+        private async Task<TokenPairDto> SaveTokensAndSetCookiesAsync(AppUser user)
         {
-            var (jwtToken, expirationDateInUtc) =
+            var jwtToken =
                 _tokenService.GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
             var refreshToken = _tokenService
                 .GenerateRefreshToken(user.Id, _refreshTokenOptions.ExpirationTimeInDays);
@@ -148,13 +148,15 @@ namespace LR.Infrastructure.Utils
 
                 _tokenService.WriteAuthTokenAsHttpOnlyCookie(
                     _jwtOptions.TokenName,
-                    jwtToken,
-                    expirationDateInUtc);
+                    jwtToken.TokenValue,
+                    jwtToken.ExpiresAtUtc);
 
                 _tokenService.WriteAuthTokenAsHttpOnlyCookie(
                     _refreshTokenOptions.TokenName,
                     refreshToken.Token,
                     refreshToken.ExpiresAtUtc);
+
+                return new TokenPairDto(jwtToken, refreshToken);
             }
             catch (Exception ex)
             {

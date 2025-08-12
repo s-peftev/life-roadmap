@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LR.Application.Requests;
+using LR.Application.Requests.User;
 
 namespace LR.Application.Validators.User
 {

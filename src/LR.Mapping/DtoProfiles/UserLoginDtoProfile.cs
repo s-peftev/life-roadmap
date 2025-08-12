@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using LR.Application.DTOs.User;
-using LR.Application.Requests;
+using LR.Application.Requests.User;
 
 namespace LR.Mapping.DtoProfiles
 {

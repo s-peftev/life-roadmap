@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using LR.Application.Requests;
+using LR.Application.Requests.User;
 using System.Text.RegularExpressions;
 
 namespace LR.Application.Validators.User

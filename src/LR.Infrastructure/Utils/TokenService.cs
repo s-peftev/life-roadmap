@@ -19,7 +19,7 @@ namespace LR.Infrastructure.Utils
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-        public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(TokenUserDto tokenUserDto)
+        public AccessTokenDto GenerateJwtToken(TokenUserDto tokenUserDto)
         {
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
 
@@ -50,7 +50,7 @@ namespace LR.Infrastructure.Utils
 
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-            return (jwtToken, expires);
+            return new AccessTokenDto(jwtToken, expires);
         }
 
         public RefreshToken GenerateRefreshToken(string userId, int ExpirationTimeInDays)

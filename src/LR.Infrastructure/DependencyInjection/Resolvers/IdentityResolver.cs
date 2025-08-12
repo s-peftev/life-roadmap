@@ -58,7 +58,19 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                            //look for jwt in header
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                                return Task.CompletedTask;
+                            }
+
+                            //if header emty look for jwt in cookies
+                            if (context.Request.Cookies.TryGetValue(jwtOptions.TokenName, out var cookieToken))
+                            {
+                                context.Token = cookieToken;
+                            }
 
                             return Task.CompletedTask;
                         }

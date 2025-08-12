@@ -18,6 +18,7 @@ namespace LR.Infrastructure.DependencyInjection
             ServiceResolver.AddServices(services);
             AutoMapperRegistration.RegisterProfiles(services);
             ValidatorsRegistration.RegisterValidators(services);
+            SwaggerResolver.AddSwagger(services);
             ConfigurationResolver.AddConfigurationServices(services, configuration);
         }
     }

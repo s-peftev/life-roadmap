@@ -1,4 +1,4 @@
-﻿namespace LR.Application.Requests
+﻿namespace LR.Application.Requests.User
 {
     public class UserLoginRequest
     {

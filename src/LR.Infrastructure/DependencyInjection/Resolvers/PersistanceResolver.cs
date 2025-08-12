@@ -2,6 +2,7 @@
 using LR.Domain.Interfaces.Repositories;
 using LR.Persistance;
 using LR.Persistance.Repositories;
+using LR.Persistance.Repositories.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

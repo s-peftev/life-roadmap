@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using LR.Application.DTOs.User;
-using LR.Application.Responses;
+using LR.Application.Responses.User;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LR.Application.Requests
+namespace LR.Application.Requests.User
 {
     public class UserRegisterRequest
     {

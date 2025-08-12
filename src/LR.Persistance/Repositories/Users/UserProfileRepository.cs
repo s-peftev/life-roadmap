@@ -2,7 +2,7 @@
 using LR.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace LR.Persistance.Repositories
+namespace LR.Persistance.Repositories.Users
 {
     public class UserProfileRepository(AppDbContext context)
         : Repository<UserProfile, Guid>(context), IUserProfileRepository

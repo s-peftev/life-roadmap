@@ -4,6 +4,6 @@ namespace LR.Application.Interfaces.Services
 {
     public interface IRefreshTokenService : IEntityService<RefreshToken, Guid>
     {
-        Task<RefreshToken> GetByTokenValueAsync(string refreshTokenValue);
+        Task<RefreshToken?> GetByTokenValueAsync(string refreshTokenValue);
     }
 }
