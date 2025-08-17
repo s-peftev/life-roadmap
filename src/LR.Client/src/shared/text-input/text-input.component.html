@@ -1,0 +1,26 @@
+<div class="mb-4 relative">
+    <input
+        [type]="type()"
+        [formControl]="control"
+        placeholder="{{label()}}"
+        class="peer block w-full rounded-md border 
+        border-gray-300 px-3 pt-5 pb-2 text-sm placeholder-transparent 
+        focus:border-blue-500 focus:ring focus:ring-blue-200"
+        [class.border-red-500]="control.touched && control.invalid"
+    />
+    <label
+        class="absolute left-3 top-2.5 text-gray-500 text-sm transition-all peer-placeholder-shown:top-5 
+        peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-xs peer-focus:top-2.5 
+        peer-focus:text-gray-500 peer-focus:text-sm"
+    >
+        {{label()}}
+    </label>
+
+    <div *ngFor="let msg of errorMessages" class="mt-1 text-red-500 text-xs">
+        {{msg}}
+    </div>
+
+    <div *ngIf="formGroupErrors?.['passwordMismatch'] && control.touched" class="mt-1 text-red-500 text-xs">
+        Passwords do not match.
+    </div>
+</div>

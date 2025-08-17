@@ -1,0 +1,54 @@
+<div class="flex items-center gap-6">
+    <div class="flex-1">
+        <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off" class="flex flex-col gap-4">
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['userName'])"
+        [label]="'Username'"
+        [type]="'text'">
+      </app-text-input>
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['password'])"
+        [label]="'Password'"
+        [type]="'password'">
+      </app-text-input>
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['confirmPassword'])"
+        [label]="'Confirm Password'"
+        [type]="'password'">
+      </app-text-input>
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['firstName'])"
+        [label]="'First Name'"
+        [type]="'text'">
+      </app-text-input>
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['lastName'])"
+        [label]="'Last Name'"
+        [type]="'text'">
+      </app-text-input>
+
+      <app-text-input 
+        [formControl]="$any(registerForm.controls['email'])"
+        [label]="'Email'"
+        [type]="'email'">
+      </app-text-input>
+
+      <button 
+        type="submit" 
+        [disabled]="registerForm.invalid"
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+      >
+        Register
+      </button>
+
+    </form>
+    </div>
+    <div class="flex-1">
+    <img [src]="[registerImage]" alt="Register Illustration" class="w-full h-auto">
+  </div>
+</div>
