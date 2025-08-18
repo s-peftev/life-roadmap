@@ -5,31 +5,34 @@
       <app-text-input 
         [formControl]="$any(registerForm.controls['userName'])"
         [label]="'Username'"
-        [type]="'text'">
+        [indicators]="userNameValidationIndicators"
+      >
       </app-text-input>
 
       <app-text-input 
         [formControl]="$any(registerForm.controls['password'])"
         [label]="'Password'"
-        [type]="'password'">
-      </app-text-input>
+        [type]="'password'"
+        [indicators]="passwordValidationIndicators"
+      />
 
       <app-text-input 
         [formControl]="$any(registerForm.controls['confirmPassword'])"
         [label]="'Confirm Password'"
-        [type]="'password'">
+        [type]="'password'"
+      >
       </app-text-input>
 
       <app-text-input 
         [formControl]="$any(registerForm.controls['firstName'])"
         [label]="'First Name'"
-        [type]="'text'">
+      >
       </app-text-input>
 
       <app-text-input 
         [formControl]="$any(registerForm.controls['lastName'])"
         [label]="'Last Name'"
-        [type]="'text'">
+      >
       </app-text-input>
 
       <app-text-input 

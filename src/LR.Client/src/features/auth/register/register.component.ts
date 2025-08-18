@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { ASSETS } from '../../../core/constants/assets.constants';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { TextInputComponent } from "../../../shared/text-input/text-input.component";
+import { ValidationIcon, ValidationIndicator } from '../../../core/types/utils/validation.type';
 
 @Component({
   selector: 'app-register',
@@ -14,52 +15,95 @@ import { TextInputComponent } from "../../../shared/text-input/text-input.compon
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
+  private USERNAME_MIN_LENGTH: number = 4;
+  private USERNAME_MAX_LENGTH: number = 20;
+  private PASSWORD_MIN_LENGTH: number = 8;
+  private PASSWORD_MAX_LENGTH: number = 20;
+  private NAME_MAX_LENGTH: number = 50;
 
   protected registerForm: FormGroup;
 
   public registerImage = ASSETS.IMAGES.ILLUSTRATIONS.REGISTER;
+  public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
+  public userNameValidationIndicators: ValidationIndicator[];
+  public passwordValidationIndicators: ValidationIndicator[];
 
 
   constructor() {
+
     this.registerForm = this.fb.group({
       userName: ['', [
         Validators.required,
-        Validators.minLength(4),
-        Validators.maxLength(20)
+        Validators.minLength(this.USERNAME_MIN_LENGTH),
+        Validators.maxLength(this.USERNAME_MAX_LENGTH)
       ]],
       password: ['', [
         Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(20),
-        this.containDigit,
-        this.containLowercase,
-        this.containUppercase
+        Validators.maxLength(this.PASSWORD_MAX_LENGTH),
+        this.passwordValidator
       ]],
-      confirmPassword: ['', [Validators.required]],
-      firstName: ['', [Validators.maxLength(50)]],
-      lastName: ['', [Validators.maxLength(50)]],
+      confirmPassword: ['', [
+        Validators.required,
+        this.matchValues('password')
+      ]],
+      firstName: ['', [Validators.maxLength(this.NAME_MAX_LENGTH)]],
+      lastName: ['', [Validators.maxLength(this.NAME_MAX_LENGTH)]],
       email: ['', [Validators.email]]
-    }, { validators: this.passwordsMatch });
+    });
+
+    this.registerForm.controls['password'].valueChanges.subscribe({
+      next: () => this.registerForm.controls['confirmPassword'].updateValueAndValidity()
+    });
+
+    this.userNameValidationIndicators = [
+      this.createIndicator('required', 'Password is required', this.validationIcons.REQUIRED),
+      this.createIndicator('minlength', `Must be at least ${this.USERNAME_MIN_LENGTH} characters`, this.validationIcons.MIN),
+      this.createIndicator('maxlength', `Must be at most ${this.USERNAME_MAX_LENGTH} characters`, this.validationIcons.MAX),
+    ];
+
+    this.passwordValidationIndicators = [
+      this.createIndicator('required', 'Password is required', this.validationIcons.REQUIRED),
+      this.createIndicator('lowercase', 'Must contain at least one lowercase letter', this.validationIcons.L_CASE),
+      this.createIndicator('uppercase', 'Must contain at least one uppercase letter', this.validationIcons.U_CASE),
+      this.createIndicator('digit', 'Must contain at least one digit', this.validationIcons.DIGIT),
+      this.createIndicator('minlength', `Must be at least ${this.PASSWORD_MIN_LENGTH} characters`, this.validationIcons.MIN),
+      this.createIndicator('maxlength', `Must be at most ${this.PASSWORD_MAX_LENGTH} characters`, this.validationIcons.MAX),
+    ];
   }
 
-  private containDigit(control: AbstractControl): ValidationErrors | null {
-    return /\d/.test(control.value) ? null : { digit: true };
-  }
+  private passwordValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value ?? '';
+    const errors: ValidationErrors = {};
 
-  private containLowercase(control: AbstractControl): ValidationErrors | null {
-    return /[a-z]/.test(control.value) ? null : { lowercase: true };
-  }
+    if (value.length < this.PASSWORD_MIN_LENGTH) {
+      errors['minlength'] = { requiredLength: this.PASSWORD_MIN_LENGTH, actualLength: value.length };
+    }
+    if (!/\d/.test(value)) {
+      errors['digit'] = true;
+    }
+    if (!/[a-z]/.test(value)) {
+      errors['lowercase'] = true;
+    }
+    if (!/[A-Z]/.test(value)) {
+      errors['uppercase'] = true;
+    }
 
-  private containUppercase(control: AbstractControl): ValidationErrors | null {
-    return /[A-Z]/.test(control.value) ? null : { uppercase: true };
-  }
+    return Object.keys(errors).length ? errors : null;
+  };
 
-  private passwordsMatch(group: AbstractControl): ValidationErrors | null {
-  const password = group.get('password')?.value;
-  const confirmPassword = group.get('confirmPassword')?.value;
-  
-  return password === confirmPassword ? null : { passwordMismatch: true };
-}
+  private matchValues(matchTo: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      return control.value === control.parent?.get(matchTo)?.value ? null : { isMatching: true }
+    }
+  };
 
-  public register() {}
+  private createIndicator(key: string, message: string, icons: ValidationIcon): ValidationIndicator {
+    return {
+      key,
+      message,
+      icons
+    };
+  };
+
+  public register() { };
 }
