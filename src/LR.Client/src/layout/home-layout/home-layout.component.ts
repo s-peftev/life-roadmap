@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { NavComponent } from "../../shared/nav/nav.component";
 import { RouterOutlet } from '@angular/router';
+import { NavComponent } from '../../shared/components/nav/nav.component';
 
 @Component({
   selector: 'app-home-layout',

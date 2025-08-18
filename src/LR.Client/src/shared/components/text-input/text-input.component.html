@@ -1,4 +1,17 @@
-<div class="mb-4 relative">
+<div class="mb-5 relative">
+    <div
+        *ngIf="indicators().length"
+        class="absolute -top-6 left-0 z-10 flex flex-wrap gap-x-4 gap-y-1 text-xs transition-all duration-200"
+        [class.opacity-0]="!shouldShowIndicators"
+        [class.-translate-y-2]="!shouldShowIndicators"
+        [class.opacity-100]="shouldShowIndicators"
+        [class.translate-y-0]="shouldShowIndicators"
+    >
+        <span *ngFor="let indicator of indicators()" class="tooltip tooltip-bottom" [attr.data-tip]="indicator.message">
+        <img [src]="getIcon(indicator)" class="w-4 h-4" alt="" />
+        </span>
+    </div>
+
     <input 
         [type]="type()" 
         [formControl]="control" 
@@ -18,15 +31,4 @@
     >
         {{label()}}
     </label>
-
-    <div 
-        *ngIf="indicators().length" 
-        class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs overflow-hidden transition-all duration-200"
-        [class.max-h-0]="!touchedOnce()"
-        [class.max-h-40]="touchedOnce()"
-    >
-        <span *ngFor="let indicator of indicators()" class="tooltip tooltip-bottom" [attr.data-tip]="indicator.message">
-            <img [src]="getIcon(indicator)" class="w-5 h-5" alt="" />
-        </span>
-    </div>
 </div>

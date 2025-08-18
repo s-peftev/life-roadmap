@@ -14,7 +14,8 @@ export const ASSETS = {
     IMAGES: {
         ILLUSTRATIONS: {
             TITLE: illustration('title.png'),
-            REGISTER: illustration('register.png')
+            REGISTER: illustration('register.png'),
+            LOGIN: illustration('login.png')
         },
         ICONS: {
             VALIDATION: {
@@ -42,6 +43,14 @@ export const ASSETS = {
                     OK: validationIcon('max_ok.png'),
                     ERR: validationIcon('max_err.png'),
                 },
+                PASS_MATCH: {
+                    OK: validationIcon('pass_match_ok.png'),
+                    ERR: validationIcon('pass_match_err.png'),
+                },
+                EMAIL: {
+                    OK: validationIcon('email_ok.png'),
+                    ERR: validationIcon('email_err.png'),
+                }
             }
         }
     }

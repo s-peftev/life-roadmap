@@ -1,7 +1,7 @@
 import { NgFor, NgIf, } from '@angular/common';
 import { Component, input, Self, signal } from '@angular/core';
-import { ControlValueAccessor, FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
-import { ValidationIndicator } from '../../core/types/utils/validation.type';
+import { ControlValueAccessor, FormControl, NgControl, ReactiveFormsModule } from '@angular/forms';
+import { ValidationIndicator } from '../../../core/types/utils/validation.type';
 
 @Component({
   selector: 'app-text-input',
@@ -14,6 +14,7 @@ export class TextInputComponent implements ControlValueAccessor {
   public type = input<'text' | 'password' | 'email' | 'date'>('text');
   public indicators = input<ValidationIndicator[]>([]);
   public touchedOnce = signal(false);
+  public showIndicatorsIfNotEmpty = input<boolean>(false);
 
   constructor(@Self() public ngControl: NgControl) {
     this.ngControl.valueAccessor = this;
@@ -26,6 +27,16 @@ export class TextInputComponent implements ControlValueAccessor {
 
   get control(): FormControl {
     return this.ngControl.control as FormControl;
+  }
+
+  get shouldShowIndicators(): boolean {
+    if (!this.touchedOnce()) return false;
+
+    if (this.showIndicatorsIfNotEmpty() && !this.control.value) {
+      return false;
+    }
+
+    return true;
   }
 
   getIcon(indicator: ValidationIndicator): string {
