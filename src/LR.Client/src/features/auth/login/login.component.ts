@@ -1,18 +1,24 @@
 import { Component, inject } from '@angular/core';
 import { ASSETS } from '../../../core/constants/assets.constants';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ValidationIndicator } from '../../../core/types/utils/validation.type';
 import { USER_AUTH } from '../../../core/constants/validation.constants';
 import { minLengthInstant } from '../../../shared/validators/string-pattern.validator';
+import { TextInputComponent } from '../../../shared/components/text-input/text-input.component';
+import { ValidationIndicatorService } from '../../../core/utils/validation-indicator.service';
 
 @Component({
   selector: 'app-login',
-  imports: [],
+  imports: [
+    TextInputComponent,
+    ReactiveFormsModule
+  ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
+  private validationIndicatorService = inject(ValidationIndicatorService);
 
   protected loginForm: FormGroup = new FormGroup({});
 
@@ -22,6 +28,7 @@ export class LoginComponent {
 
   constructor() {
     this.initForm();
+    this.initIndicators();
   }
 
   private initForm(): void {
@@ -38,4 +45,21 @@ export class LoginComponent {
       ]],
     });
   }
+
+  private initIndicators() {
+    this.validationIndicators = {
+      userName: this.validationIndicatorService.getIndicators([
+        { indicator: 'required', param: 'Username' },
+        { indicator: 'minlength', param: USER_AUTH.USERNAME_MIN_LENGTH },
+        { indicator: 'maxlength', param: USER_AUTH.USERNAME_MAX_LENGTH }
+      ]),
+      password: this.validationIndicatorService.getIndicators([
+        { indicator: 'required', param: 'Password' }, 
+        { indicator: 'minlength', param: USER_AUTH.PASSWORD_MIN_LENGTH },
+        { indicator: 'maxlength', param: USER_AUTH.PASSWORD_MAX_LENGTH },
+      ])
+    };
+  }
+
+  public login() {}
 }
