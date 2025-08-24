@@ -1,8 +1,7 @@
+using LR.API.Extensions;
 using LR.API.Handlers;
-using LR.Domain.Enums;
 using LR.Infrastructure.DependencyInjection;
-using LR.Persistance.Identity;
-using Microsoft.AspNetCore.Identity;
+using LR.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,52 +10,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.ConfigureCorsPolicy(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-
-// CORS
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("DefaultCorsPolicy", policy =>
-    {
-        policy.WithOrigins(allowedOrigins!)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseExceptionHandler(_ => { });
+app.UseMiddleware<GlobalExceptionHandler>();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
-    var roles = Enum.GetNames(typeof(Role));
-    foreach (var role in roles)
-    {
-        if (!await roleManager.RoleExistsAsync(role))
-        {
-            await roleManager.CreateAsync(new AppRole(role));
-        }
-    }
-}
+await RoleSeeder.SeedRolesAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "LifeRoadmap API v1");
-        options.RoutePrefix = string.Empty;
-    });
+    app.UseConfiguredSwagger();
 }
 
 app.Run();

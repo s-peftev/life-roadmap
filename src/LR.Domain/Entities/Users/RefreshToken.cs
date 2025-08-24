@@ -3,7 +3,7 @@
     public class RefreshToken
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Token { get; set; } = null!;
+        public required string Token { get; set; }
         public DateTime ExpiresAtUtc { get; set; }
         public bool IsRevoked { get; set; }
         public DateTime? RevokedAtUtc { get; set; }

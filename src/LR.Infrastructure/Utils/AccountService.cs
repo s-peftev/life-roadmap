@@ -3,6 +3,7 @@ using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
+using LR.Domain.Enums;
 using LR.Domain.Exceptions.User;
 using LR.Infrastructure.Exceptions.Account;
 using LR.Infrastructure.Extensions;
@@ -51,7 +52,7 @@ namespace LR.Infrastructure.Utils
                 throw new RegistrationFailedException(userRegisterDto.UserName);
             }
 
-            var roleResult = await _userManager.AddToRoleAsync(user, "User");
+            var roleResult = await _userManager.AddToRoleAsync(user, Role.User.ToString());
             if (!roleResult.Succeeded)
             {
                 await _userManager.DeleteAsync(user);

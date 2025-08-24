@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using LR.Application.DTOs.User;
-using LR.Application.Responses.User;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -18,11 +17,13 @@ namespace LR.API.Controllers
         private readonly UserManager<AppUser> _userManager = userManager;
 
         [HttpGet]
-        public async Task<ActionResult<UserListResponse>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            var users = await _userManager.Users.ProjectTo<UserDto>(_mapper.ConfigurationProvider).ToListAsync();
+            var users = await _userManager.Users
+                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
 
-            return Ok(new UserListResponse(users));
+            return Ok(users);
         }
     }
 }

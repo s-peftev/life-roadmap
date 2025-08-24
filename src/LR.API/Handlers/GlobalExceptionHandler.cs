@@ -17,7 +17,8 @@ namespace LR.API.Handlers
         {
             var (statusCode, message) = GetExceptionDetails(exception);
 
-            _logger.LogError(exception, exception.Message);
+            if (exception is not OperationCanceledException)
+                _logger.LogError(exception, exception.Message);
 
             httpContext.Response.StatusCode = (int)statusCode;
             await httpContext.Response.WriteAsJsonAsync(message, cancellationToken);
@@ -29,6 +30,7 @@ namespace LR.API.Handlers
         {
             return exception switch
             {
+                OperationCanceledException _ => (HttpStatusCode.NoContent, "Request was cancelled."),
                 LoginFailedException _ => (HttpStatusCode.Unauthorized, exception.Message),
                 LogoutFailedException _ => (HttpStatusCode.InternalServerError, exception.Message),
                 UserAlreadyExistsException _ => (HttpStatusCode.Conflict, exception.Message),
