@@ -2,6 +2,8 @@
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
+using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
 using LR.Domain.Exceptions.User;
@@ -11,6 +13,8 @@ using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using LR.Application.Responses.User;
 
 namespace LR.Infrastructure.Utils
 {
@@ -32,48 +36,37 @@ namespace LR.Infrastructure.Utils
         private readonly IUserProfileService _userProfileService = userProfileService;
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
 
-        public async Task RegisterAsync(UserRegisterDto userRegisterDto)
+        public async Task<Result<AuthResponse>> RegisterAsync(UserRegisterDto dto)
         {
-            if (await _userManager.FindByNameAsync(userRegisterDto.UserName) is not null)
-                throw new UserAlreadyExistsException(
-                    $"User with username '{userRegisterDto.UserName}' already exists.");
+            var userCheck = await EnsureUserIsUniqueAsync(dto);
+            if (!userCheck.IsSuccess)
+                return Result<AuthResponse>.Failure(userCheck.Error);
 
-            if (!string.IsNullOrEmpty(userRegisterDto.Email) &&
-                await _userManager.FindByEmailAsync(userRegisterDto.Email) is not null)
-            {
-                throw new UserAlreadyExistsException($"Email '{userRegisterDto.Email}' is already taken.");
-            }
+            var userResult = await CreateUserAsync(dto);
+            if (!userResult.IsSuccess)
+                return Result<AuthResponse>.Failure(userResult.Error);
 
-            var user = _mapper.Map<AppUser>(userRegisterDto);
-            var result = await _userManager.CreateAsync(user, userRegisterDto.Password);
+            var user = userResult.Value;
 
-            if (!result.Succeeded)
-            {
-                throw new RegistrationFailedException(userRegisterDto.UserName);
-            }
-
-            var roleResult = await _userManager.AddToRoleAsync(user, Role.User.ToString());
-            if (!roleResult.Succeeded)
+            var roleAssignResult = await AssignRoleAsync(user);
+            if (!roleAssignResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-
-                throw new RegistrationFailedException(userRegisterDto.UserName);
+                return Result<AuthResponse>.Failure(roleAssignResult.Error);
             }
 
-            var profile = _mapper.Map<UserProfile>(userRegisterDto);
-            profile.UserId = user.Id;
-
-            _userProfileService.Add(profile);
-            try
-            {
-                await _userProfileService.SaveChangesAsync();
-            }
-            catch (Exception)
+            var profileResult = await CreateProfileAsync(user, dto);
+            if (!profileResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-
-                throw new RegistrationFailedException(userRegisterDto.UserName);
+                return Result<AuthResponse>.Failure(profileResult.Error);
             }
+
+            var jwtToken =
+                _tokenService.GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
+
+            
+
         }
 
         public async Task<TokenPairDto> LoginAsync(UserLoginDto userLoginDto)
@@ -133,6 +126,55 @@ namespace LR.Infrastructure.Utils
             refreshToken.RevokedAtUtc = DateTime.UtcNow;
 
             await _refreshTokenService.SaveChangesAsync();
+        }
+
+        private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto dto)
+        {
+            if (await _userManager.FindByNameAsync(dto.UserName) is not null)
+                return Result.Failure(UserErrors.UsernameIsTaken);
+
+            if (!string.IsNullOrEmpty(dto.Email) &&
+                await _userManager.FindByEmailAsync(dto.Email) is not null)
+                return Result.Failure(UserErrors.EmailIsTaken);
+
+            return Result.Success();
+        }
+
+        private async Task<Result<AppUser>> CreateUserAsync(UserRegisterDto dto)
+        {
+            var user = _mapper.Map<AppUser>(dto);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (!result.Succeeded)
+            {
+                var details = result.Errors.Select(e => e.Description);
+
+                return Result<AppUser>.Failure(UserErrors.RegistrationFailed with { Details = details });
+            }
+
+            return Result<AppUser>.Success(user);
+        }
+
+        private async Task<Result> AssignRoleAsync(AppUser user)
+        {
+            var result = await _userManager.AddToRoleAsync(user, Role.User.ToString());
+            
+            if (!result.Succeeded)
+                return Result.Failure(UserErrors.RegistrationFailed);
+
+            return Result.Success();
+        }
+
+        private async Task<Result<UserProfile>> CreateProfileAsync(AppUser user, UserRegisterDto dto)
+        {
+            var profile = _mapper.Map<UserProfile>(dto);
+            profile.UserId = user.Id;
+            _userProfileService.Add(profile);
+
+            if (!(await _userProfileService.SaveChangesAsync() > 0))
+                return Result<UserProfile>.Failure(UserErrors.RegistrationFailed);
+
+            return Result<UserProfile>.Success(profile);
         }
 
         private async Task<TokenPairDto> SaveTokensAndSetCookiesAsync(AppUser user)

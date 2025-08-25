@@ -1,4 +1,4 @@
-﻿using LR.Application.Result;
+﻿using LR.Application.AppResult;
 
 namespace LR.Application.Responses
 {
