@@ -1,4 +1,7 @@
+using LR.API.Extensions;
+using LR.API.Handlers;
 using LR.Infrastructure.DependencyInjection;
+using LR.Infrastructure.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,25 +9,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddInfrastructure(connectionString!);
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.ConfigureCorsPolicy(builder.Configuration);
 
-// CORS
-var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("DefaultCorsPolicy", policy =>
-    {
-        policy.WithOrigins(allowedOrigins!)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
-});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<GlobalExceptionHandler>();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
+
+await RoleSeeder.SeedRolesAsync(app.Services);
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseConfiguredSwagger();
+}
 
 app.Run();
