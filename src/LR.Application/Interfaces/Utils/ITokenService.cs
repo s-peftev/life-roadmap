@@ -1,4 +1,4 @@
-﻿using LR.Application.DTOs.User;
+﻿using LR.Application.DTOs.Token;
 using LR.Domain.Entities.Users;
 
 namespace LR.Application.Interfaces.Utils

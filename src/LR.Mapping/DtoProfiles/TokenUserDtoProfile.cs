@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LR.Application.DTOs.User;
+using LR.Application.DTOs.Token;
 using LR.Persistance.Identity;
 
 namespace LR.Mapping.DtoProfiles

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using LR.Application.Responses.User;
+using LR.Application.DTOs.Token;
 
 namespace LR.Infrastructure.Utils
 {

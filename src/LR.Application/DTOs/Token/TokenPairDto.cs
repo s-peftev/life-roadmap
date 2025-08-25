@@ -1,6 +1,6 @@
 ﻿using LR.Domain.Entities.Users;
 
-namespace LR.Application.DTOs.User
+namespace LR.Application.DTOs.Token
 {
     public class TokenPairDto(AccessTokenDto accessToken, RefreshToken refreshToken)
     {

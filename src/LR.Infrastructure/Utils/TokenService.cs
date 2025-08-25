@@ -1,4 +1,4 @@
-﻿using LR.Application.DTOs.User;
+﻿using LR.Application.DTOs.Token;
 using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
 using LR.Infrastructure.Options;
@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -53,8 +54,14 @@ namespace LR.Infrastructure.Utils
             return new AccessTokenDto(jwtToken, expires);
         }
 
-        public RefreshToken GenerateRefreshToken(string userId, int ExpirationTimeInDays)
+        public RefreshToken GenerateRefreshToken(RefreshTokenGenerationDto dto)
         {
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                throw new ArgumentException("UserId is required.");
+
+            if (dto.ExpirationDays <= 0)
+                throw new ArgumentException("ExpirationDays must be positive.");
+
             var randomNumber = new byte[64];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomNumber);
@@ -62,8 +69,11 @@ namespace LR.Infrastructure.Utils
             return new() 
             {
                 Token = Convert.ToBase64String(randomNumber),
-                ExpiresAtUtc = DateTime.UtcNow.AddDays(ExpirationTimeInDays),
-                UserId = userId
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(dto.ExpirationDays),
+                UserAgent = dto.UserAgent,
+                IpAddress = dto.IpAddress,
+                SessionId = dto.SessionId ?? Guid.NewGuid(),
+                UserId = dto.UserId
             };
         }
 

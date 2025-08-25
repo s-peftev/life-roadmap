@@ -1,4 +1,5 @@
-﻿using LR.Application.DTOs.User;
+﻿using LR.Application.DTOs.Token;
+using LR.Application.DTOs.User;
 
 namespace LR.Application.Responses.User
 {

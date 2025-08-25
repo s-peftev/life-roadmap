@@ -1,4 +1,4 @@
-﻿namespace LR.Application.DTOs.User
+﻿namespace LR.Application.DTOs.Token
 {
     public class TokenUserDto
     {
