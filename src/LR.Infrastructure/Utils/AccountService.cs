@@ -38,7 +38,9 @@ namespace LR.Infrastructure.Utils
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
         private readonly IRequestInfoService _requestInfoService = requestInfoService;
 
-        public async Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto)
+        public async Task<Result<RegisterResultData>> RegisterAsync(
+            UserRegisterDto dto,
+            CancellationToken ct)
         {
             var userCheck = await EnsureUserIsUniqueAsync(dto);
             if (!userCheck.IsSuccess)
@@ -192,7 +194,10 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        private async Task<Result<UserProfile>> CreateProfileAsync(AppUser user, UserRegisterDto dto)
+        private async Task<Result<UserProfile>> CreateProfileAsync(
+            AppUser user,
+            UserRegisterDto dto,
+            CancellationToken)
         {
             var profile = _mapper.Map<UserProfile>(dto);
             profile.UserId = user.Id;

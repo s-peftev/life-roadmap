@@ -38,9 +38,11 @@ namespace LR.API.Controllers
             Description = "Validation errors or registration failed")]
         [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
             Description = "User with given username or email already exists")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterRequest request)
+        public async Task<IActionResult> Register(
+            [FromBody] UserRegisterRequest request,
+            CancellationToken ct)
         {
-            var validationResult = await _registerValidator.ValidateAsync(request);
+            var validationResult = await _registerValidator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
                 return BadRequest(validationResult.Errors);
