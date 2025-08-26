@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,31 +13,43 @@ using System.Text;
 
 namespace LR.Infrastructure.Utils
 {
-    public class TokenService(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor) 
-        : ITokenService
+    public class TokenService : ITokenService
     {
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly JwtOptions _jwtOptions;
+        private readonly SigningCredentials _signingCredentials;
 
-        public AccessTokenDto GenerateJwtToken(TokenUserDto tokenUserDto)
+        public TokenService(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
+            _jwtOptions = jwtOptions.Value;
 
-            var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
+            _signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+        }
+
+        public AccessTokenDto GenerateJwtToken(TokenUserDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UserId))
+                throw new ArgumentException("UserId is required for JWT generation.");
+
+            if (string.IsNullOrWhiteSpace(dto.UserName))
+                throw new ArgumentException("UserName is required for JWT generation.");
+
+            if (dto.Roles == null || dto.Roles.Count == 0)
+                throw new ArgumentException("At least one role is required for JWT generation.");
 
             var claims = new List<Claim>()
             {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, tokenUserDto.Id.ToString()),
-                new Claim(ClaimTypes.Name, tokenUserDto.UserName),
+                new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new(ClaimTypes.NameIdentifier, dto.UserId),
+                new(ClaimTypes.Name, dto.UserName),
             };
 
-            if (!string.IsNullOrWhiteSpace(tokenUserDto.Email))
+            if (!string.IsNullOrWhiteSpace(dto.Email))
             {
-                claims.Add(new Claim(JwtRegisteredClaimNames.Email, tokenUserDto.Email));
+                claims.Add(new Claim(JwtRegisteredClaimNames.Email, dto.Email));
             }
 
-            claims.AddRange(tokenUserDto.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+            claims.AddRange(dto.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
             var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);
 
@@ -47,7 +58,7 @@ namespace LR.Infrastructure.Utils
                 audience: _jwtOptions.Audience,
                 claims: claims,
                 expires: expires,
-                signingCredentials: credentials);
+                signingCredentials: _signingCredentials);
 
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
@@ -57,7 +68,7 @@ namespace LR.Infrastructure.Utils
         public RefreshToken GenerateRefreshToken(RefreshTokenGenerationDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.UserId))
-                throw new ArgumentException("UserId is required.");
+                throw new ArgumentException("UserId is required for refresh token generation.");
 
             if (dto.ExpirationDays <= 0)
                 throw new ArgumentException("ExpirationDays must be positive.");
@@ -75,20 +86,6 @@ namespace LR.Infrastructure.Utils
                 SessionId = dto.SessionId ?? Guid.NewGuid(),
                 UserId = dto.UserId
             };
-        }
-
-        public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, 
-            DateTime expiration)
-        {
-            _httpContextAccessor.HttpContext?.Response.Cookies.Append(cookieName,
-                token, new CookieOptions
-                { 
-                    HttpOnly = true,
-                    Expires = expiration,
-                    IsEssential = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict
-                });
         }
     }
 }

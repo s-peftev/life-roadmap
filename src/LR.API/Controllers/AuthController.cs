@@ -3,6 +3,7 @@ using FluentValidation;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
+using LR.Application.Responses;
 using LR.Application.Responses.User;
 using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +18,8 @@ namespace LR.API.Controllers
         IOptions<JwtOptions> jwtOptions,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IValidator<UserRegisterRequest> registerValidator,
-        IValidator<UserLoginRequest> loginValidator
+        IValidator<UserLoginRequest> loginValidator,
+        IRefreshTokenCookieWriter refreshTokenCookieWriter
         ) : BaseApiController
     {
         private readonly IAccountService _accountService = accountService;
@@ -26,12 +28,16 @@ namespace LR.API.Controllers
         private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
         private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
+        private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
 
         [HttpPost("register")]
         [SwaggerOperation(Summary = "Register new user", Description = "Creates a new user account")]
-        [SwaggerResponse(StatusCodes.Status200OK, "User registered successfully")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors or registration failed")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, "User with given username or email already exists")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AuthResponse>),
+            Description = "User registered successfully")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<object>),
+            Description = "Validation errors or registration failed")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
+            Description = "User with given username or email already exists")]
         public async Task<IActionResult> Register([FromBody] UserRegisterRequest request)
         {
             var validationResult = await _registerValidator.ValidateAsync(request);
@@ -40,9 +46,16 @@ namespace LR.API.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            await _accountService.RegisterAsync(_mapper.Map<UserRegisterDto>(request));
+            var registerResult = await _accountService.RegisterAsync(_mapper.Map<UserRegisterDto>(request));
 
-            return Ok(new { message = "User registered successfully" });
+            return registerResult.Match(
+                data =>
+                {
+                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+
+                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                },
+                error => HandleFailure(error));
         }
 
         [HttpPost("login")]

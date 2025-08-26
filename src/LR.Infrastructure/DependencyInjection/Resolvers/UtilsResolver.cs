@@ -10,9 +10,11 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
         {
             services.AddHttpContextAccessor();
 
-            services.AddTransient<ITokenService, TokenService>();
+            services.AddSingleton<ITokenService, TokenService>();
 
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IRefreshTokenCookieWriter, RefreshTokenCookieWriter>();
+            services.AddScoped<IRequestInfoService, RequestInfoService>();
         }
     }
 }

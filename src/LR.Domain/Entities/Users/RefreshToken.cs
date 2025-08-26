@@ -12,5 +12,8 @@
         public string? UserAgent { get; set; }
         public string? IpAddress { get; set; }
         public required string UserId { get; set; }
+
+        public bool MissingClientInfo 
+            => string.IsNullOrEmpty(UserAgent) || string.IsNullOrEmpty(IpAddress);
     }
 }

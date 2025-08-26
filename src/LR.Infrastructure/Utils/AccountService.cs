@@ -6,16 +6,15 @@ using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
-using LR.Domain.Exceptions.User;
 using LR.Infrastructure.Exceptions.Account;
 using LR.Infrastructure.Extensions;
 using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using LR.Application.Responses.User;
 using LR.Application.DTOs.Token;
+using LR.Application.AppResult.ResultData.Account;
+using LR.Application.Responses.User;
 
 namespace LR.Infrastructure.Utils
 {
@@ -26,6 +25,7 @@ namespace LR.Infrastructure.Utils
         IMapper mapper,
         IUserProfileService userProfileService,
         IRefreshTokenService refreshTokenService,
+        IRequestInfoService requestInfoService,
         UserManager<AppUser> userManager
         ) : IAccountService
     {
@@ -36,16 +36,17 @@ namespace LR.Infrastructure.Utils
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly IUserProfileService _userProfileService = userProfileService;
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
+        private readonly IRequestInfoService _requestInfoService = requestInfoService;
 
-        public async Task<Result<AuthResponse>> RegisterAsync(UserRegisterDto dto)
+        public async Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto)
         {
             var userCheck = await EnsureUserIsUniqueAsync(dto);
             if (!userCheck.IsSuccess)
-                return Result<AuthResponse>.Failure(userCheck.Error);
+                return Result<RegisterResultData>.Failure(userCheck.Error);
 
             var userResult = await CreateUserAsync(dto);
             if (!userResult.IsSuccess)
-                return Result<AuthResponse>.Failure(userResult.Error);
+                return Result<RegisterResultData>.Failure(userResult.Error);
 
             var user = userResult.Value;
 
@@ -53,21 +54,46 @@ namespace LR.Infrastructure.Utils
             if (!roleAssignResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-                return Result<AuthResponse>.Failure(roleAssignResult.Error);
+                return Result<RegisterResultData>.Failure(roleAssignResult.Error);
             }
 
             var profileResult = await CreateProfileAsync(user, dto);
             if (!profileResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-                return Result<AuthResponse>.Failure(profileResult.Error);
+                return Result<RegisterResultData>.Failure(profileResult.Error);
             }
 
-            var jwtToken =
-                _tokenService.GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
+            var jwtToken = _tokenService
+                .GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
 
-            
+            var refreshTokenGenerationDto = new RefreshTokenGenerationDto
+            {
+                UserId = user.Id,
+                ExpirationDays = _refreshTokenOptions.ExpirationTimeInDays,
+                SessionId = Guid.NewGuid(),
+                UserAgent = _requestInfoService.GetUserAgent(),
+                IpAddress = _requestInfoService.GetIpAddress()
+            };
 
+            var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
+
+            _refreshTokenService.Add(refreshToken);
+            await _refreshTokenService.SaveChangesAsync();
+
+            var authResponse = new AuthResponse
+            {
+                AccessToken = jwtToken,
+                User = _mapper.Map<UserDto>(user)
+            };
+
+            var registerResult = new RegisterResultData
+            {
+                AuthResponse = authResponse,
+                RefreshToken = refreshToken
+            };
+
+            return Result<RegisterResultData>.Success(registerResult);
         }
 
         public async Task<TokenPairDto> LoginAsync(UserLoginDto userLoginDto)
@@ -176,36 +202,6 @@ namespace LR.Infrastructure.Utils
                 return Result<UserProfile>.Failure(UserErrors.RegistrationFailed);
 
             return Result<UserProfile>.Success(profile);
-        }
-
-        private async Task<TokenPairDto> SaveTokensAndSetCookiesAsync(AppUser user)
-        {
-            var jwtToken =
-                _tokenService.GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
-            var refreshToken = _tokenService
-                .GenerateRefreshToken(user.Id, _refreshTokenOptions.ExpirationTimeInDays);
-
-            try
-            {
-                _refreshTokenService.Add(refreshToken);
-                await _refreshTokenService.SaveChangesAsync();
-
-                _tokenService.WriteAuthTokenAsHttpOnlyCookie(
-                    _jwtOptions.TokenName,
-                    jwtToken.TokenValue,
-                    jwtToken.ExpiresAtUtc);
-
-                _tokenService.WriteAuthTokenAsHttpOnlyCookie(
-                    _refreshTokenOptions.TokenName,
-                    refreshToken.Token,
-                    refreshToken.ExpiresAtUtc);
-
-                return new TokenPairDto(jwtToken, refreshToken);
-            }
-            catch (Exception ex)
-            {
-                throw new AuthenticationTokenException("Token persistence failed", ex);
-            }
         }
     }
 }

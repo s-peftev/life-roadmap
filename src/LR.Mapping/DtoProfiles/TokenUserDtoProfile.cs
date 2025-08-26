@@ -9,7 +9,7 @@ namespace LR.Mapping.DtoProfiles
         public TokenUserDtoProfile()
         {
             CreateMap<AppUser, TokenUserDto>()
-                .ForMember(dest => dest.Id,
+                .ForMember(dest => dest.UserId,
                     opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.UserName,
                     opt => opt.MapFrom(src => src.UserName))
