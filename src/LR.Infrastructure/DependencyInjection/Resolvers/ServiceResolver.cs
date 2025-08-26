@@ -9,7 +9,6 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
     {
         internal static void AddServices(IServiceCollection services)
         {
-            services.AddScoped(typeof(IEntityService<,>), typeof(EntityService<,>));
             services.AddScoped<IUserProfileService, UserProfileService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         }

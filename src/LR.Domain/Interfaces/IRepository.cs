@@ -5,7 +5,7 @@
     {
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
-        Task DeleteAsync(TKey id);
+        Task<bool> RemoveAsync(TKey id);
         Task<TEntity?> GetByIdAsync(TKey id);
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<int> SaveChangesAsync();

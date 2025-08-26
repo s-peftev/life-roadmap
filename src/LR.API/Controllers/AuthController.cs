@@ -48,7 +48,8 @@ namespace LR.API.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var registerResult = await _accountService.RegisterAsync(_mapper.Map<UserRegisterDto>(request));
+            var registerResult = await _accountService
+                .RegisterAsync(_mapper.Map<UserRegisterDto>(request), ct);
 
             return registerResult.Match(
                 data =>

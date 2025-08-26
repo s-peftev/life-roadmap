@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LR.Persistance.Repositories
 {
-    public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> 
+    public abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         where TEntity : class
     {
-        private readonly AppDbContext _context;
-        protected DbSet<TEntity> _dbSet;
+        protected readonly AppDbContext _context;
+        protected readonly DbSet<TEntity> _dbSet;
 
         public Repository(AppDbContext context)
         {
@@ -15,40 +15,43 @@ namespace LR.Persistance.Repositories
             _dbSet = _context.Set<TEntity>();
         }
 
-        public TEntity Add(TEntity entity)
+        public virtual TEntity Add(TEntity entity)
         {
             _dbSet.Add(entity);
 
             return entity;
         }
 
-        public async Task DeleteAsync(TKey id)
+        public virtual async Task<bool> RemoveAsync(TKey id)
         {
-            var entity = await GetByIdAsync(id) 
-                ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+            var entity = await GetByIdAsync(id);
+
+            if (entity is null) 
+                return false;
 
             _dbSet.Remove(entity);
+
+            return true;
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(TKey id)
+        public virtual async Task<TEntity?> GetByIdAsync(TKey id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<int> SaveChangesAsync()
+        public virtual async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
 
-        public TEntity Update(TEntity entity)
+        public virtual TEntity Update(TEntity entity)
         {
-            _dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
 
             return entity;
         }
