@@ -4,10 +4,8 @@ namespace LR.Application.AppResult.Errors
 {
     public static class UserErrors
     {
-        public static readonly Error UserNotFound = new(
-            "UserNotFound",
-            ErrorType.NotFound,
-            "User not found.");
+        public static readonly Error NotFound =
+            ErrorFactory.NotFound("User");
 
         public static readonly Error UsernameIsTaken = new(
             "UsernameIsTaken",

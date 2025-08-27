@@ -29,7 +29,7 @@ namespace LR.Persistance.Repositories
             return entity;
         }
 
-        public virtual async Task<bool> RemoveAsync(TKey id, CancellationToken ct)
+        public virtual async Task<bool> RemoveAsync(TKey id, CancellationToken ct = default)
         {
             var entity = await GetByIdAsync(id, ct);
 
@@ -41,17 +41,17 @@ namespace LR.Persistance.Repositories
             return true;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct)
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
         {
             return await _dbSet.ToListAsync(ct);
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct)
+        public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)
         {
             return await _dbSet.FindAsync(id, ct);
         }
 
-        public virtual async Task<int> SaveChangesAsync(CancellationToken ct)
+        public virtual async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
             return await _context.SaveChangesAsync(ct);
         }
