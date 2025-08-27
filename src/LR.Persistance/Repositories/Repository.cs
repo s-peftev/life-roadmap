@@ -22,9 +22,16 @@ namespace LR.Persistance.Repositories
             return entity;
         }
 
-        public virtual async Task<bool> RemoveAsync(TKey id)
+        public virtual TEntity Update(TEntity entity)
         {
-            var entity = await GetByIdAsync(id);
+            _dbSet.Update(entity);
+
+            return entity;
+        }
+
+        public virtual async Task<bool> RemoveAsync(TKey id, CancellationToken ct)
+        {
+            var entity = await GetByIdAsync(id, ct);
 
             if (entity is null) 
                 return false;
@@ -34,26 +41,19 @@ namespace LR.Persistance.Repositories
             return true;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct)
         {
-            return await _dbSet.ToListAsync();
+            return await _dbSet.ToListAsync(ct);
         }
 
-        public virtual async Task<TEntity?> GetByIdAsync(TKey id)
+        public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct)
         {
-            return await _dbSet.FindAsync(id);
+            return await _dbSet.FindAsync(id, ct);
         }
 
-        public virtual async Task<int> SaveChangesAsync()
+        public virtual async Task<int> SaveChangesAsync(CancellationToken ct)
         {
-            return await _context.SaveChangesAsync();
-        }
-
-        public virtual TEntity Update(TEntity entity)
-        {
-            _dbSet.Update(entity);
-
-            return entity;
+            return await _context.SaveChangesAsync(ct);
         }
     }
 }

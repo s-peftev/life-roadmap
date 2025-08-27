@@ -5,9 +5,9 @@
     {
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
-        Task<bool> RemoveAsync(TKey id);
-        Task<TEntity?> GetByIdAsync(TKey id);
-        Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<int> SaveChangesAsync();
+        Task<bool> RemoveAsync(TKey id, CancellationToken ct);
+        Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct);
+        Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct);
+        Task<int> SaveChangesAsync(CancellationToken ct);
     }
 }

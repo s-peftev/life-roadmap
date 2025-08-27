@@ -7,9 +7,11 @@ namespace LR.Persistance.Repositories.Users
     public class RefreshTokenRepository(AppDbContext context)
         : Repository<RefreshToken, Guid>(context), IRefreshTokenRepository
     {
-        public async Task<RefreshToken?> GetByTokenValueAsync(string refreshTokenValue)
+        public async Task<RefreshToken?> GetByTokenValueAsync(
+            string refreshTokenValue,
+            CancellationToken ct)
         {
-            return await _dbSet.FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue);
+            return await _dbSet.FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue, ct);
         }
     }
 }
