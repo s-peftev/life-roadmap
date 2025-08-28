@@ -1,15 +1,15 @@
 ﻿using LR.Application.DTOs.User;
 using LR.Application.AppResult;
-using LR.Application.DTOs.Token;
 using LR.Application.AppResult.ResultData.Account;
+using LR.Application.Responses.User;
 
 namespace LR.Application.Interfaces.Utils
 {
     public interface IAccountService
     {
-        Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto);
-        Task<TokenPairDto> LoginAsync(UserLoginDto dto);
-        Task LogoutAsync(string userId);
-        Task<TokenPairDto> RefreshToken(string? refreshToken);
+        Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto);
+        Task<Result<AuthResult>> LoginAsync(UserLoginDto dto);
+        Task<Result> LogoutAsync(string userId);
+        Task<Result<TokenPairResponse>> RefreshToken(string refreshToken);
     }
 }

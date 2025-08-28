@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using LR.Application.DTOs.Token;
 using LR.Application.Responses.User;
 
 namespace LR.Mapping.ResponseProfiles
@@ -8,7 +7,7 @@ namespace LR.Mapping.ResponseProfiles
     {
         public AuthProfile() 
         {
-            CreateMap<TokenPairDto, AuthResponse>()
+            CreateMap<TokenPairResponse, AuthResponse>()
             .ForMember(dest => dest.AccessToken, opt => opt.MapFrom(src => src.AccessToken.TokenValue))
             .ForMember(dest => dest.AccessTokenExpiresAtUtc, opt => opt.MapFrom(src => src.AccessToken.ExpiresAtUtc))
             .ForMember(dest => dest.RefreshToken, opt => opt.MapFrom(src => src.RefreshToken.Token))

@@ -15,7 +15,7 @@ namespace LR.Application.Responses
             Error = error;
         }
 
-        public static ApiResponse<T> Ok(T data) =>
+        public static ApiResponse<T> Ok(T? data = default) =>
             new(data, true);
 
         public static ApiResponse<T> Fail(Error error) =>

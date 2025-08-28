@@ -16,6 +16,7 @@ namespace LR.API.Controllers
                 ErrorType.Conflict => Conflict(ApiResponse<object>.Fail(error)),
                 ErrorType.Unauthorized => Unauthorized(ApiResponse<object>.Fail(error)),
                 ErrorType.NotFound => NotFound(ApiResponse<object>.Fail(error)),
+                ErrorType.Business => UnprocessableEntity(ApiResponse<object>.Fail(error)),
                 ErrorType.InternalServerError => StatusCode(500, ApiResponse<object>.Fail(error)),
                 ErrorType.None => StatusCode(500, ApiResponse<object>.Fail(error)),
                 _ => StatusCode(500, ApiResponse<object>.Fail(error))

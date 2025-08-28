@@ -7,6 +7,7 @@
         Validation = 2,
         Unauthorized = 3,
         Conflict = 4,
-        InternalServerError = 5
+        Business = 5,
+        InternalServerError = 6
     }
 }

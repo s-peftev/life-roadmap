@@ -38,15 +38,15 @@ namespace LR.Infrastructure.Utils
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
         private readonly IRequestInfoService _requestInfoService = requestInfoService;
 
-        public async Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto)
+        public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto)
         {
             var userCheck = await EnsureUserIsUniqueAsync(dto);
             if (!userCheck.IsSuccess)
-                return Result<RegisterResultData>.Failure(userCheck.Error);
+                return Result<AuthResult>.Failure(userCheck.Error);
 
             var userResult = await CreateUserAsync(dto);
             if (!userResult.IsSuccess)
-                return Result<RegisterResultData>.Failure(userResult.Error);
+                return Result<AuthResult>.Failure(userResult.Error);
 
             var user = userResult.Value;
 
@@ -54,66 +54,32 @@ namespace LR.Infrastructure.Utils
             if (!roleAssignResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-                return Result<RegisterResultData>.Failure(roleAssignResult.Error);
+                return Result<AuthResult>.Failure(roleAssignResult.Error);
             }
 
             var profileResult = await CreateProfileAsync(user, dto);
             if (!profileResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
-                return Result<RegisterResultData>.Failure(profileResult.Error);
+                return Result<AuthResult>.Failure(profileResult.Error);
             }
 
-            var jwtToken = _tokenService
-                .GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
-
-            var refreshTokenGenerationDto = new RefreshTokenGenerationDto
-            {
-                UserId = user.Id,
-                ExpirationDays = _refreshTokenOptions.ExpirationTimeInDays,
-                SessionId = Guid.NewGuid(),
-                UserAgent = _requestInfoService.GetUserAgent(),
-                IpAddress = _requestInfoService.GetIpAddress()
-            };
-
-            var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
-
-            _refreshTokenService.Add(refreshToken);
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
-
-            if (saveResult.Value is 0)
-            {
-                return Result<RegisterResultData>.Failure(RefreshTokenErrors.SaveFailed);
-            }
-
-            var authResponse = new AuthResponse
-            {
-                AccessToken = jwtToken,
-                User = _mapper.Map<UserDto>(user)
-            };
-
-            var registerResult = new RegisterResultData
-            {
-                AuthResponse = authResponse,
-                RefreshToken = refreshToken
-            };
-
-            return Result<RegisterResultData>.Success(registerResult);
+            return await BuildAuthResultAsync(user);
         }
 
-        public async Task<TokenPairDto> LoginAsync(UserLoginDto userLoginDto)
+        public async Task<Result<AuthResult>> LoginAsync(UserLoginDto dto)
         {
-            var user = await _userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
+            var user = await _userManager.GetByUserNameWithRolesAsync(dto.UserName);
 
-            if (user is null || !await _userManager.CheckPasswordAsync(user, userLoginDto.Password))
+            if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
             {
-                throw new LoginFailedException(userLoginDto.UserName);
+                return Result<AuthResult>.Failure(UserErrors.LoginFailed);
             }
 
-            return await SaveTokensAndSetCookiesAsync(user);
+            return await BuildAuthResultAsync(user);
         }
 
-        public async Task<TokenPairDto> RefreshToken(string? refreshTokenValue)
+        public async Task<TokenPairResponse> RefreshToken(string? refreshTokenValue)
         {
             if (string.IsNullOrEmpty(refreshTokenValue))
             {
@@ -143,21 +109,22 @@ namespace LR.Infrastructure.Utils
             return await SaveTokensAndSetCookiesAsync(user);
         }
 
-        public async Task LogoutAsync(string? refreshTokenValue)
+        public async Task<Result> LogoutAsync(string refreshTokenValue)
         {
-            if (string.IsNullOrEmpty(refreshTokenValue))
-            {
-                throw new RefreshTokenException("Refresh token is missing.");
-            }
+            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
 
-            var refreshToken = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue)
-                ?? throw new RefreshTokenException("Could not find the refresh token.");
+            if (!rtResult.IsSuccess)
+                return Result.Success();
 
+            rtResult.Value.IsRevoked = true;
+            rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
 
-            refreshToken.IsRevoked = true;
-            refreshToken.RevokedAtUtc = DateTime.UtcNow;
+            var saveResult = await _refreshTokenService.SaveChangesAsync();
 
-            await _refreshTokenService.SaveChangesAsync();
+            if (!saveResult.IsSuccess)
+                return Result.Failure(RefreshTokenErrors.TokenRevokingFailed);
+
+            return Result.Success();
         }
 
         private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto dto)
@@ -211,6 +178,45 @@ namespace LR.Infrastructure.Utils
                 return Result<UserProfile>.Failure(UserErrors.RegistrationFailed);
 
             return Result<UserProfile>.Success(profile);
+        }
+
+        private async Task<Result<AuthResult>> BuildAuthResultAsync(AppUser user)
+        {
+            var jwtToken = _tokenService
+                .GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
+
+            var refreshTokenGenerationDto = new RefreshTokenGenerationDto
+            {
+                UserId = user.Id,
+                ExpirationDays = _refreshTokenOptions.ExpirationTimeInDays,
+                SessionId = Guid.NewGuid(),
+                UserAgent = _requestInfoService.GetUserAgent(),
+                IpAddress = _requestInfoService.GetIpAddress()
+            };
+
+            var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
+
+            _refreshTokenService.Add(refreshToken);
+            var saveResult = await _refreshTokenService.SaveChangesAsync();
+
+            if (saveResult.Value is 0)
+            {
+                return Result<AuthResult>.Failure(RefreshTokenErrors.SaveFailed);
+            }
+
+            var authResponse = new AuthResponse
+            {
+                AccessToken = jwtToken,
+                User = _mapper.Map<UserDto>(user)
+            };
+
+            var authResult = new AuthResult
+            {
+                AuthResponse = authResponse,
+                RefreshToken = refreshToken
+            };
+
+            return Result<AuthResult>.Success(authResult);
         }
     }
 }

@@ -18,11 +18,15 @@ namespace LR.Application.Services.User
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
-        public async Task<RefreshToken?> GetByTokenValueAsync(string refreshTokenValue)
+        public async Task<Result<RefreshToken>> GetByTokenValueAsync(string refreshTokenValue)
         {
             var ct = _ctProvider.GetCancellationToken();
 
-            return await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
+            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
+
+            return rt is null
+                ? Result<RefreshToken>.Failure(RefreshTokenErrors.NotFound)
+                : Result<RefreshToken>.Success(rt);
         }
     }
 }

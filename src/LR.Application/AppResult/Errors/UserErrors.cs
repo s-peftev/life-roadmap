@@ -7,6 +7,9 @@ namespace LR.Application.AppResult.Errors
         public static readonly Error NotFound =
             ErrorFactory.NotFound("User");
 
+        public static readonly Error SaveFailed =
+            ErrorFactory.SaveFailed("User");
+
         public static readonly Error UsernameIsTaken = new(
             "UsernameIsTaken",
             ErrorType.Conflict,
@@ -19,7 +22,22 @@ namespace LR.Application.AppResult.Errors
 
         public static readonly Error RegistrationFailed = new(
             "RegistrationFailed",
-            ErrorType.Validation,
+            ErrorType.InternalServerError,
             "User registration failed.");
+
+        public static readonly Error LoginFailed = new(
+            "LoginFailed",
+            ErrorType.Unauthorized,
+            "User login failed. Wrong username or password");
+
+        public static readonly Error InvalidRegisterRequest = new(
+            "InvalidRegisterRequest",
+            ErrorType.Validation,
+            "Register request is invalid.");
+
+        public static readonly Error InvalidLoginRequest = new(
+            "InvalidLoginRequest",
+            ErrorType.Validation,
+            "Login request is invalid.");
     }
 }
