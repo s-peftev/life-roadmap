@@ -7,7 +7,7 @@ namespace LR.Application.Interfaces.Utils
 {
     public interface IAccountService
     {
-        Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto, CancellationToken ct);
+        Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto);
         Task<TokenPairDto> LoginAsync(UserLoginDto dto);
         Task LogoutAsync(string userId);
         Task<TokenPairDto> RefreshToken(string? refreshToken);

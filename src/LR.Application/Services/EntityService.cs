@@ -1,28 +1,21 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.Interfaces.Services;
+using LR.Application.Interfaces.Utils;
 using LR.Domain.Interfaces;
-using Microsoft.AspNetCore.Http;
 
 namespace LR.Application.Services
 {
     public abstract class EntityService<TEntity, TKey>(
         IRepository<TEntity, TKey> repository,
-        IHttpContextAccessor httpContextAccessor)
+        ICancellationTokenProvider cancellationTokenProvider)
         : IEntityService<TEntity, TKey>
         where TEntity : class
     {
         private readonly IRepository<TEntity, TKey> _repository = repository;
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
+        protected readonly ICancellationTokenProvider _ctProvider = cancellationTokenProvider;
 
         protected abstract Error NotFoundError();
-        protected abstract Error SaveFailedError();
-
-        // Uses the CancellationToken from HttpContext as a fallback so that
-        // service methods can automatically pick up the cancellation token of the web request,
-        // without having to pass it from the controller all the way down to the repository.
-        // If a token is provided explicitly, it takes priority.
-        protected virtual CancellationToken ResolveCancellationToken(CancellationToken ct = default) =>
-            ct != default ? ct : _httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
 
         public virtual TEntity Add(TEntity entity)
         {
@@ -34,28 +27,28 @@ namespace LR.Application.Services
             return _repository.Update(entity);
         }
 
-        public virtual async Task<Result> RemoveAsync(TKey id, CancellationToken ct = default)
+        public virtual async Task<Result> RemoveAsync(TKey id)
         {
-            var cancellationToken = ResolveCancellationToken(ct);
+            var ct = _ctProvider.GetCancellationToken();
 
-            if (!await _repository.RemoveAsync(id, cancellationToken))
+            if (!await _repository.RemoveAsync(id, ct))
                 return Result.Failure(NotFoundError());
 
             return Result.Success();
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            var cancellationToken = ResolveCancellationToken(ct);
+            var ct = _ctProvider.GetCancellationToken();
 
-            return await _repository.GetAllAsync(cancellationToken);
+            return await _repository.GetAllAsync(ct);
         }
 
-        public virtual async Task<Result<TEntity>> GetByIdAsync(TKey id, CancellationToken ct = default)
+        public virtual async Task<Result<TEntity>> GetByIdAsync(TKey id)
         {
-            var cancellationToken = ResolveCancellationToken(ct);
+            var ct = _ctProvider.GetCancellationToken();
 
-            var entity = await _repository.GetByIdAsync(id, cancellationToken);
+            var entity = await _repository.GetByIdAsync(id, ct);
 
             if (entity is null)
                 return Result<TEntity>.Failure(NotFoundError());
@@ -63,10 +56,10 @@ namespace LR.Application.Services
             return Result<TEntity>.Success(entity);
         }
 
-        public virtual async Task<Result<int>> SaveChangesAsync(CancellationToken ct = default)
+        public virtual async Task<Result<int>> SaveChangesAsync()
         {
-            var cancellationToken = ResolveCancellationToken(ct);
-            var changes = await _repository.SaveChangesAsync(cancellationToken);
+            var ct = _ctProvider.GetCancellationToken();
+            var changes = await _repository.SaveChangesAsync(ct);
 
             return Result<int>.Success(changes);
         }

@@ -1,16 +1,16 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using LR.Application.Interfaces.Services;
+using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
-using Microsoft.AspNetCore.Http;
 
 namespace LR.Application.Services.User
 {
     public class RefreshTokenService(
         IRefreshTokenRepository repository,
-        IHttpContextAccessor httpContextAccessor)
-        : EntityService<RefreshToken, Guid>(repository, httpContextAccessor),
+        ICancellationTokenProvider cancellationTokenProvider)
+        : EntityService<RefreshToken, Guid>(repository, cancellationTokenProvider),
         IRefreshTokenService
     {
         private readonly IRefreshTokenRepository _repository = repository;
@@ -18,15 +18,11 @@ namespace LR.Application.Services.User
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
-        protected override Error SaveFailedError() =>
-            RefreshTokenErrors.SaveFailed;
-
-        public async Task<RefreshToken?> GetByTokenValueAsync(
-            string refreshTokenValue, CancellationToken ct = default)
+        public async Task<RefreshToken?> GetByTokenValueAsync(string refreshTokenValue)
         {
-            var cancellationToken = ResolveCancellationToken(ct);
+            var ct = _ctProvider.GetCancellationToken();
 
-            return await _repository.GetByTokenValueAsync(refreshTokenValue, cancellationToken);
+            return await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
         }
     }
 }

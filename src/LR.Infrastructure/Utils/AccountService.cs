@@ -38,9 +38,7 @@ namespace LR.Infrastructure.Utils
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
         private readonly IRequestInfoService _requestInfoService = requestInfoService;
 
-        public async Task<Result<RegisterResultData>> RegisterAsync(
-            UserRegisterDto dto,
-            CancellationToken ct)
+        public async Task<Result<RegisterResultData>> RegisterAsync(UserRegisterDto dto)
         {
             var userCheck = await EnsureUserIsUniqueAsync(dto);
             if (!userCheck.IsSuccess)
@@ -52,7 +50,7 @@ namespace LR.Infrastructure.Utils
 
             var user = userResult.Value;
 
-            var roleAssignResult = await AssignRoleAsync(user);
+            var roleAssignResult = await AssignDefaultRoleAsync(user);
             if (!roleAssignResult.IsSuccess)
             {
                 await _userManager.DeleteAsync(user);
@@ -81,7 +79,12 @@ namespace LR.Infrastructure.Utils
             var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
 
             _refreshTokenService.Add(refreshToken);
-            await _refreshTokenService.SaveChangesAsync();
+            var saveResult = await _refreshTokenService.SaveChangesAsync();
+
+            if (saveResult.Value is 0)
+            {
+                return Result<RegisterResultData>.Failure(RefreshTokenErrors.SaveFailed);
+            }
 
             var authResponse = new AuthResponse
             {
@@ -184,7 +187,7 @@ namespace LR.Infrastructure.Utils
             return Result<AppUser>.Success(user);
         }
 
-        private async Task<Result> AssignRoleAsync(AppUser user)
+        private async Task<Result> AssignDefaultRoleAsync(AppUser user)
         {
             var result = await _userManager.AddToRoleAsync(user, Role.User.ToString());
             
@@ -196,14 +199,15 @@ namespace LR.Infrastructure.Utils
 
         private async Task<Result<UserProfile>> CreateProfileAsync(
             AppUser user,
-            UserRegisterDto dto,
-            CancellationToken)
+            UserRegisterDto dto)
         {
             var profile = _mapper.Map<UserProfile>(dto);
             profile.UserId = user.Id;
             _userProfileService.Add(profile);
 
-            if (!(await _userProfileService.SaveChangesAsync() > 0))
+            var saveResult = await _userProfileService.SaveChangesAsync();
+
+            if (saveResult.Value is 0)
                 return Result<UserProfile>.Failure(UserErrors.RegistrationFailed);
 
             return Result<UserProfile>.Success(profile);
