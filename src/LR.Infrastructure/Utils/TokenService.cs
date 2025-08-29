@@ -1,6 +1,7 @@
 ﻿using LR.Application.DTOs.Token;
 using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
+using LR.Infrastructure.Constants.ExceptionMessages;
 using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -25,16 +26,16 @@ namespace LR.Infrastructure.Utils
             _signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
         }
 
-        public AccessTokenDto GenerateJwtToken(TokenUserDto dto)
+        public AccessTokenDto GenerateJwtToken(JwtGenerationDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.UserId))
-                throw new ArgumentException("UserId is required for JWT generation.");
+                throw new ArgumentException(TokensExceptionMessages.UserIdRequiredForJwt);
 
             if (string.IsNullOrWhiteSpace(dto.UserName))
-                throw new ArgumentException("UserName is required for JWT generation.");
+                throw new ArgumentException(TokensExceptionMessages.UserNameRequiredForJwt);
 
             if (dto.Roles == null || dto.Roles.Count == 0)
-                throw new ArgumentException("At least one role is required for JWT generation.");
+                throw new ArgumentException(TokensExceptionMessages.RolesRequiredForJwt);
 
             var claims = new List<Claim>()
             {
@@ -67,10 +68,10 @@ namespace LR.Infrastructure.Utils
         public RefreshToken GenerateRefreshToken(RefreshTokenGenerationDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.UserId))
-                throw new ArgumentException("UserId is required for refresh token generation.");
+                throw new ArgumentException(TokensExceptionMessages.UserIdRequiredForRefreshToken);
 
             if (dto.ExpirationDays <= 0)
-                throw new ArgumentException("ExpirationDays must be positive.");
+                throw new ArgumentException(TokensExceptionMessages.ExpirationDaysPositiveRequired);
 
             var randomNumber = new byte[64];
             using var rng = RandomNumberGenerator.Create();

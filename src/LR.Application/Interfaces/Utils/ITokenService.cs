@@ -5,7 +5,7 @@ namespace LR.Application.Interfaces.Utils
 {
     public interface ITokenService
     {
-        AccessTokenDto GenerateJwtToken(TokenUserDto userDto);
+        AccessTokenDto GenerateJwtToken(JwtGenerationDto userDto);
         RefreshToken GenerateRefreshToken(RefreshTokenGenerationDto dto);
     }
 }

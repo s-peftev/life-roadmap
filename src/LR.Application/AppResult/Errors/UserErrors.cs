@@ -7,9 +7,6 @@ namespace LR.Application.AppResult.Errors
         public static readonly Error NotFound =
             ErrorFactory.NotFound("User");
 
-        public static readonly Error SaveFailed =
-            ErrorFactory.SaveFailed("User");
-
         public static readonly Error UsernameIsTaken = new(
             "UsernameIsTaken",
             ErrorType.Conflict,
@@ -19,11 +16,6 @@ namespace LR.Application.AppResult.Errors
             "EmailIsTaken",
             ErrorType.Conflict,
             "Email is taken.");
-
-        public static readonly Error RegistrationFailed = new(
-            "RegistrationFailed",
-            ErrorType.InternalServerError,
-            "User registration failed.");
 
         public static readonly Error LoginFailed = new(
             "LoginFailed",

@@ -1,7 +1,6 @@
 ﻿using LR.Application.DTOs.User;
 using LR.Application.AppResult;
 using LR.Application.AppResult.ResultData.Account;
-using LR.Application.Responses.User;
 
 namespace LR.Application.Interfaces.Utils
 {
@@ -10,6 +9,6 @@ namespace LR.Application.Interfaces.Utils
         Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto);
         Task<Result<AuthResult>> LoginAsync(UserLoginDto dto);
         Task<Result> LogoutAsync(string userId);
-        Task<Result<TokenPairResponse>> RefreshToken(string refreshToken);
+        Task<Result<AuthResult>> RefreshToken(string refreshToken);
     }
 }

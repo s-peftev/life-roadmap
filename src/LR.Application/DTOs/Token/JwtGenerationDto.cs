@@ -1,6 +1,6 @@
 ﻿namespace LR.Application.DTOs.Token
 {
-    public class TokenUserDto
+    public class JwtGenerationDto
     {
         public required string UserId { get; init; }
         public required string UserName { get; init; }

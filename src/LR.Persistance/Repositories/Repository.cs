@@ -6,11 +6,14 @@ namespace LR.Persistance.Repositories
     public abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         where TEntity : class
     {
+        public IUnitOfWork UoW { get; }
+
         protected readonly AppDbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
 
-        public Repository(AppDbContext context)
+        public Repository(AppDbContext context, IUnitOfWork unitOfWork)
         {
+            UoW = unitOfWork;
             _context = context;
             _dbSet = _context.Set<TEntity>();
         }

@@ -6,8 +6,5 @@ namespace LR.Application.AppResult.Errors
     {
         public static readonly Error NotFound =
             ErrorFactory.NotFound(nameof(UserProfile));
-
-        public static readonly Error SaveFailed =
-            ErrorFactory.SaveFailed(nameof(UserProfile));
     }
 }

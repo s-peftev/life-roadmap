@@ -17,7 +17,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseMiddleware<GlobalExceptionHandler>();
+app.UseExceptionHandler(_ => { });
 
 app.UseAuthentication();
 app.UseAuthorization();

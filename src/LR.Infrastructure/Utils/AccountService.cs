@@ -6,7 +6,7 @@ using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
-using LR.Infrastructure.Exceptions.Account;
+using LR.Infrastructure.Exceptions.RefreshToken;
 using LR.Infrastructure.Extensions;
 using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using LR.Application.DTOs.Token;
 using LR.Application.AppResult.ResultData.Account;
 using LR.Application.Responses.User;
+using LR.Infrastructure.Exceptions.User;
 
 namespace LR.Infrastructure.Utils
 {
@@ -44,27 +45,17 @@ namespace LR.Infrastructure.Utils
             if (!userCheck.IsSuccess)
                 return Result<AuthResult>.Failure(userCheck.Error);
 
-            var userResult = await CreateUserAsync(dto);
-            if (!userResult.IsSuccess)
-                return Result<AuthResult>.Failure(userResult.Error);
+            await _userProfileService.BeginTransactionAsync();
 
+            var userResult = await CreateUserAsync(dto);
             var user = userResult.Value;
 
-            var roleAssignResult = await AssignDefaultRoleAsync(user);
-            if (!roleAssignResult.IsSuccess)
-            {
-                await _userManager.DeleteAsync(user);
-                return Result<AuthResult>.Failure(roleAssignResult.Error);
-            }
+            await AssignDefaultRoleAsync(user);
+            await CreateProfileAsync(user, dto);
 
-            var profileResult = await CreateProfileAsync(user, dto);
-            if (!profileResult.IsSuccess)
-            {
-                await _userManager.DeleteAsync(user);
-                return Result<AuthResult>.Failure(profileResult.Error);
-            }
+            await _userProfileService.CommitTransactionAsync();
 
-            return await BuildAuthResultAsync(user);
+            return await AuthenticateUserAsync(user);
         }
 
         public async Task<Result<AuthResult>> LoginAsync(UserLoginDto dto)
@@ -72,41 +63,33 @@ namespace LR.Infrastructure.Utils
             var user = await _userManager.GetByUserNameWithRolesAsync(dto.UserName);
 
             if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-            {
                 return Result<AuthResult>.Failure(UserErrors.LoginFailed);
-            }
 
-            return await BuildAuthResultAsync(user);
+            return await AuthenticateUserAsync(user);
         }
 
-        public async Task<TokenPairResponse> RefreshToken(string? refreshTokenValue)
+        public async Task<Result<AuthResult>> RefreshToken(string refreshTokenValue)
         {
-            if (string.IsNullOrEmpty(refreshTokenValue))
-            {
-                throw new RefreshTokenException("Refresh token is missing.");
-            }
+            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
+            if (!rtResult.IsSuccess)
+                return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
-            var refreshToken = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue) 
-                ?? throw new RefreshTokenException("Could not find the refresh token.");
+            var refreshToken = rtResult.Value;
+            var user = await _userManager.GetByIdWithRolesAsync(refreshToken.UserId);
 
-            var user = await _userManager.GetByIdWithRolesAsync(refreshToken.UserId)
-                ?? throw new RefreshTokenException("Unable to retrieve user for refresh token.");
-
-            if (refreshToken.IsRevoked)
-            {
-                throw new RefreshTokenException("Refresh token is revoked.");
-            }
-
-            if (refreshToken.ExpiresAtUtc < DateTime.UtcNow)
-            {
-                throw new RefreshTokenException("Refresh token is expired.");
-            }
+            if (user is null ||
+                refreshToken.IsRevoked ||
+                (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
+                return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
             refreshToken.IsRevoked = true;
             refreshToken.RevokedAtUtc = DateTime.UtcNow;
-            await _refreshTokenService.SaveChangesAsync();
+            var saveResult = await _refreshTokenService.SaveChangesAsync();
 
-            return await SaveTokensAndSetCookiesAsync(user);
+            if (!saveResult.IsSuccess)
+                throw new TokenRevokingException();
+
+            return await AuthenticateUserAsync(user, refreshToken.SessionId);
         }
 
         public async Task<Result> LogoutAsync(string refreshTokenValue)
@@ -119,10 +102,7 @@ namespace LR.Infrastructure.Utils
             rtResult.Value.IsRevoked = true;
             rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
 
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
-
-            if (!saveResult.IsSuccess)
-                return Result.Failure(RefreshTokenErrors.TokenRevokingFailed);
+            await _refreshTokenService.SaveChangesAsync();
 
             return Result.Success();
         }
@@ -145,11 +125,7 @@ namespace LR.Infrastructure.Utils
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
-            {
-                var details = result.Errors.Select(e => e.Description);
-
-                return Result<AppUser>.Failure(UserErrors.RegistrationFailed with { Details = details });
-            }
+                throw new UserRegisterException();
 
             return Result<AppUser>.Success(user);
         }
@@ -159,14 +135,13 @@ namespace LR.Infrastructure.Utils
             var result = await _userManager.AddToRoleAsync(user, Role.User.ToString());
             
             if (!result.Succeeded)
-                return Result.Failure(UserErrors.RegistrationFailed);
+                throw new UserRegisterException();
 
             return Result.Success();
         }
 
         private async Task<Result<UserProfile>> CreateProfileAsync(
-            AppUser user,
-            UserRegisterDto dto)
+            AppUser user, UserRegisterDto dto)
         {
             var profile = _mapper.Map<UserProfile>(dto);
             profile.UserId = user.Id;
@@ -175,21 +150,21 @@ namespace LR.Infrastructure.Utils
             var saveResult = await _userProfileService.SaveChangesAsync();
 
             if (saveResult.Value is 0)
-                return Result<UserProfile>.Failure(UserErrors.RegistrationFailed);
+                throw new UserRegisterException();
 
             return Result<UserProfile>.Success(profile);
         }
 
-        private async Task<Result<AuthResult>> BuildAuthResultAsync(AppUser user)
+        private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default)
         {
             var jwtToken = _tokenService
-                .GenerateJwtToken(_mapper.Map<TokenUserDto>(user));
+                .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
 
             var refreshTokenGenerationDto = new RefreshTokenGenerationDto
             {
                 UserId = user.Id,
                 ExpirationDays = _refreshTokenOptions.ExpirationTimeInDays,
-                SessionId = Guid.NewGuid(),
+                SessionId = sessionId ?? Guid.NewGuid(),
                 UserAgent = _requestInfoService.GetUserAgent(),
                 IpAddress = _requestInfoService.GetIpAddress()
             };
@@ -200,9 +175,7 @@ namespace LR.Infrastructure.Utils
             var saveResult = await _refreshTokenService.SaveChangesAsync();
 
             if (saveResult.Value is 0)
-            {
-                return Result<AuthResult>.Failure(RefreshTokenErrors.SaveFailed);
-            }
+                throw new TokenPersistingException();
 
             var authResponse = new AuthResponse
             {

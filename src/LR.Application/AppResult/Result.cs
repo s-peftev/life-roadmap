@@ -1,4 +1,6 @@
-﻿namespace LR.Application.AppResult
+﻿using LR.Application.Constants.ExceptionMessages;
+
+namespace LR.Application.AppResult
 {
     public class Result
     {
@@ -6,15 +8,15 @@
         private readonly Error? _error;
         public Error Error =>
         IsSuccess
-            ? throw new InvalidOperationException("Cannot access Error when result is success.")
+            ? throw new InvalidOperationException(ResultExceptionMessages.CannotAccessErrorOnSuccess)
             : _error!;
 
         protected Result(bool isSuccess, Error? error)
         {
             if (isSuccess && error != null)
-                throw new InvalidOperationException("A successful result must not have an error.");
+                throw new InvalidOperationException(ResultExceptionMessages.SuccessMustNotHaveError);
             if (!isSuccess && error == null)
-                throw new InvalidOperationException("A failed result must have an error.");
+                throw new InvalidOperationException(ResultExceptionMessages.FailureMustHaveError);
 
             IsSuccess = isSuccess;
             _error = error;
@@ -35,12 +37,12 @@
         public T Value =>
             IsSuccess
                 ? _value!
-                : throw new InvalidOperationException("Cannot access Value when result is failure.");
+                : throw new InvalidOperationException(ResultExceptionMessages.CannotAccessValueOnFailure);
 
         private Result(T value) : base(true, null)
         {
             _value = value 
-                ?? throw new ArgumentNullException(nameof(value), "Success result cannot have null value.");
+                ?? throw new ArgumentNullException(nameof(value), ResultExceptionMessages.SuccessCannotHaveNullValue);
         }
 
         private Result(Error error) : base(false, error)

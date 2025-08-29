@@ -1,5 +1,6 @@
 ﻿using LR.Application.Interfaces.Utils;
 using LR.Infrastructure.Constants;
+using LR.Infrastructure.Constants.ExceptionMessages;
 using Microsoft.AspNetCore.Http;
 
 namespace LR.Infrastructure.Utils
@@ -11,7 +12,7 @@ namespace LR.Infrastructure.Utils
         public void Set(string refreshToken, DateTime expires)
         {
             var httpContext = _httpContextAccessor.HttpContext
-                ?? throw new InvalidOperationException("HttpContext is not available.");
+                ?? throw new InvalidOperationException(HttpContextExceptionMessages.NotAvailable);
 
             httpContext.Response.Cookies.Append(
                 CookieNames.RefreshToken,
@@ -29,7 +30,7 @@ namespace LR.Infrastructure.Utils
         public void Delete()
         {
             var httpContext = _httpContextAccessor.HttpContext
-                ?? throw new InvalidOperationException("HttpContext is not available.");
+                ?? throw new InvalidOperationException(HttpContextExceptionMessages.NotAvailable);
 
             httpContext.Response.Cookies.Delete(CookieNames.RefreshToken);
         }

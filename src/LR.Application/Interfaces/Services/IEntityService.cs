@@ -11,5 +11,8 @@ namespace LR.Application.Interfaces.Services
         Task<Result<TEntity>> GetByIdAsync(TKey id);
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<Result<int>> SaveChangesAsync();
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

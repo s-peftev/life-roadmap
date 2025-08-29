@@ -12,8 +12,8 @@ namespace LR.Application.Services
         where TEntity : class
     {
         private readonly IRepository<TEntity, TKey> _repository = repository;
-
         protected readonly ICancellationTokenProvider _ctProvider = cancellationTokenProvider;
+        private readonly IUnitOfWork _unitOfWork = repository.UoW;
 
         protected abstract Error NotFoundError();
 
@@ -62,6 +62,27 @@ namespace LR.Application.Services
             var changes = await _repository.SaveChangesAsync(ct);
 
             return Result<int>.Success(changes);
+        }
+
+        public async Task BeginTransactionAsync()
+        {
+            var ct = _ctProvider.GetCancellationToken();
+
+            await _unitOfWork.BeginTransactionAsync(ct);
+        }
+
+        public async Task CommitTransactionAsync()
+        {
+            var ct = _ctProvider.GetCancellationToken();
+
+            await _unitOfWork.CommitTransactionAsync(ct);
+        }
+
+        public async Task RollbackTransactionAsync()
+        {
+            var ct = _ctProvider.GetCancellationToken();
+
+            await _unitOfWork.RollbackTransactionAsync(ct);
         }
     }
 }

@@ -3,6 +3,7 @@
     public interface IRepository<TEntity, TKey>
         where TEntity : class
     {
+        IUnitOfWork UoW { get; }
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
         Task<bool> RemoveAsync(TKey id, CancellationToken ct = default);

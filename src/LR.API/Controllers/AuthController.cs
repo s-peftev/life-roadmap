@@ -70,9 +70,11 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AuthResponse>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
-        public async Task<IActionResult> Login([FromBody] UserLoginRequest request)
+        public async Task<IActionResult> Login(
+            [FromBody] UserLoginRequest request,
+            CancellationToken ct)
         {
-            var validationResult = await _loginValidator.ValidateAsync(request);
+            var validationResult = await _loginValidator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
                 return HandleFailure(UserErrors.InvalidLoginRequest
@@ -94,7 +96,7 @@ namespace LR.API.Controllers
 
         [HttpPost("refresh")]
         [SwaggerOperation(Summary = "Refresh tokens", Description = "Generates new JWT and Refresh token")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<TokenPairResponse>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
         public async Task<IActionResult> Refresh()
@@ -111,7 +113,7 @@ namespace LR.API.Controllers
                 {
                     _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<TokenPairResponse>.Ok(data));
+                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
                 },
                 error => HandleFailure(error)
             );
