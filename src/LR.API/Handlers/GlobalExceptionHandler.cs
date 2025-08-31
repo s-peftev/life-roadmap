@@ -3,6 +3,7 @@ using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
+using LR.Infrastructure.Constants;
 
 namespace LR.API.Handlers
 {
@@ -19,7 +20,14 @@ namespace LR.API.Handlers
             var (statusCode, error) = GetExceptionDetails(exception);
 
             if (exception is not OperationCanceledException)
-                _logger.LogError(exception, exception.Message);
+            {
+                var correlationId = httpContext.Items[HttpHeaders.XCorrelationId]?.ToString() 
+                    ?? httpContext.TraceIdentifier;
+
+                var loggerMessage = $"CorrelationId: {correlationId}, Message: {exception.Message}";
+
+                _logger.LogError(exception, loggerMessage);
+            }
 
             httpContext.Response.StatusCode = (int)statusCode;
             var response = ApiResponse<object>.Fail(error);

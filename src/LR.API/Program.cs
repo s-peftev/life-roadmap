@@ -1,5 +1,6 @@
 using LR.API.Extensions;
 using LR.API.Handlers;
+using LR.API.Middleware;
 using LR.Infrastructure.DependencyInjection;
 using LR.Infrastructure.Seeders;
 
@@ -17,6 +18,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler(_ => { });
 
 app.UseAuthentication();
