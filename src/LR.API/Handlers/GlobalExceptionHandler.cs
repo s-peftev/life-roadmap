@@ -1,7 +1,9 @@
-﻿using LR.Domain.Exceptions.User;
-using LR.Infrastructure.Exceptions.Account;
+﻿using LR.Application.Responses;
+using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
+using LR.Infrastructure.Constants;
 
 namespace LR.API.Handlers
 {
@@ -15,27 +17,33 @@ namespace LR.API.Handlers
             Exception exception, 
             CancellationToken cancellationToken)
         {
-            var (statusCode, message) = GetExceptionDetails(exception);
+            var (statusCode, error) = GetExceptionDetails(exception);
 
-            _logger.LogError(exception, exception.Message);
+            if (exception is not OperationCanceledException)
+            {
+                var correlationId = httpContext.Items[HttpHeaders.XCorrelationId]?.ToString() 
+                    ?? httpContext.TraceIdentifier;
+
+                var loggerMessage = $"CorrelationId: {correlationId}, Message: {exception.Message}";
+
+                _logger.LogError(exception, loggerMessage);
+            }
 
             httpContext.Response.StatusCode = (int)statusCode;
-            await httpContext.Response.WriteAsJsonAsync(message, cancellationToken);
+            var response = ApiResponse<object>.Fail(error);
+
+            await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
             return true;
         }
 
-        private (HttpStatusCode statusCode, string message) GetExceptionDetails(Exception exception)
+        private static (HttpStatusCode statusCode, Error error) GetExceptionDetails(Exception exception)
         {
             return exception switch
             {
-                LoginFailedException _ => (HttpStatusCode.Unauthorized, exception.Message),
-                LogoutFailedException _ => (HttpStatusCode.InternalServerError, exception.Message),
-                UserAlreadyExistsException _ => (HttpStatusCode.Conflict, exception.Message),
-                RegistrationFailedException _ => (HttpStatusCode.BadRequest, exception.Message),
-                RefreshTokenException _ => (HttpStatusCode.BadRequest, exception.Message),
-                AuthenticationTokenException _ => (HttpStatusCode.Unauthorized, exception.Message),
-                _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
+                OperationCanceledException _ => (HttpStatusCode.NoContent, ExceptionErrors.RequestCancelled),
+                TimeoutException _ => (HttpStatusCode.RequestTimeout, ExceptionErrors.Timeout),
+                _ => (HttpStatusCode.InternalServerError, ExceptionErrors.Unexpected)
             };
         }
     }

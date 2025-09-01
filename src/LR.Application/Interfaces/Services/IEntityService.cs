@@ -1,13 +1,18 @@
-﻿namespace LR.Application.Interfaces.Services
+﻿using LR.Application.AppResult;
+
+namespace LR.Application.Interfaces.Services
 {
     public interface IEntityService<TEntity, TKey>
         where TEntity : class
     {
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
-        Task DeleteAsync(TKey id);
-        Task<TEntity?> GetByIdAsync(TKey id);
+        Task<Result> RemoveAsync(TKey id);
+        Task<Result<TEntity>> GetByIdAsync(TKey id);
         Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<int> SaveChangesAsync();
+        Task<Result<int>> SaveChangesAsync();
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

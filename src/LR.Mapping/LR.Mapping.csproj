@@ -15,4 +15,8 @@
     <ProjectReference Include="..\LR.Persistance\LR.Persistance.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ResponseProfiles\" />
+  </ItemGroup>
+
 </Project>

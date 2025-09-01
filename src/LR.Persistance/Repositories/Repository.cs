@@ -3,54 +3,60 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LR.Persistance.Repositories
 {
-    public class Repository<TEntity, TKey> : IRepository<TEntity, TKey> 
+    public abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         where TEntity : class
     {
-        private readonly AppDbContext _context;
-        protected DbSet<TEntity> _dbSet;
+        public IUnitOfWork UoW { get; }
 
-        public Repository(AppDbContext context)
+        protected readonly AppDbContext _context;
+        protected readonly DbSet<TEntity> _dbSet;
+
+        public Repository(AppDbContext context, IUnitOfWork unitOfWork)
         {
+            UoW = unitOfWork;
             _context = context;
             _dbSet = _context.Set<TEntity>();
         }
 
-        public TEntity Add(TEntity entity)
+        public virtual TEntity Add(TEntity entity)
         {
             _dbSet.Add(entity);
 
             return entity;
         }
 
-        public async Task DeleteAsync(TKey id)
+        public virtual TEntity Update(TEntity entity)
         {
-            var entity = await GetByIdAsync(id) 
-                ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
-
-            _dbSet.Remove(entity);
-        }
-
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
-        {
-            return await _dbSet.ToListAsync();
-        }
-
-        public async Task<TEntity?> GetByIdAsync(TKey id)
-        {
-            return await _dbSet.FindAsync(id);
-        }
-
-        public async Task<int> SaveChangesAsync()
-        {
-            return await _context.SaveChangesAsync();
-        }
-
-        public TEntity Update(TEntity entity)
-        {
-            _dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
 
             return entity;
+        }
+
+        public virtual async Task<bool> RemoveAsync(TKey id, CancellationToken ct = default)
+        {
+            var entity = await GetByIdAsync(id, ct);
+
+            if (entity is null) 
+                return false;
+
+            _dbSet.Remove(entity);
+
+            return true;
+        }
+
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
+        {
+            return await _dbSet.ToListAsync(ct);
+        }
+
+        public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)
+        {
+            return await _dbSet.FindAsync(id, ct);
+        }
+
+        public virtual async Task<int> SaveChangesAsync(CancellationToken ct = default)
+        {
+            return await _context.SaveChangesAsync(ct);
         }
     }
 }

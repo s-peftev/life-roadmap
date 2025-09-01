@@ -1,8 +1,9 @@
 ﻿namespace LR.Domain.Enums
 {
-    public enum Role
+    public enum Role : int
     {
-        User,
-        Admin
+        None = 0,
+        User = 1,
+        Admin = 2
     }
 }

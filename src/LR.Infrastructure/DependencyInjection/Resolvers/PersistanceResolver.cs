@@ -15,7 +15,8 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         }

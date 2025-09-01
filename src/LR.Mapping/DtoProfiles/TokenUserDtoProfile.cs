@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using LR.Application.DTOs.User;
+using LR.Application.DTOs.Token;
 using LR.Persistance.Identity;
 
 namespace LR.Mapping.DtoProfiles
@@ -8,8 +8,8 @@ namespace LR.Mapping.DtoProfiles
     {
         public TokenUserDtoProfile()
         {
-            CreateMap<AppUser, TokenUserDto>()
-                .ForMember(dest => dest.Id,
+            CreateMap<AppUser, JwtGenerationDto>()
+                .ForMember(dest => dest.UserId,
                     opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.UserName,
                     opt => opt.MapFrom(src => src.UserName))

@@ -1,11 +1,12 @@
 ﻿using LR.Domain.Entities.Users;
+using LR.Domain.Interfaces;
 using LR.Domain.Interfaces.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace LR.Persistance.Repositories.Users
 {
-    public class UserProfileRepository(AppDbContext context)
-        : Repository<UserProfile, Guid>(context), IUserProfileRepository
+    public class UserProfileRepository(AppDbContext context, IUnitOfWork unitOfWork)
+        : Repository<UserProfile, Guid>(context, unitOfWork), IUserProfileRepository
     {
+
     }
 }

@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using LR.Application.AppResult.Errors;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
+using LR.Application.Responses;
 using LR.Application.Responses.User;
+using LR.Infrastructure.Constants;
 using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -17,7 +20,8 @@ namespace LR.API.Controllers
         IOptions<JwtOptions> jwtOptions,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IValidator<UserRegisterRequest> registerValidator,
-        IValidator<UserLoginRequest> loginValidator
+        IValidator<UserLoginRequest> loginValidator,
+        IRefreshTokenCookieWriter refreshTokenCookieWriter
         ) : BaseApiController
     {
         private readonly IAccountService _accountService = accountService;
@@ -26,74 +30,119 @@ namespace LR.API.Controllers
         private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
         private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
+        private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
 
         [HttpPost("register")]
-        [SwaggerOperation(Summary = "Register new user", Description = "Creates a new user account")]
-        [SwaggerResponse(StatusCodes.Status200OK, "User registered successfully")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors or registration failed")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, "User with given username or email already exists")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterRequest request)
+        [SwaggerOperation(Summary = "Register new user",
+            Description = "Creates a new user account and returns tokens")]
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AuthResponse>),
+            Description = "User registered successfully")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<object>),
+            Description = "Validation errors or registration failed")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
+            Description = "User with given username or email already exists")]
+        public async Task<IActionResult> Register(
+            [FromBody] UserRegisterRequest request,
+            CancellationToken ct)
         {
-            var validationResult = await _registerValidator.ValidateAsync(request);
+            var validationResult = await _registerValidator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
-                return BadRequest(validationResult.Errors);
+                return HandleFailure(UserErrors.InvalidRegisterRequest
+                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
             }
 
-            await _accountService.RegisterAsync(_mapper.Map<UserRegisterDto>(request));
+            var registerResult = await _accountService
+                .RegisterAsync(_mapper.Map<UserRegisterDto>(request));
 
-            return Ok(new { message = "User registered successfully" });
+            return registerResult.Match(
+                data =>
+                {
+                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+
+                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                },
+                error => HandleFailure(error));
         }
 
         [HttpPost("login")]
         [SwaggerOperation(Summary = "Login user", Description = "Authenticates and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(AuthResponse))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AuthResponse>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
-        public async Task<ActionResult<AuthResponse>> Login([FromBody] UserLoginRequest request)
+        public async Task<IActionResult> Login(
+            [FromBody] UserLoginRequest request,
+            CancellationToken ct)
         {
-            var validationResult = await _loginValidator.ValidateAsync(request);
+            var validationResult = await _loginValidator.ValidateAsync(request, ct);
             if (!validationResult.IsValid)
             {
-                return BadRequest(validationResult.Errors);
+                return HandleFailure(UserErrors.InvalidLoginRequest
+                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
             }
 
-            var tokenPair = await _accountService.LoginAsync(_mapper.Map<UserLoginDto>(request));
-            var response = _mapper.Map<AuthResponse>(tokenPair);
-            response.Message = "Login successful";
+            var loginResult = await _accountService
+                .LoginAsync(_mapper.Map<UserLoginDto>(request));
 
-            return Ok(response);
+            return loginResult.Match(
+                data =>
+                {
+                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+
+                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                },
+                error => HandleFailure(error));
         }
 
         [HttpPost("refresh")]
         [SwaggerOperation(Summary = "Refresh tokens", Description = "Generates new JWT and Refresh token")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(AuthResponse))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing or invalid")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
-        public async Task<ActionResult<AuthResponse>> Refresh()
+        public async Task<IActionResult> Refresh()
         {
-            var refreshToken = Request.Cookies[_refreshTokenOptions.TokenName];
+            var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
-            var tokenPair = await _accountService.RefreshToken(refreshToken);
-            var response = _mapper.Map<AuthResponse>(tokenPair);
-            response.Message = "Tokens successfully updated";
+            if (string.IsNullOrEmpty(refreshTokenValue))
+                return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            return Ok(response);
+            var tokenPairResult = await _accountService.RefreshToken(refreshTokenValue);
+            
+            return tokenPairResult.Match(
+                data =>
+                {
+                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+
+                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                },
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("logout")]
-        [SwaggerOperation(Summary = "Logout user", Description = "Revokes refresh token and clears auth cookies")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Logout successful")]
+        [SwaggerOperation(Summary = "Logout user", Description = "Revokes refresh token and clears auth cookie")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Logout successful", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         public async Task<IActionResult> Logout()
         {
-            var refreshTokenVAlue = Request.Cookies[_refreshTokenOptions.TokenName];
-            await _accountService.LogoutAsync(refreshTokenVAlue);
+            var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
-            Response.Cookies.Delete(_jwtOptions.TokenName);
-            Response.Cookies.Delete(_refreshTokenOptions.TokenName);
+            if(string.IsNullOrEmpty(refreshTokenValue))
+                return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            return Ok(new { message = "Logout successful" });
+            var result = await _accountService.LogoutAsync(refreshTokenValue);
+
+            _refreshTokenCookieWriter.Delete();
+
+            return result.Match(
+                    () =>
+                    {
+                        _refreshTokenCookieWriter.Delete();
+
+                        return Ok(ApiResponse<object>.Ok());
+                    },
+                    error => HandleFailure(error)
+                );
         }
     }
 }
