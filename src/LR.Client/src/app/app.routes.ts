@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { ROUTES } from '../core/constants/routes.constants';
 import { HomeComponent } from '../features/home/home.component';
-import { RegisterComponent } from '../features/auth/register/register.component';
-import { LoginComponent } from '../features/auth/login/login.component';
+import { RegisterComponent } from '../features/auth/components/register/register.component';
+import { LoginComponent } from '../features/auth/components/login/login.component';
 import { HomeLayoutComponent } from '../layout/home-layout/home-layout.component';
 import { MainLayoutComponent } from '../layout/main-layout/main-layout.component';
 import { DashboardComponent } from '../features/dashboard/dashboard.component';

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ValidationIcon, ValidationIndicator } from '../types/utils/validation.type';
-import { ASSETS } from '../constants/assets.constants';
+import { ValidationIcon, ValidationIndicator } from '../../types/utils/validation.type';
+import { ASSETS } from '../../constants/assets.constants';
 
 type IndicatorParameter = {
   indicator: string;

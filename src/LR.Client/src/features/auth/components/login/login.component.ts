@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { ASSETS } from '../../../core/constants/assets.constants';
+import { ASSETS } from '../../../../core/constants/assets.constants';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ValidationIndicator } from '../../../core/types/utils/validation.type';
-import { USER_AUTH } from '../../../core/constants/validation.constants';
-import { minLengthInstant } from '../../../shared/validators/string-pattern.validator';
-import { TextInputComponent } from '../../../shared/components/text-input/text-input.component';
-import { ValidationIndicatorService } from '../../../core/utils/validation-indicator.service';
+import { ValidationIndicator } from '../../../../core/types/utils/validation.type';
+import { USER_AUTH } from '../../../../core/constants/validation.constants';
+import { minLengthInstant } from '../../../../shared/validators/string-pattern.validator';
+import { TextInputComponent } from '../../../../shared/components/text-input/text-input.component';
+import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
 
 @Component({
   selector: 'app-login',

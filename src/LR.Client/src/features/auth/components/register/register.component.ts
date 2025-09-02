@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { ASSETS } from '../../../core/constants/assets.constants';
+import { ASSETS } from '../../../../core/constants/assets.constants';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { TextInputComponent } from "../../../shared/components/text-input/text-input.component";
-import { ValidationIndicator } from '../../../core/types/utils/validation.type';
-import { USER_AUTH } from '../../../core/constants/validation.constants';
-import { digitValidator, lowercaseValidator, minLengthInstant, uppercaseValidator } from '../../../shared/validators/string-pattern.validator';
-import { ValidationIndicatorService } from '../../../core/utils/validation-indicator.service';
+import { TextInputComponent } from "../../../../shared/components/text-input/text-input.component";
+import { ValidationIndicator } from '../../../../core/types/utils/validation.type';
+import { USER_AUTH } from '../../../../core/constants/validation.constants';
+import { digitValidator, lowercaseValidator, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
+import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
 
 @Component({
   selector: 'app-register',
