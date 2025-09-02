@@ -18,6 +18,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseCors("DefaultCorsPolicy");
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler(_ => { });
 

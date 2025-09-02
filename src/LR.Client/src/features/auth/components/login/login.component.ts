@@ -6,13 +6,17 @@ import { USER_AUTH } from '../../../../core/constants/validation.constants';
 import { minLengthInstant } from '../../../../shared/validators/string-pattern.validator';
 import { TextInputComponent } from '../../../../shared/components/text-input/text-input.component';
 import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
+import { AuthStore } from '../../store/auth.store';
+import { BusyComponent } from "../../../../shared/components/busy/busy.component";
+import { LoginRequest } from '../../../../models/auth/login-request.model';
 
 @Component({
   selector: 'app-login',
   imports: [
     TextInputComponent,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    BusyComponent
+],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
@@ -25,6 +29,7 @@ export class LoginComponent {
   public loginImage = ASSETS.IMAGES.ILLUSTRATIONS.LOGIN;
   public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
+  public authStore = inject(AuthStore);
 
   constructor() {
     this.initForm();
@@ -61,5 +66,11 @@ export class LoginComponent {
     };
   }
 
-  public login() {}
+  public login() {
+    if (this.loginForm.invalid) return;
+
+    const request: LoginRequest = this.loginForm.value;
+
+    this.authStore.login(request);
+  }
 }

@@ -1,28 +1,20 @@
 <div class="flex items-center gap-2">
-    <div class="flex-1">
-        <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off" class="flex flex-col gap-4">
+  @if(authStore.isBusy()) {
+  <app-busy />
+  }
+  <div class="flex-1">
+    <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off" class="flex flex-col gap-4">
 
-      <app-text-input 
-        [formControl]="$any(loginForm.controls['userName'])"
-        [label]="'Username'"
-        [indicators]="validationIndicators['userName']"
-      >
+      <app-text-input [formControl]="$any(loginForm.controls['userName'])" [label]="'Username'"
+        [indicators]="validationIndicators['userName']">
       </app-text-input>
 
-      <app-text-input 
-        [formControl]="$any(loginForm.controls['password'])"
-        [label]="'Password'"
-        [type]="'password'"
-        [indicators]="validationIndicators['password']"
-      />
+      <app-text-input [formControl]="$any(loginForm.controls['password'])" [label]="'Password'" [type]="'password'"
+        [indicators]="validationIndicators['password']" />
 
-      <button 
-        type="submit" 
-        [disabled]="loginForm.invalid"
-        class="bg-orange-600 text-white px-4 py-2 rounded-xl text-lg font-bold 
-         hover:bg-orange-700 transition-colors disabled:opacity-50 
-         cursor-pointer disabled:cursor-not-allowed"
-      >
+      <button type="submit" [disabled]="loginForm.invalid" class="bg-orange-600 text-white px-4 py-2 rounded-xl text-lg font-bold 
+          hover:bg-orange-700 transition-colors disabled:opacity-50 
+          cursor-pointer disabled:cursor-not-allowed">
         Sign in
       </button>
 
@@ -40,8 +32,8 @@
       </button>
 
     </form>
-    </div>
-    <div class="flex-1">
-        <img [src]="[loginImage]" alt="Login Illustration" class="w-full h-auto">
-    </div>
+  </div>
+  <div class="flex-1">
+    <img [src]="[loginImage]" alt="Login Illustration" class="w-full h-auto">
+  </div>
 </div>
