@@ -1,3 +1,4 @@
+import { ApiError } from "../../../models/api/api-error.model";
 import { User } from "../../../models/auth/user.model";
 
 export interface AuthSlice {
@@ -5,11 +6,13 @@ export interface AuthSlice {
     accessToken: string | null;
     expiresAt: Date | null;
     isBusy: boolean;
+    error: ApiError | null;
 }
 
 export const initialAuthSlice: AuthSlice = {
     user: null,
     accessToken: null,
     expiresAt: null,
-    isBusy: false
+    isBusy: false,
+    error: null
 }

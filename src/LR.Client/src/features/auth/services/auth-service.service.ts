@@ -13,18 +13,18 @@ export class AuthService {
   private _apiClient = inject(ApiClientService);
 
   public login(loginRequest: LoginRequest): Observable<AuthResponse> {
-    return this._apiClient.post<LoginRequest, AuthResponse>(AuthApi.LOGIN, loginRequest);
+    return this._apiClient.post<LoginRequest, AuthResponse>(AuthApi.LOGIN, loginRequest, { withCredentials: true });
   }
 
   public register(registerRequest: RegisterRequest): Observable<AuthResponse> {
-    return this._apiClient.post<RegisterRequest, AuthResponse>(AuthApi.REGISTER, registerRequest);
+    return this._apiClient.post<RegisterRequest, AuthResponse>(AuthApi.REGISTER, registerRequest, { withCredentials: true });
   }
 
-  public logout(): Observable<AuthResponse> {
-    return this._apiClient.post<AuthResponse>(AuthApi.LOGOUT);
+  public logout(): Observable<void> {
+    return this._apiClient.postVoid(AuthApi.LOGOUT, null, { withCredentials: true });
   }
 
   public refresh(): Observable<AuthResponse> {
-    return this._apiClient.post<AuthResponse>(AuthApi.REFRESH);
+    return this._apiClient.post<AuthResponse>(AuthApi.REFRESH, undefined, { withCredentials: true });
   }
 }

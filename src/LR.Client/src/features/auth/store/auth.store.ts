@@ -5,13 +5,12 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { setAuthenticatedUser, setBusy } from "./auth.updaters";
-import { exhaustMap, tap } from "rxjs";
+import { setAuthenticatedUser, setBusy, setError } from "./auth.updaters";
+import { exhaustMap, finalize, map, tap } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
-import { AccessToken } from "../../../models/auth/access-token.model";
-import { AuthResponse } from "../../../models/auth/auth-response.model";
 import { Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
+import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -34,55 +33,63 @@ export const AuthStore = signalStore(
             hasValidAccessToken
         };
     }),
-    withMethods((store) => ({
-        login: rxMethod<LoginRequest>(input$ => input$.pipe(
-            tap(_ => patchState(store, setBusy(true))),
-            exhaustMap(request => store._authService.login(request)
-                .pipe(
-                    tapResponse({
-                        next: response => patchState(store, setAuthenticatedUser(response)),
-                        error: err => console.log(err),
-                        finalize: () => patchState(store, setBusy(false))
-                    })
+    withMethods((store) => {
+        const router = inject(Router);
+
+        return {
+            login: rxMethod<LoginRequest>(input$ => input$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(request =>
+                    store._authService.login(request).pipe(
+                        tapResponse({
+                            next: response => patchState(store, setAuthenticatedUser(response)),
+                            error: err => {
+                                if (isApiError(err)) {
+                                    const apiErr = err as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
+                            finalize: () => {
+                                patchState(store, setBusy(false));
+                                router.navigate([ROUTES.DASHBOARD]);
+                            }
+                        })
+                    )
                 )
-            )
-        ))
-    })),
+            )),
+
+            logout: rxMethod<void>(trigger$ => trigger$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(_ =>
+                    store._authService.logout().pipe(
+                        finalize(() => {
+                            patchState(store, initialAuthSlice);
+                            router.navigate([ROUTES.AUTH.LOGIN]);
+                        })
+                    )
+                )
+            )),
+
+            refresh: rxMethod<void>(trigger$ => trigger$.pipe(
+                exhaustMap(() =>
+                    store._authService.refresh().pipe(
+                        tapResponse({
+                            next: response => patchState(store, setAuthenticatedUser(response)),
+                            error: () => {
+                                patchState(store, initialAuthSlice);
+                                router.navigate([ROUTES.AUTH.LOGIN]);
+                            }
+                        })
+                    )
+                )
+            ))
+        };
+    }),
     withHooks(store => ({
         onInit: () => {
-            const router = inject(Router);
-            const authInfoJson = localStorage.getItem('user');
-
-            if (authInfoJson) {
-                const authInfo = JSON.parse(authInfoJson) as AuthSlice;
-                patchState(store, {
-                    accessToken: authInfo.accessToken,
-                    expiresAt: authInfo.expiresAt ? new Date(authInfo.expiresAt) : null,
-                    user: authInfo.user
-                })
-            }
-
-            effect(() => {
-                const state = getState(store);
-                if (!state.accessToken || !state.expiresAt || !state.user) return;
-
-                const authInfo: AuthSlice = {
-                    user: state.user,
-                    accessToken: state.accessToken,
-                    expiresAt: state.expiresAt,
-                    isBusy: false
-                };
-
-                const authInfoJson = JSON.stringify(authInfo);
-
-                localStorage.setItem('user', authInfoJson);
-            });
-
-            effect(() => {
-                if (store.isAuthenticated()) {
-                    setTimeout(() => router.navigate([ROUTES.DASHBOARD]));
-                }
-            });
+            store.refresh();
         }
     })),
     withDevtools('auth-store')

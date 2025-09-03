@@ -1,6 +1,7 @@
 import { PartialStateUpdater } from "@ngrx/signals";
 import { AuthSlice } from "./auth.slice";
 import { AuthResponse } from "../../../models/auth/auth-response.model";
+import { ApiError } from "../../../models/api/api-error.model";
 
 export function setBusy(isBusy: boolean): PartialStateUpdater<AuthSlice> {
     return _ => ({ isBusy });
@@ -12,4 +13,8 @@ export function setAuthenticatedUser(authResponse: AuthResponse): PartialStateUp
         expiresAt: new Date(authResponse.accessToken.expiresAtUtc),
         user: authResponse.user
     });
+}
+
+export function setError(error: ApiError): PartialStateUpdater<AuthSlice> {
+    return _ => ({ error });
 }

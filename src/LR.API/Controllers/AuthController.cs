@@ -95,7 +95,7 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("refresh")]
-        [SwaggerOperation(Summary = "Refresh tokens", Description = "Generates new JWT and Refresh token")]
+        [SwaggerOperation(Summary = "Refresh jwt token", Description = "Generates new JWT token")]
         [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
@@ -106,16 +106,21 @@ namespace LR.API.Controllers
             if (string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var tokenPairResult = await _accountService.RefreshToken(refreshTokenValue);
+            var refreshResult = await _accountService.RefreshToken(refreshTokenValue);
             
-            return tokenPairResult.Match(
+            return refreshResult.Match(
                 data =>
                 {
                     _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
                     return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
                 },
-                error => HandleFailure(error)
+                error => 
+                {
+                    _refreshTokenCookieWriter.Delete();
+
+                    return HandleFailure(error);
+                }
             );
         }
 
@@ -135,12 +140,7 @@ namespace LR.API.Controllers
             _refreshTokenCookieWriter.Delete();
 
             return result.Match(
-                    () =>
-                    {
-                        _refreshTokenCookieWriter.Delete();
-
-                        return Ok(ApiResponse<object>.Ok());
-                    },
+                    () => Ok(ApiResponse<object>.Ok()),
                     error => HandleFailure(error)
                 );
         }

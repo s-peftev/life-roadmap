@@ -1,6 +1,7 @@
 ﻿using LR.Application.DTOs.User;
 using LR.Application.AppResult;
 using LR.Application.AppResult.ResultData.Account;
+using LR.Application.Responses.User;
 
 namespace LR.Application.Interfaces.Utils
 {

@@ -82,14 +82,22 @@ namespace LR.Infrastructure.Utils
                 (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
-            refreshToken.IsRevoked = true;
-            refreshToken.RevokedAtUtc = DateTime.UtcNow;
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
+            if (IsTimeToRotateToken(refreshToken))
+            {
+                refreshToken.IsRevoked = true;
+                refreshToken.RevokedAtUtc = DateTime.UtcNow;
+                var saveResult = await _refreshTokenService.SaveChangesAsync();
 
-            if (!saveResult.IsSuccess)
-                throw new TokenRevokingException();
+                if (!saveResult.IsSuccess)
+                    throw new TokenRevokingException();
 
-            return await AuthenticateUserAsync(user, refreshToken.SessionId);
+                return await AuthenticateUserAsync(user, refreshToken.SessionId);
+            }
+
+            var jwtToken = _tokenService
+                .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
+
+            return Result<AuthResult>.Success(BuildAuthResult(user, jwtToken, refreshToken));
         }
 
         public async Task<Result> LogoutAsync(string refreshTokenValue)
@@ -177,19 +185,25 @@ namespace LR.Infrastructure.Utils
             if (saveResult.Value is 0)
                 throw new TokenPersistingException();
 
+            return Result<AuthResult>.Success(BuildAuthResult(user, jwtToken, refreshToken));
+        }
+
+        private AuthResult BuildAuthResult(AppUser user, AccessTokenDto jwtToken, RefreshToken refreshToken)
+        {
             var authResponse = new AuthResponse
             {
                 AccessToken = jwtToken,
                 User = _mapper.Map<UserDto>(user)
             };
 
-            var authResult = new AuthResult
+            return new()
             {
                 AuthResponse = authResponse,
                 RefreshToken = refreshToken
             };
-
-            return Result<AuthResult>.Success(authResult);
         }
+
+        private bool IsTimeToRotateToken(RefreshToken refreshToken) =>
+            (refreshToken.ExpiresAtUtc - DateTime.UtcNow) < TimeSpan.FromDays(_refreshTokenOptions.RotationThresholdDays);
     }
 }
