@@ -4,7 +4,7 @@ import { AuthResponse } from '../../../models/auth/auth-response.model';
 import { Observable } from 'rxjs';
 import { AuthApi } from '../../../core/constants/api/auth-api.constants';
 import { RegisterRequest } from '../../../models/auth/register-request.model';
-import { ApiClientService } from '../../../core/services/api/api-client.service';
+import { ApiClientService } from '../../../core/services/app/api-client.service';
 
 @Injectable({
   providedIn: 'root'
