@@ -1,5 +1,5 @@
 import { getState, patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from "@ngrx/signals";
-import { AuthSlice, initialAuthSlice } from "./auth.slice";
+import { initialAuthSlice } from "./auth.slice";
 import { computed, effect, inject } from "@angular/core";
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
@@ -12,7 +12,6 @@ import { Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
 import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
 import { User } from "../../../models/auth/user.model";
-import { ErrorType } from "../../../core/enums/error-type.enum";
 import { AuthResponse } from "../../../models/auth/auth-response.model";
 
 export const AuthStore = signalStore(
@@ -43,9 +42,9 @@ export const AuthStore = signalStore(
                     store._authService.login(request).pipe(
                         tapResponse({
                             next: response => patchState(store, setAuthUserWithJwt(response)),
-                            error: err => {
-                                if (isApiError(err)) {
-                                    const apiErr = err as ApiError;
+                            error: (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
                                     patchState(store, setError(apiErr));
                                 } else {
                                     patchState(store, setError(DefaultErrors.UnexpectedError))
@@ -66,7 +65,6 @@ export const AuthStore = signalStore(
                     store._authService.logout().pipe(
                         finalize(() => {
                             patchState(store, initialAuthSlice);
-                            localStorage.removeItem('user');
                             router.navigate([ROUTES.AUTH.LOGIN]);
                         })
                     )
@@ -77,16 +75,7 @@ export const AuthStore = signalStore(
                 return store._authService.refresh().pipe(
                     tap({
                         next: (response) => patchState(store, setAuthUserWithJwt(response)),
-                        error: (err) => {
-                            if (!isApiError(err)) return;
-
-                            const apiErr = err as ApiError;
-                            if (apiErr.type === ErrorType.Unauthorized) {
-                                router.navigate([ROUTES.AUTH.LOGIN]);
-                                localStorage.removeItem('user'); // doesn`t work as expected
-                                patchState(store, initialAuthSlice);
-                            }
-                        }
+                        error: () => patchState(store, initialAuthSlice)
                     })
                 );
             },
