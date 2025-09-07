@@ -16,6 +16,7 @@ using LR.Application.DTOs.Token;
 using LR.Application.AppResult.ResultData.Account;
 using LR.Application.Responses.User;
 using LR.Infrastructure.Exceptions.User;
+using LR.Application.Requests.User;
 
 namespace LR.Infrastructure.Utils
 {
@@ -111,6 +112,31 @@ namespace LR.Infrastructure.Utils
             rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
 
             await _refreshTokenService.SaveChangesAsync();
+
+            return Result.Success();
+        }
+
+        public async Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest dto)
+        { 
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user is null || user.UserName != dto.UserName)
+                return Result<string>.Failure(UserErrors.InvalidEmailCodeRequest);
+
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            return Result<string>.Success(code);
+        }
+
+        public async Task<Result> ConfirmEmailAsync(EmailConfirmationRequest dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user is null)
+                return Result.Failure(UserErrors.EmailConfirmationFailed);
+
+            var result = await _userManager.ConfirmEmailAsync(user, dto.Code);
+
+            if (!result.Succeeded)
+                return Result.Failure(UserErrors.EmailConfirmationFailed);
 
             return Result.Success();
         }

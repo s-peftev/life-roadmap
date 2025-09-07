@@ -26,6 +26,8 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     opt.Password.RequireUppercase = true;
                     opt.Password.RequiredLength = MinPasswordLenght;
                     opt.Password.RequireNonAlphanumeric = false;
+
+                    opt.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
                 })
                 .AddRoles<AppRole>()
                 .AddRoleManager<RoleManager<AppRole>>()

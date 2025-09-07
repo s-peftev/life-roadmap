@@ -31,5 +31,20 @@ namespace LR.Application.AppResult.Errors
             "InvalidLoginRequest",
             ErrorType.Validation,
             "Login request is invalid.");
+
+        public static readonly Error InvalidEmailCodeRequest = new(
+            "InvalidEmailCodeRequest",
+            ErrorType.Validation,
+            "Request for email confirmation code is invalid.");
+
+        public static readonly Error EmailConfirmationFailed = new(
+            "EmailConfirmationFailed",
+            ErrorType.Validation,
+            "Email confirmation failed.");
+
+        public static readonly Error InvalidForgotPasswordRequest = new(
+            "InvalidForgotPasswordRequest",
+            ErrorType.Validation,
+            "Request for password reset is invalid.");
     }
 }

@@ -1,7 +1,7 @@
 ﻿using LR.Application.DTOs.User;
 using LR.Application.AppResult;
 using LR.Application.AppResult.ResultData.Account;
-using LR.Application.Responses.User;
+using LR.Application.Requests.User;
 
 namespace LR.Application.Interfaces.Utils
 {
@@ -11,5 +11,7 @@ namespace LR.Application.Interfaces.Utils
         Task<Result<AuthResult>> LoginAsync(UserLoginDto dto);
         Task<Result> LogoutAsync(string userId);
         Task<Result<AuthResult>> RefreshToken(string refreshToken);
+        Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest dto);
+        Task<Result> ConfirmEmailAsync(EmailConfirmationRequest dto);
     }
 }

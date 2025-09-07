@@ -21,6 +21,9 @@ namespace LR.API.Controllers
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IValidator<UserRegisterRequest> registerValidator,
         IValidator<UserLoginRequest> loginValidator,
+        IValidator<EmailCodeRequest> emailCodeValidator,
+        IValidator<EmailConfirmationRequest> emailConfirmationValidator,
+        IValidator<ForgotPasswordRequest> forgotPasswordRequestValidator,
         IRefreshTokenCookieWriter refreshTokenCookieWriter
         ) : BaseApiController
     {
@@ -30,6 +33,9 @@ namespace LR.API.Controllers
         private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
         private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
+        private readonly IValidator<EmailCodeRequest> _emailCodeValidator = emailCodeValidator;
+        private readonly IValidator<EmailConfirmationRequest> _emailConfirmationValidator = emailConfirmationValidator;
+        private readonly IValidator<ForgotPasswordRequest> _forgotPasswordRequestValidator = forgotPasswordRequestValidator;
         private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
 
         [HttpPost("register")]
@@ -143,6 +149,71 @@ namespace LR.API.Controllers
                     () => Ok(ApiResponse<object>.Ok()),
                     error => HandleFailure(error)
                 );
+        }
+
+        [HttpPost("email/verification-code")]
+        [SwaggerOperation(
+            Summary = "Send email verification code",
+            Description = "Generates and sends a new email verification code for user confirmation.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Verification code successfully generated", typeof(ApiResponse<string>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for email confirmation code is invalid", typeof(ApiResponse<string>))]
+        public async Task<IActionResult> SendEmailVerificationCode([FromBody] EmailCodeRequest request, CancellationToken ct)
+        {
+            var validationResult = await _emailCodeValidator.ValidateAsync(request, ct);
+
+            if (!validationResult.IsValid)
+            {
+                return HandleFailure(UserErrors.InvalidEmailCodeRequest
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            var codeResult = await _accountService.GenerateEmailConfirmationCodeAsync(request);
+
+            return codeResult.Match(
+                    data => Ok(ApiResponse<string>.Ok(data)),
+                    error => HandleFailure(error)
+                ); 
+        }
+
+        [HttpPost("email/verification")]
+        [SwaggerOperation(
+            Summary = "Confirm user email",
+            Description = "Confirms user's email using the verification code.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Email successfully confirmed", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed", typeof(ApiResponse<object>))]
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationRequest request, CancellationToken ct)
+        {
+            var validationResult = await _emailConfirmationValidator.ValidateAsync(request, ct);
+            
+            if (!validationResult.IsValid)
+            {
+                return HandleFailure(UserErrors.EmailConfirmationFailed
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            var result = await _accountService.ConfirmEmailAsync(request);
+
+            return result.Match(
+                    () => Ok(ApiResponse<object>.Ok()),
+                    error => HandleFailure(error)
+                );
+        }
+
+        [HttpPost("password/reset-request")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+        {
+            var validationResult = await _forgotPasswordRequestValidator.ValidateAsync(request, ct);
+
+            if (!validationResult.IsValid)
+            {
+                return HandleFailure(UserErrors.InvalidForgotPasswordRequest
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            return Ok();
         }
     }
 }
