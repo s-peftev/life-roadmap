@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpBackend, HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ApiResponse } from '../../../models/api/api-response.model';
 import { ApiError, DefaultErrors } from '../../../models/api/api-error.model';
@@ -9,6 +9,8 @@ import { map, Observable } from 'rxjs';
 })
 export class ApiClientService {
   private http = inject(HttpClient);
+  private httpBackendHandler = inject(HttpBackend);
+  private httpNoIntercept = new HttpClient(this.httpBackendHandler);
 
   private unwrapStrict<T>(response: ApiResponse<T>): T {
     if (!response.success) throw (response.error ?? DefaultErrors.UnknownError) as ApiError;
@@ -38,6 +40,21 @@ export class ApiClientService {
       );
   }
 
+  public postVoid(url: string, body?: any, options?: { [key: string]: any }): Observable<void> {
+    
+    return this.http.post<ApiResponse<null>>(url, body ?? null, { ...options, observe: 'body' })
+      .pipe(
+        map(this.unwrapVoid)
+      );
+  }
+
+  public postNoIntercept<T, R = T>(url: string, body?: T, options?: { [key: string]: any }): Observable<R> {
+    return this.httpNoIntercept.post<ApiResponse<R>>(url, body ?? null, { ...options, observe: 'body' })
+      .pipe(
+        map(this.unwrapStrict)
+      );
+  }
+
   public put<T, R = T>(url: string, body?: T, options?: { [key: string]: any }): Observable<R> {
 
     return this.http.put<ApiResponse<R>>(url, body ?? null, { ...options, observe: 'body' })
@@ -51,14 +68,6 @@ export class ApiClientService {
     return this.http.delete<ApiResponse<T>>(url, { ...options, observe: 'body' })
       .pipe(
         map(this.unwrapStrict)
-      );
-  }
-
-  public postVoid(url: string, body?: any, options?: { [key: string]: any }): Observable<void> {
-    
-    return this.http.post<ApiResponse<null>>(url, body ?? null, { ...options, observe: 'body' })
-      .pipe(
-        map(this.unwrapVoid)
       );
   }
 

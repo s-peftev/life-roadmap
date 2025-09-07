@@ -25,6 +25,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     opt.Password.RequireLowercase = true;
                     opt.Password.RequireUppercase = true;
                     opt.Password.RequiredLength = MinPasswordLenght;
+                    opt.Password.RequireNonAlphanumeric = false;
                 })
                 .AddRoles<AppRole>()
                 .AddRoleManager<RoleManager<AppRole>>()
@@ -51,7 +52,8 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = jwtOptions.Issuer,
                         ValidAudience = jwtOptions.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     opt.Events = new JwtBearerEvents

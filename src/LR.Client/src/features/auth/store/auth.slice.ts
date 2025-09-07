@@ -7,6 +7,7 @@ export interface AuthSlice {
     expiresAt: Date | null;
     isBusy: boolean;
     error: ApiError | null;
+    testUsersList: User[] | null;
 }
 
 export const initialAuthSlice: AuthSlice = {
@@ -14,5 +15,6 @@ export const initialAuthSlice: AuthSlice = {
     accessToken: null,
     expiresAt: null,
     isBusy: false,
-    error: null
+    error: null,
+    testUsersList: null
 }

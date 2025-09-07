@@ -25,3 +25,7 @@ export function setAuthUser(user: User): PartialStateUpdater<AuthSlice> {
 export function setError(error: ApiError): PartialStateUpdater<AuthSlice> {
     return _ => ({ error });
 }
+
+export function clearError(): PartialStateUpdater<AuthSlice> {
+    return _ => ({ error: null });
+}

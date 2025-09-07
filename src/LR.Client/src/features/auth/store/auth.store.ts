@@ -5,14 +5,15 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { setAuthUser, setAuthUserWithJwt, setBusy, setError } from "./auth.updaters";
-import { exhaustMap, finalize, map, Observable, tap } from "rxjs";
+import { clearError, setAuthUser, setAuthUserWithJwt, setBusy, setError } from "./auth.updaters";
+import { catchError, exhaustMap, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
 import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
 import { User } from "../../../models/auth/user.model";
 import { AuthResponse } from "../../../models/auth/auth-response.model";
+import { RegisterRequest } from "../../../models/auth/register-request.model";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -41,7 +42,30 @@ export const AuthStore = signalStore(
                 exhaustMap(request =>
                     store._authService.login(request).pipe(
                         tapResponse({
-                            next: response => patchState(store, setAuthUserWithJwt(response)),
+                            next: response => patchState(store, setAuthUserWithJwt(response), clearError()),
+                            error: (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
+                            finalize: () => {
+                                patchState(store, setBusy(false));
+                                router.navigate([ROUTES.DASHBOARD]);
+                            }
+                        })
+                    )
+                )
+            )),
+
+            register: rxMethod<RegisterRequest>(input$ => input$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(request =>
+                    store._authService.register(request).pipe(
+                        tapResponse({
+                            next: response => patchState(store, setAuthUserWithJwt(response), clearError()),
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
                                     const apiErr = err.error.error as ApiError;
@@ -73,12 +97,31 @@ export const AuthStore = signalStore(
 
             refresh: (): Observable<AuthResponse> => {
                 return store._authService.refresh().pipe(
-                    tap({
-                        next: (response) => patchState(store, setAuthUserWithJwt(response)),
-                        error: () => patchState(store, initialAuthSlice)
+                    tap((response) => patchState(store, setAuthUserWithJwt(response))),
+                    catchError((err) => {
+                        patchState(store, initialAuthSlice);
+                        return throwError(() => err);
                     })
                 );
             },
+
+            testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(_ => {
+                    return store._authService.testUserList().pipe(
+                        tapResponse(({
+                            next: resp => patchState(store, { testUsersList: resp }),
+                            error: (err: any) => {
+                                console.log(err);
+                                patchState(store, { error: err.status })
+                            },
+                            finalize: () => {
+                                patchState(store, setBusy(false))
+                            }
+                        }))
+                    )
+                })
+            )),
         };
     }),
     withHooks(store => ({

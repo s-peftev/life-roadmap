@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { AuthApi } from '../../../core/constants/api/auth-api.constants';
 import { RegisterRequest } from '../../../models/auth/register-request.model';
 import { ApiClientService } from '../../../core/services/app/api-client.service';
+import { User } from '../../../models/auth/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,6 +26,10 @@ export class AuthService {
   }
 
   public refresh(): Observable<AuthResponse> {
-    return this._apiClient.post<AuthResponse>(AuthApi.REFRESH, undefined, { withCredentials: true });
+    return this._apiClient.postNoIntercept<AuthResponse>(AuthApi.REFRESH, undefined, { withCredentials: true });
+  }
+
+  public testUserList(): Observable<User[]> {
+    return this._apiClient.get<User[]>('https://localhost:5001/api/userTest');
   }
 }

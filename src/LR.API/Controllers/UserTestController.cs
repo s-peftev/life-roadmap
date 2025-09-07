@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using LR.Application.DTOs.User;
-using LR.Application.Interfaces.Services;
+using LR.Application.Responses;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,11 +13,9 @@ namespace LR.API.Controllers
     [Authorize]
     public class UserTestController(
         UserManager<AppUser> userManager,
-        IRefreshTokenService refreshTokenService,
         IMapper _mapper) : BaseApiController
     {
         private readonly UserManager<AppUser> _userManager = userManager;
-        private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
@@ -26,7 +24,7 @@ namespace LR.API.Controllers
                 .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return Ok(users);
+            return Ok(ApiResponse<IEnumerable<UserDto>>.Ok(users));
         }
     }
 }

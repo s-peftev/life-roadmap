@@ -6,6 +6,8 @@ import { ValidationIndicator } from '../../../../core/types/utils/validation.typ
 import { USER_AUTH } from '../../../../core/constants/validation.constants';
 import { digitValidator, lowercaseValidator, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
 import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
+import { RegisterRequest } from '../../../../models/auth/register-request.model';
+import { AuthStore } from '../../store/auth.store';
 
 @Component({
   selector: 'app-register',
@@ -17,6 +19,7 @@ import { ValidationIndicatorService } from '../../../../core/services/utils/vali
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
+  private authStore = inject(AuthStore);
   private fb = inject(FormBuilder);
   private validationIndicatorService = inject(ValidationIndicatorService);
 
@@ -97,5 +100,11 @@ export class RegisterComponent {
     }
   };
 
-  public register() { };
+  public register() {
+    if (this.registerForm.invalid) return;
+
+    const request: RegisterRequest = this.registerForm.value;
+
+    this.authStore.register(request);
+  };
 }
