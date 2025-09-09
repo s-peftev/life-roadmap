@@ -7,13 +7,13 @@ namespace LR.Application.Interfaces.Utils
 {
     public interface IAccountService
     {
-        Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto);
-        Task<Result<AuthResult>> LoginAsync(UserLoginDto dto);
+        Task<Result<AuthResult>> RegisterAsync(UserRegisterDto userRegisterDto, CancellationToken ct = default);
+        Task<Result<AuthResult>> LoginAsync(UserLoginDto userLoginDto, CancellationToken ct = default);
         Task<Result> LogoutAsync(string userId);
-        Task<Result<AuthResult>> RefreshToken(string refreshToken);
-        Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest dto);
-        Task<Result> ConfirmEmailAsync(EmailConfirmationRequest dto);
-        Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest dto);
-        Task<Result> ResetPasswordAsync(ResetPasswordRequest dto);
+        Task<Result<AuthResult>> RefreshToken(string refreshToken, CancellationToken ct = default);
+        Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest emailCodeRequest);
+        Task<Result> ConfirmEmailAsync(EmailConfirmationRequest emailConfirmationRequest);
+        Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest);
+        Task<Result> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest);
     }
 }

@@ -15,7 +15,6 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IRefreshTokenCookieWriter, RefreshTokenCookieWriter>();
             services.AddScoped<IRequestInfoService, RequestInfoService>();
-            services.AddScoped<ICancellationTokenProvider, HttpContextCancellationTokenProvider>();
         }
     }
 }

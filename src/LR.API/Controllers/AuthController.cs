@@ -61,7 +61,7 @@ namespace LR.API.Controllers
             }
 
             var registerResult = await _accountService
-                .RegisterAsync(_mapper.Map<UserRegisterDto>(request));
+                .RegisterAsync(_mapper.Map<UserRegisterDto>(request), ct);
 
             return registerResult.Match(
                 data =>
@@ -90,7 +90,7 @@ namespace LR.API.Controllers
             }
 
             var loginResult = await _accountService
-                .LoginAsync(_mapper.Map<UserLoginDto>(request));
+                .LoginAsync(_mapper.Map<UserLoginDto>(request), ct);
 
             return loginResult.Match(
                 data =>
@@ -107,14 +107,14 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> Refresh(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
             if (string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var refreshResult = await _accountService.RefreshToken(refreshTokenValue);
+            var refreshResult = await _accountService.RefreshToken(refreshTokenValue, ct);
             
             return refreshResult.Match(
                 data =>

@@ -1,16 +1,14 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using LR.Application.Interfaces.Services;
-using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
 
 namespace LR.Application.Services.User
 {
     public class RefreshTokenService(
-        IRefreshTokenRepository repository,
-        ICancellationTokenProvider cancellationTokenProvider)
-        : EntityService<RefreshToken, Guid>(repository, cancellationTokenProvider),
+        IRefreshTokenRepository repository)
+        : EntityService<RefreshToken, Guid>(repository),
         IRefreshTokenService
     {
         private readonly IRefreshTokenRepository _repository = repository;
@@ -18,10 +16,8 @@ namespace LR.Application.Services.User
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
-        public async Task<Result<RefreshToken>> GetByTokenValueAsync(string refreshTokenValue)
+        public async Task<Result<RefreshToken>> GetByTokenValueAsync(string refreshTokenValue, CancellationToken ct = default)
         {
-            var ct = _ctProvider.GetCancellationToken();
-
             var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
 
             return rt is null

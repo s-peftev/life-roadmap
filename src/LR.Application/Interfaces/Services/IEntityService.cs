@@ -7,12 +7,12 @@ namespace LR.Application.Interfaces.Services
     {
         TEntity Add(TEntity entity);
         TEntity Update(TEntity entity);
-        Task<Result> RemoveAsync(TKey id);
-        Task<Result<TEntity>> GetByIdAsync(TKey id);
-        Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<Result<int>> SaveChangesAsync();
-        Task BeginTransactionAsync();
-        Task CommitTransactionAsync();
-        Task RollbackTransactionAsync();
+        Task<Result> RemoveAsync(TKey id, CancellationToken ct = default);
+        Task<Result<TEntity>> GetByIdAsync(TKey id, CancellationToken ct = default);
+        Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default);
+        Task<Result<int>> SaveChangesAsync(CancellationToken ct = default);
+        Task BeginTransactionAsync(CancellationToken ct = default);
+        Task CommitTransactionAsync(CancellationToken ct = default);
+        Task RollbackTransactionAsync(CancellationToken ct = default);
     }
 }

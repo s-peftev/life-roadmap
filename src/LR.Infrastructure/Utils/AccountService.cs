@@ -42,38 +42,45 @@ namespace LR.Infrastructure.Utils
         private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
         private readonly IRequestInfoService _requestInfoService = requestInfoService;
 
-        public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto)
+        public async Task<Result<AuthResult>> RegisterAsync(
+            UserRegisterDto userRegisterDto,
+            CancellationToken cancellationToken = default)
         {
-            var userCheck = await EnsureUserIsUniqueAsync(dto);
+            var userCheck = await EnsureUserIsUniqueAsync(userRegisterDto);
             if (!userCheck.IsSuccess)
                 return Result<AuthResult>.Failure(userCheck.Error);
 
-            await _userProfileService.BeginTransactionAsync();
+            await _userProfileService.BeginTransactionAsync(cancellationToken);
 
-            var userResult = await CreateUserAsync(dto);
+            var userResult = await CreateUserAsync(userRegisterDto);
             var user = userResult.Value;
 
             await AssignDefaultRoleAsync(user);
-            await CreateProfileAsync(user, dto);
+            await CreateProfileAsync(user, userRegisterDto, cancellationToken);
 
-            await _userProfileService.CommitTransactionAsync();
+            await _userProfileService.CommitTransactionAsync(cancellationToken);
 
-            return await AuthenticateUserAsync(user);
+            return await AuthenticateUserAsync(user, cancellationToken: cancellationToken);
         }
 
-        public async Task<Result<AuthResult>> LoginAsync(UserLoginDto dto)
+        public async Task<Result<AuthResult>> LoginAsync(
+            UserLoginDto userLoginDto,
+            CancellationToken cancellationToken = default)
         {
-            var user = await _userManager.GetByUserNameWithRolesAsync(dto.UserName);
+            var user = await _userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
-            if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+            if (user is null || !await _userManager.CheckPasswordAsync(user, userLoginDto.Password))
                 return Result<AuthResult>.Failure(UserErrors.LoginFailed);
 
-            return await AuthenticateUserAsync(user);
+            return await AuthenticateUserAsync(user, cancellationToken: cancellationToken);
         }
 
-        public async Task<Result<AuthResult>> RefreshToken(string refreshTokenValue)
+        public async Task<Result<AuthResult>> RefreshToken(
+            string refreshTokenValue,
+            CancellationToken cancellationToken = default)
         {
-            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
+            var rtResult = await _refreshTokenService
+                .GetByTokenValueAsync(refreshTokenValue, cancellationToken);
             if (!rtResult.IsSuccess)
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
@@ -89,12 +96,12 @@ namespace LR.Infrastructure.Utils
             {
                 refreshToken.IsRevoked = true;
                 refreshToken.RevokedAtUtc = DateTime.UtcNow;
-                var saveResult = await _refreshTokenService.SaveChangesAsync();
+                var saveResult = await _refreshTokenService.SaveChangesAsync(cancellationToken);
 
                 if (!saveResult.IsSuccess)
                     throw new TokenRevokingException();
 
-                return await AuthenticateUserAsync(user, refreshToken.SessionId);
+                return await AuthenticateUserAsync(user, refreshToken.SessionId, cancellationToken);
             }
 
             var jwtToken = _tokenService
@@ -118,10 +125,10 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        public async Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest dto)
+        public async Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest emailCodeRequest)
         { 
-            var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user is null || user.UserName != dto.UserName)
+            var user = await _userManager.FindByEmailAsync(emailCodeRequest.Email);
+            if (user is null || user.UserName != emailCodeRequest.UserName)
                 return Result<string>.Failure(UserErrors.InvalidEmailCodeRequest);
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -129,13 +136,13 @@ namespace LR.Infrastructure.Utils
             return Result<string>.Success(code);
         }
 
-        public async Task<Result> ConfirmEmailAsync(EmailConfirmationRequest dto)
+        public async Task<Result> ConfirmEmailAsync(EmailConfirmationRequest emailConfirmationRequest)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(emailConfirmationRequest.Email);
             if (user is null)
                 return Result.Failure(UserErrors.EmailConfirmationFailed);
 
-            var result = await _userManager.ConfirmEmailAsync(user, dto.Code);
+            var result = await _userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
 
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.EmailConfirmationFailed);
@@ -144,9 +151,9 @@ namespace LR.Infrastructure.Utils
         }
 
         //after implementing Email service replace Task<Result<string>> with Task<Result>
-        public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest dto)
+        public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest)
         {
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            var user = await _userManager.FindByEmailAsync(forgotPasswordRequest.Email);
             if (user is null)
                 return Result<string>.Success("");
             // do not notify about wrong email
@@ -158,35 +165,36 @@ namespace LR.Infrastructure.Utils
             return Result<string>.Success(callbackUrl);
         }
 
-        public async Task<Result> ResetPasswordAsync(ResetPasswordRequest dto)
+        public async Task<Result> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
         {
-            var user = await _userManager.FindByIdAsync(dto.UserId);
+            var user = await _userManager.FindByIdAsync(resetPasswordRequest.UserId);
             if (user is null)
                 return Result.Failure(UserErrors.PasswordResetFailed);
 
-            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.Password);
+            var result = await _userManager
+                .ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.PasswordResetFailed);
 
             return Result.Success();
         }
 
-        private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto dto)
+        private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto userRegisterDto)
         {
-            if (await _userManager.FindByNameAsync(dto.UserName) is not null)
+            if (await _userManager.FindByNameAsync(userRegisterDto.UserName) is not null)
                 return Result.Failure(UserErrors.UsernameIsTaken);
 
-            if (!string.IsNullOrEmpty(dto.Email) &&
-                await _userManager.FindByEmailAsync(dto.Email) is not null)
+            if (!string.IsNullOrEmpty(userRegisterDto.Email) &&
+                await _userManager.FindByEmailAsync(userRegisterDto.Email) is not null)
                 return Result.Failure(UserErrors.EmailIsTaken);
 
             return Result.Success();
         }
 
-        private async Task<Result<AppUser>> CreateUserAsync(UserRegisterDto dto)
+        private async Task<Result<AppUser>> CreateUserAsync(UserRegisterDto userRegisterDto)
         {
-            var user = _mapper.Map<AppUser>(dto);
-            var result = await _userManager.CreateAsync(user, dto.Password);
+            var user = _mapper.Map<AppUser>(userRegisterDto);
+            var result = await _userManager.CreateAsync(user, userRegisterDto.Password);
 
             if (!result.Succeeded)
                 throw new UserRegisterException();
@@ -205,13 +213,15 @@ namespace LR.Infrastructure.Utils
         }
 
         private async Task<Result<UserProfile>> CreateProfileAsync(
-            AppUser user, UserRegisterDto dto)
+            AppUser user,
+            UserRegisterDto userRegisterDto,
+            CancellationToken cancellationToken = default)
         {
-            var profile = _mapper.Map<UserProfile>(dto);
+            var profile = _mapper.Map<UserProfile>(userRegisterDto);
             profile.UserId = user.Id;
             _userProfileService.Add(profile);
 
-            var saveResult = await _userProfileService.SaveChangesAsync();
+            var saveResult = await _userProfileService.SaveChangesAsync(cancellationToken);
 
             if (saveResult.Value is 0)
                 throw new UserRegisterException();
@@ -219,7 +229,10 @@ namespace LR.Infrastructure.Utils
             return Result<UserProfile>.Success(profile);
         }
 
-        private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default)
+        private async Task<Result<AuthResult>> AuthenticateUserAsync(
+            AppUser user,
+            Guid? sessionId = default,
+            CancellationToken cancellationToken = default)
         {
             var jwtToken = _tokenService
                 .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
@@ -236,7 +249,7 @@ namespace LR.Infrastructure.Utils
             var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
 
             _refreshTokenService.Add(refreshToken);
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
+            var saveResult = await _refreshTokenService.SaveChangesAsync(cancellationToken);
 
             if (saveResult.Value is 0)
                 throw new TokenPersistingException();
