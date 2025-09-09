@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using LR.Application.Requests.User;
-using System.Text.RegularExpressions;
+using LR.Application.Validators.Common.Validators;
 
 namespace LR.Application.Validators.User
 {
@@ -15,9 +15,9 @@ namespace LR.Application.Validators.User
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
                 .Length(8, 20).WithMessage("Password must be between 8 and 20 characters.")
-                .Must(ContainDigit).WithMessage("Password must contain at least one digit.")
-                .Must(ContainLowercase).WithMessage("Password must contain at least one lowercase letter.")
-                .Must(ContainUppercase).WithMessage("Password must contain at least one uppercase letter.");
+                .Must(PasswordValidators.ContainDigit).WithMessage("Password must contain at least one digit.")
+                .Must(PasswordValidators.ContainLowercase).WithMessage("Password must contain at least one lowercase letter.")
+                .Must(PasswordValidators.ContainUppercase).WithMessage("Password must contain at least one uppercase letter.");
 
             RuleFor(x => x.FirstName)
                 .MaximumLength(50).WithMessage("FirstName cannot exceed 50 characters.")
@@ -31,14 +31,5 @@ namespace LR.Application.Validators.User
                 .EmailAddress().WithMessage("Invalid email format.")
                 .When(x => !string.IsNullOrEmpty(x.Email));
         }
-
-        private bool ContainDigit(string password) =>
-            !string.IsNullOrEmpty(password) && Regex.IsMatch(password, @"\d");
-
-        private bool ContainLowercase(string password) =>
-            !string.IsNullOrEmpty(password) && Regex.IsMatch(password, "[a-z]");
-
-        private bool ContainUppercase(string password) =>
-            !string.IsNullOrEmpty(password) && Regex.IsMatch(password, "[A-Z]");
     }
 }

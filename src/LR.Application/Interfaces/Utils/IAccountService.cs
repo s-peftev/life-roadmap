@@ -13,5 +13,7 @@ namespace LR.Application.Interfaces.Utils
         Task<Result<AuthResult>> RefreshToken(string refreshToken);
         Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest dto);
         Task<Result> ConfirmEmailAsync(EmailConfirmationRequest dto);
+        Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest dto);
+        Task<Result> ResetPasswordAsync(ResetPasswordRequest dto);
     }
 }

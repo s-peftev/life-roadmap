@@ -46,5 +46,10 @@ namespace LR.Application.AppResult.Errors
             "InvalidForgotPasswordRequest",
             ErrorType.Validation,
             "Request for password reset is invalid.");
+
+        public static readonly Error PasswordResetFailed = new(
+            "PasswordResetFailed",
+            ErrorType.Validation,
+            "Password reset failed.");
     }
 }

@@ -10,6 +10,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
         {
             services.Configure<JwtOptions>(configuration.GetSection("JwtOptions"));
             services.Configure<RefreshTokenOptions>(configuration.GetSection("RefreshTokenOptions"));
+            services.Configure<FrontendOptions>(configuration.GetSection("Frontend"));
         }
     }
 }

@@ -24,6 +24,7 @@ namespace LR.Infrastructure.Utils
         ITokenService tokenService,
         IOptions<JwtOptions> jwtOptions,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
+        IOptions<FrontendOptions> frontendOptions,
         IMapper mapper,
         IUserProfileService userProfileService,
         IRefreshTokenService refreshTokenService,
@@ -34,6 +35,7 @@ namespace LR.Infrastructure.Utils
         private readonly ITokenService _tokenService = tokenService;
         private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
+        private readonly FrontendOptions _frontendOptions = frontendOptions.Value;
         private readonly IMapper _mapper = mapper;
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly IUserProfileService _userProfileService = userProfileService;
@@ -137,6 +139,34 @@ namespace LR.Infrastructure.Utils
 
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.EmailConfirmationFailed);
+
+            return Result.Success();
+        }
+
+        //after implementing Email service replace Task<Result<string>> with Task<Result>
+        public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user is null)
+                return Result<string>.Success("");
+            // do not notify about wrong email
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var callbackUrl = $"{_frontendOptions.Url}/reset-password?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+            return Result<string>.Success(callbackUrl);
+        }
+
+        public async Task<Result> ResetPasswordAsync(ResetPasswordRequest dto)
+        {
+            var user = await _userManager.FindByIdAsync(dto.UserId);
+            if (user is null)
+                return Result.Failure(UserErrors.PasswordResetFailed);
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.Password);
+            if (!result.Succeeded)
+                return Result.Failure(UserErrors.PasswordResetFailed);
 
             return Result.Success();
         }

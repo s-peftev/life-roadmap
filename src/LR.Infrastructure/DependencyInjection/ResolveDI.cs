@@ -24,7 +24,7 @@ namespace LR.Infrastructure.DependencyInjection
 
         public static void ConfigureCorsPolicy(this IServiceCollection services, IConfiguration configuration)
         {
-            var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>();
+            var allowedOrigins = configuration.GetSection("FrontEnd:Url").Value;
             services.AddCors(options =>
             {
                 options.AddPolicy("DefaultCorsPolicy", policy =>

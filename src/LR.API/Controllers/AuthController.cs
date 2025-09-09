@@ -24,6 +24,7 @@ namespace LR.API.Controllers
         IValidator<EmailCodeRequest> emailCodeValidator,
         IValidator<EmailConfirmationRequest> emailConfirmationValidator,
         IValidator<ForgotPasswordRequest> forgotPasswordRequestValidator,
+        IValidator<ResetPasswordRequest> resetPasswordRequestValidator,
         IRefreshTokenCookieWriter refreshTokenCookieWriter
         ) : BaseApiController
     {
@@ -36,6 +37,7 @@ namespace LR.API.Controllers
         private readonly IValidator<EmailCodeRequest> _emailCodeValidator = emailCodeValidator;
         private readonly IValidator<EmailConfirmationRequest> _emailConfirmationValidator = emailConfirmationValidator;
         private readonly IValidator<ForgotPasswordRequest> _forgotPasswordRequestValidator = forgotPasswordRequestValidator;
+        private readonly IValidator<ResetPasswordRequest> _resetPasswordRequestValidator = resetPasswordRequestValidator;
         private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
 
         [HttpPost("register")]
@@ -202,6 +204,11 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("password/reset-request")]
+        [SwaggerOperation(
+            Summary = "Send password reset token",
+            Description = "Generates and sends a new password reset token for user confirmation.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Password reset token successfully generated", typeof(ApiResponse<string>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for password reset token is invalid", typeof(ApiResponse<string>))]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
         {
             var validationResult = await _forgotPasswordRequestValidator.ValidateAsync(request, ct);
@@ -213,7 +220,37 @@ namespace LR.API.Controllers
                 { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
             }
 
-            return Ok();
+            var result = await _accountService.GeneratePasswordResetTokenAsync(request);
+
+            return result.Match(
+                data => Ok(ApiResponse<string>.Ok()),
+                error => HandleFailure(error)
+                );
+        }
+
+        [HttpPost("password/reset")]
+        [SwaggerOperation(
+            Summary = "Reset user password",
+            Description = "Resets user's password using the reset token.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Password was successfully reset", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed", typeof(ApiResponse<object>))]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+        { 
+            var validationResult = await _resetPasswordRequestValidator.ValidateAsync(request, ct);
+
+            if (!validationResult.IsValid)
+            { 
+                return HandleFailure(UserErrors.PasswordResetFailed
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            var result = await _accountService.ResetPasswordAsync(request);
+
+            return result.Match(
+                    () => Ok(ApiResponse<object>.Ok()),
+                    error => HandleFailure(error)
+                );
         }
     }
 }
