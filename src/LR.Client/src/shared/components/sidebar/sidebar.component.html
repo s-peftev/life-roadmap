@@ -1,1 +1,94 @@
-<p>sidebar works!</p>
+<div class="relative">
+    <div (click)="toggleSidebar()"
+        class="z-50 absolute top-6 transition-all duration-300 ease-in-out p-1 cursor-pointer hover:bg-gray-100"
+        [class.left-55]="isSidebarOpen" [class.left-2]="!isSidebarOpen">
+        <img [src]="icons.SIDEBAR_TOGGLE" class="w-6 h-6" />
+    </div>
+    <div class="bg-gray-50 h-screen flex flex-col transform transition-transform duration-300 ease-in-out"
+        [class.-translate-x-full]="!isSidebarOpen" [class.translate-x-0]="isSidebarOpen" style="width: 16rem;">
+        <!-- User -->
+        <div class="flex items-center gap-2 p-4">
+            <div class="dropdown dropdown-start">
+                <div tabindex="0"
+                    class="m-1 flex items-center gap-2 cursor-pointer rounded px-2 py-1 hover:bg-gray-100 focus:outline-none">
+                    <img [src]="icons.DEFAULT_AVATAR" alt="avatar" class="w-8 h-8 rounded-full mr-1" />
+                    <span class="font-medium">{{authStore.user()?.userName}}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 w-52 space-y-1 rounded-2xl">
+                    <li class="pt-3 pb-3 border-b border-b-gray-200">
+                        <a
+                            class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
+                            <img [src]="icons.SETTINGS" alt="settings" class="w-5 h-5 flex-none" />
+                            <span  class="ml-2">Settings</span>
+                        </a>
+                    </li>
+                    <li (click)="logout()" class="pt-3 pb-3 mb-8 border-b border-b-gray-200">
+                        <a
+                            class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
+                            <img [src]="icons.LOGOUT" alt="log out" class="w-5 h-5 flex-none" />
+                            <span class="ml-2">Log out</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Actions -->
+        <nav class="flex-1 text-sm">
+            <ul class="space-y-1">
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100 text-red-600 font-medium">
+                        <span class="text-lg">+</span> Add task
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100">
+                        <span class="material-icons text-gray-500">search</span> Search
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100 justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="material-icons text-gray-500">inbox</span> Inbox
+                        </span>
+                        <span class="text-xs text-gray-500">3</span>
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 bg-red-50 hover:bg-red-100 justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="material-icons text-red-500">today</span> Today
+                        </span>
+                        <span class="text-xs text-red-500 font-medium">4</span>
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100">
+                        <span class="material-icons text-gray-500">calendar_today</span> Upcoming
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100">
+                        <span class="material-icons text-gray-500">filter_list</span> Filters & Labels
+                    </button>
+                </li>
+
+                <li>
+                    <button class="flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100">
+                        <span class="material-icons text-gray-500">check_circle</span> Completed
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>

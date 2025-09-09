@@ -10,6 +10,10 @@ function validationIcon(name: string) {
     return `${basePath}/img/icons/validation/${name}`;
 }
 
+function profileIcon(name: string) {
+    return `${basePath}/img/icons/profile/${name}`;
+}
+
 export const ASSETS = {
     IMAGES: {
         ILLUSTRATIONS: {
@@ -51,6 +55,12 @@ export const ASSETS = {
                     OK: validationIcon('email_ok.png'),
                     ERR: validationIcon('email_err.png'),
                 }
+            },
+            PROFILE: {
+                DEFAULT_AVATAR: profileIcon('default_avatar.png'),
+                SIDEBAR_TOGGLE: profileIcon('sidebar_toggle.png'),
+                SETTINGS: profileIcon('settings.png'),
+                LOGOUT: profileIcon('logout.png')
             }
         }
     }
