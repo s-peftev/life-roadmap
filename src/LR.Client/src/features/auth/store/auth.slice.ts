@@ -7,7 +7,10 @@ export interface AuthSlice {
     expiresAt: Date | null;
     isBusy: boolean;
     error: ApiError | null;
+    isPasswordResetRequested: boolean;
+    // temporary fields:
     testUsersList: User[] | null;
+    tempResetPasswordLink: string | null
 }
 
 export const initialAuthSlice: AuthSlice = {
@@ -16,5 +19,7 @@ export const initialAuthSlice: AuthSlice = {
     expiresAt: null,
     isBusy: false,
     error: null,
-    testUsersList: null
+    isPasswordResetRequested: false,
+    testUsersList: null,
+    tempResetPasswordLink: null
 }

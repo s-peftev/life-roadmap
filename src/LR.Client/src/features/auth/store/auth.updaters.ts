@@ -8,6 +8,10 @@ export function setBusy(isBusy: boolean): PartialStateUpdater<AuthSlice> {
     return _ => ({ isBusy });
 }
 
+export function setPasswordResetRequested(isPasswordResetRequested: boolean): PartialStateUpdater<AuthSlice> {
+    return _ => ({ isPasswordResetRequested });
+}
+
 export function setAuthUserWithJwt(authResponse: AuthResponse): PartialStateUpdater<AuthSlice> {
     return _ => ({
         accessToken: authResponse.accessToken.tokenValue,

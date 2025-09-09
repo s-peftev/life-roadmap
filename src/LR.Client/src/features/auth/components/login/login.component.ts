@@ -9,13 +9,16 @@ import { ValidationIndicatorService } from '../../../../core/services/utils/vali
 import { AuthStore } from '../../store/auth.store';
 import { BusyComponent } from "../../../../shared/components/busy/busy.component";
 import { LoginRequest } from '../../../../models/auth/login-request.model';
+import { RouterLink } from '@angular/router';
+import { ROUTES } from '../../../../core/constants/routes.constants';
 
 @Component({
   selector: 'app-login',
   imports: [
     TextInputComponent,
     ReactiveFormsModule,
-    BusyComponent
+    BusyComponent,
+    RouterLink
 ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
@@ -28,6 +31,7 @@ export class LoginComponent {
 
   public loginImage = ASSETS.IMAGES.ILLUSTRATIONS.LOGIN;
   public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
+  public ROUTES = ROUTES.AUTH;
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
   public authStore = inject(AuthStore);
 

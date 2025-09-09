@@ -223,7 +223,7 @@ namespace LR.API.Controllers
             var result = await _accountService.GeneratePasswordResetTokenAsync(request);
 
             return result.Match(
-                data => Ok(ApiResponse<string>.Ok()),
+                data => Ok(ApiResponse<string>.Ok(data)),
                 error => HandleFailure(error)
                 );
         }

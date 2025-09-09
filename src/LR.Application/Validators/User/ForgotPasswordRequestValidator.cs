@@ -7,6 +7,9 @@ namespace LR.Application.Validators.User
     {
         public ForgotPasswordRequestValidator()
         {
+            RuleFor(x => x.UserName)
+                .NotEmpty();
+
             RuleFor(x => x.Email)
                 .NotEmpty()
                 .EmailAddress();

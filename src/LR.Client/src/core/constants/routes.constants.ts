@@ -3,7 +3,9 @@ export const ROUTES = {
     MAIN: '',
     AUTH: {
         LOGIN: 'login',
-        REGISTER: 'register'
+        REGISTER: 'register',
+        FORGOT_PASSWORD: 'forgot-password',
+        RESET_PASSWORD: 'reset-password'
     },
     DASHBOARD: 'dashboard'
 }

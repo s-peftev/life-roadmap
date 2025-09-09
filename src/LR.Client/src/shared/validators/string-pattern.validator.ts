@@ -28,3 +28,9 @@ export function minLengthInstant(minLength: number): ValidatorFn {
         return Object.keys(errors).length ? errors : null;
     }
 }
+
+export function matchToFieldValue(matchTo: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      return control.value === control.parent?.get(matchTo)?.value ? null : { passwordMismatching: true }
+    }
+};

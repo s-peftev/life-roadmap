@@ -4,7 +4,7 @@ import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, Validatio
 import { TextInputComponent } from "../../../../shared/components/text-input/text-input.component";
 import { ValidationIndicator } from '../../../../core/types/utils/validation.type';
 import { USER_AUTH } from '../../../../core/constants/validation.constants';
-import { digitValidator, lowercaseValidator, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
+import { digitValidator, lowercaseValidator, matchToFieldValue, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
 import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
 import { RegisterRequest } from '../../../../models/auth/register-request.model';
 import { AuthStore } from '../../store/auth.store';
@@ -51,7 +51,7 @@ export class RegisterComponent {
       ]],
       confirmPassword: ['', [
         Validators.required,
-        this.matchValues('password')
+        matchToFieldValue('password')
       ]],
       firstName: ['', [Validators.maxLength(USER_AUTH.NAME_MAX_LENGTH)]],
       lastName: ['', [Validators.maxLength(USER_AUTH.NAME_MAX_LENGTH)]],
@@ -63,7 +63,7 @@ export class RegisterComponent {
     });
   }
 
-  private initIndicators() {
+  private initIndicators(): void {
     this.validationIndicators = {
       userName: this.validationIndicatorService.getIndicators([
         { indicator: 'required', param: 'Username' },
@@ -93,12 +93,6 @@ export class RegisterComponent {
       ]),
     };
   }
-
-  private matchValues(matchTo: string): ValidatorFn {
-    return (control: AbstractControl) => {
-      return control.value === control.parent?.get(matchTo)?.value ? null : { passwordMismatching: true }
-    }
-  };
 
   public register() {
     if (this.registerForm.invalid) return;

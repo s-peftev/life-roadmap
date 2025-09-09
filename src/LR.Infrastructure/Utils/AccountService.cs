@@ -129,7 +129,8 @@ namespace LR.Infrastructure.Utils
         { 
             var user = await _userManager.FindByEmailAsync(emailCodeRequest.Email);
             if (user is null || user.UserName != emailCodeRequest.UserName)
-                return Result<string>.Failure(UserErrors.InvalidEmailCodeRequest);
+                return Result<string>.Success("");
+            // do not notify about wrong email/username
 
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -154,9 +155,9 @@ namespace LR.Infrastructure.Utils
         public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest)
         {
             var user = await _userManager.FindByEmailAsync(forgotPasswordRequest.Email);
-            if (user is null)
+            if (user is null || user.UserName != forgotPasswordRequest.UserName)
                 return Result<string>.Success("");
-            // do not notify about wrong email
+            // do not notify about wrong email/username
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
@@ -175,6 +176,12 @@ namespace LR.Infrastructure.Utils
                 .ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.PasswordResetFailed);
+
+            if (!string.IsNullOrEmpty(user.Email) && !user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
 
             return Result.Success();
         }

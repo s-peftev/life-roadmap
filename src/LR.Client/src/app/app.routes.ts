@@ -8,6 +8,8 @@ import { MainLayoutComponent } from '../layout/main-layout/main-layout.component
 import { DashboardComponent } from '../features/dashboard/dashboard.component';
 import { GuestGuard } from '../core/guards/guest.guard';
 import { AuthGuard } from '../core/guards/auth.guard';
+import { ForgotPasswordComponent } from '../features/auth/components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from '../features/auth/components/reset-password/reset-password.component';
 
 export const routes: Routes = [
     { 
@@ -17,7 +19,9 @@ export const routes: Routes = [
         children: [
             { path: ROUTES.HOME, component: HomeComponent },
             { path: ROUTES.AUTH.LOGIN, component: LoginComponent },
-            { path: ROUTES.AUTH.REGISTER, component: RegisterComponent }
+            { path: ROUTES.AUTH.REGISTER, component: RegisterComponent },
+            { path: ROUTES.AUTH.FORGOT_PASSWORD, component: ForgotPasswordComponent },
+            { path: ROUTES.AUTH.RESET_PASSWORD, component: ResetPasswordComponent },
         ]
     },
     {

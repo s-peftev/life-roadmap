@@ -5,7 +5,7 @@ import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { clearError, setAuthUser, setAuthUserWithJwt, setBusy, setError } from "./auth.updaters";
+import { clearError, setAuthUser, setAuthUserWithJwt, setBusy, setError, setPasswordResetRequested } from "./auth.updaters";
 import { catchError, exhaustMap, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { Router } from "@angular/router";
@@ -14,6 +14,8 @@ import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-err
 import { User } from "../../../models/auth/user.model";
 import { AuthResponse } from "../../../models/auth/auth-response.model";
 import { RegisterRequest } from "../../../models/auth/register-request.model";
+import { ForgotPasswordRequest } from "../../../models/auth/forgot-password-request.model";
+import { ResetPasswordRequest } from "../../../models/auth/reset-password-request.model";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -42,7 +44,10 @@ export const AuthStore = signalStore(
                 exhaustMap(request =>
                     store._authService.login(request).pipe(
                         tapResponse({
-                            next: response => patchState(store, setAuthUserWithJwt(response), clearError()),
+                            next: response => {
+                                patchState(store, setAuthUserWithJwt(response), clearError());
+                                router.navigate([ROUTES.DASHBOARD]);
+                            },
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
                                     const apiErr = err.error.error as ApiError;
@@ -53,7 +58,6 @@ export const AuthStore = signalStore(
                             },
                             finalize: () => {
                                 patchState(store, setBusy(false));
-                                router.navigate([ROUTES.DASHBOARD]);
                             }
                         })
                     )
@@ -65,7 +69,10 @@ export const AuthStore = signalStore(
                 exhaustMap(request =>
                     store._authService.register(request).pipe(
                         tapResponse({
-                            next: response => patchState(store, setAuthUserWithJwt(response), clearError()),
+                            next: response => {
+                                patchState(store, setAuthUserWithJwt(response), clearError());
+                                router.navigate([ROUTES.DASHBOARD]);
+                            },
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
                                     const apiErr = err.error.error as ApiError;
@@ -76,7 +83,6 @@ export const AuthStore = signalStore(
                             },
                             finalize: () => {
                                 patchState(store, setBusy(false));
-                                router.navigate([ROUTES.DASHBOARD]);
                             }
                         })
                     )
@@ -105,6 +111,55 @@ export const AuthStore = signalStore(
                 );
             },
 
+            resetPasswordRequest: rxMethod<ForgotPasswordRequest>(input$ => input$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(request =>
+                    store._authService.resetPasswordRequest(request).pipe(
+                        tapResponse(({
+                            //todo after implementing backend email service change "next" handler
+                            next: response => 
+                                patchState(store, { tempResetPasswordLink: response }, setPasswordResetRequested(true)),
+                            error: (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
+                            finalize: () => {
+                                patchState(store, setBusy(false));
+                            }
+                        }))
+                    )
+                )
+            )),
+
+            resetPassword: rxMethod<ResetPasswordRequest>(input$ => input$.pipe(
+                tap(_ => patchState(store, setBusy(true))),
+                exhaustMap(request =>
+                    store._authService.resetPassword(request).pipe(
+                        tapResponse(({
+                            next: _ => router.navigate([ROUTES.AUTH.LOGIN]),
+                            error: (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
+                            finalize: () => {
+                                patchState(store, setBusy(false));
+                            }
+                        }))
+                    )
+                )
+            )),
+
+            setPasswordResetRequested: (isPasswordResetRequested: boolean) => 
+                patchState(store, setPasswordResetRequested(isPasswordResetRequested)),
+            // temporary test method
             testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
                 tap(_ => patchState(store, setBusy(true))),
                 exhaustMap(_ => {
@@ -112,7 +167,6 @@ export const AuthStore = signalStore(
                         tapResponse(({
                             next: resp => patchState(store, { testUsersList: resp }),
                             error: (err: any) => {
-                                console.log(err);
                                 patchState(store, { error: err.status })
                             },
                             finalize: () => {
