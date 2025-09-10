@@ -2,13 +2,14 @@ import { getState, patchState, signalStore, withComputed, withHooks, withMethods
 import { initialAuthSlice } from "./auth.slice";
 import { computed, effect, inject } from "@angular/core";
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
 import { clearError, setAuthUser, setAuthUserWithJwt, setBusy, setError, setPasswordResetRequested } from "./auth.updaters";
-import { catchError, exhaustMap, finalize, map, Observable, tap, throwError } from "rxjs";
+import { catchError, exhaustMap, filter, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
-import { Router } from "@angular/router";
+import { NavigationEnd, Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
 import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
 import { User } from "../../../models/auth/user.model";
@@ -117,7 +118,7 @@ export const AuthStore = signalStore(
                     store._authService.resetPasswordRequest(request).pipe(
                         tapResponse(({
                             //todo after implementing backend email service change "next" handler
-                            next: response => 
+                            next: response =>
                                 patchState(store, { tempResetPasswordLink: response }, setPasswordResetRequested(true)),
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
@@ -157,7 +158,7 @@ export const AuthStore = signalStore(
                 )
             )),
 
-            setPasswordResetRequested: (isPasswordResetRequested: boolean) => 
+            setPasswordResetRequested: (isPasswordResetRequested: boolean) =>
                 patchState(store, setPasswordResetRequested(isPasswordResetRequested)),
             // temporary test method
             testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
@@ -178,20 +179,41 @@ export const AuthStore = signalStore(
             )),
         };
     }),
-    withHooks(store => ({
-        onInit: () => {
-            const userJson = localStorage.getItem('user');
-            if (userJson) {
-                const user = JSON.parse(userJson) as User;
-                patchState(store, setAuthUser(user));
-            }
+    withHooks(store => {
+        const router = inject(Router);
 
-            effect(() => {
-                const state = getState(store);
-                const userJson = JSON.stringify(state.user);
-                localStorage.setItem('user', userJson);
-            })
+        const urlSig = toSignal(router.events.pipe(
+            filter(e => e instanceof NavigationEnd),
+            map(() => router.url)
+        ), { initialValue: router.url });
+
+        return {
+            onInit: () => {
+                const userJson = localStorage.getItem('user');
+                if (userJson) {
+                    const user = JSON.parse(userJson) as User;
+                    patchState(store, setAuthUser(user));
+                }
+
+                effect(() => {
+                    const state = getState(store);
+                    const userJson = JSON.stringify(state.user);
+                    localStorage.setItem('user', userJson);
+                });
+
+                //clear error after route changing
+                let first = true;
+                effect(() => {
+                    urlSig();
+
+                    if (first) {
+                        first = false;
+                        return;
+                    }
+                    patchState(store, clearError());
+                });
+            }
         }
-    })),
+    }),
     withDevtools('auth-store')
 );

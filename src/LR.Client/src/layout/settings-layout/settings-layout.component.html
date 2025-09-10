@@ -1,0 +1,15 @@
+<div (click)="close()"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div (click)="$event.stopPropagation()" class="bg-white p-6 rounded-lg w-96 relative flex">
+      <!-- Сайдбар -->
+       <nav class="flex flex-col w-40 border-r pr-2">
+            <a [routerLink]="['roadmaps']">roadmaps</a>
+        </nav>
+
+      <!-- Контент -->
+      <div class="flex-1 pl-4">
+        <button (click)="close()" class="absolute top-2 right-2">✕</button>
+            <router-outlet />
+      </div>
+    </div>
+  </div>

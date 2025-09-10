@@ -14,6 +14,10 @@ function profileIcon(name: string) {
     return `${basePath}/img/icons/profile/${name}`;
 }
 
+function sidebarleIcon(name: string) {
+    return `${basePath}/img/icons/sidebar/${name}`;
+}
+
 export const ASSETS = {
     IMAGES: {
         ILLUSTRATIONS: {
@@ -58,9 +62,15 @@ export const ASSETS = {
             },
             PROFILE: {
                 DEFAULT_AVATAR: profileIcon('default_avatar.png'),
-                SIDEBAR_TOGGLE: profileIcon('sidebar_toggle.png'),
                 SETTINGS: profileIcon('settings.png'),
                 LOGOUT: profileIcon('logout.png')
+            },
+            SIDEBAR: {
+                SIDEBAR_TOGGLE: sidebarleIcon('sidebar_toggle.png'),
+                DASHBOARD: sidebarleIcon('dashboard.png'),
+                GOAL_WISHLIST: sidebarleIcon('goal_wishlist.png'),
+                STATISTICS: sidebarleIcon('statistics.png'),
+                ROADMAP: sidebarleIcon('roadmap.png'),
             }
         }
     }

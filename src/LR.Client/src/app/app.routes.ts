@@ -10,6 +10,10 @@ import { GuestGuard } from '../core/guards/guest.guard';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { ForgotPasswordComponent } from '../features/auth/components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from '../features/auth/components/reset-password/reset-password.component';
+import { GoalWishlistsComponent } from '../features/goal-wishlists/goal-wishlists.component';
+import { RoadmapsComponent } from '../features/roadmaps/roadmaps.component';
+import { StatisticsComponent } from '../features/statistics/statistics.component';
+import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layout.component';
 
 export const routes: Routes = [
     { 
@@ -30,6 +34,18 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         children: [
             { path: ROUTES.DASHBOARD, component: DashboardComponent },
+            { path: ROUTES.GOAL_WISHLISTS, component: GoalWishlistsComponent },
+            { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
+            { path: ROUTES.STATISTICS, component: StatisticsComponent },
+            { path: ROUTES.SETTINGS, component: SettingsLayoutComponent },
+        ]
+    },
+    {
+        path: ROUTES.SETTINGS,
+        component: SettingsLayoutComponent,
+        canActivate: [AuthGuard],
+        children: [
+            { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
         ]
     },
     { path: "**", redirectTo: ROUTES.HOME, pathMatch: "full" },

@@ -1,11 +1,17 @@
 export const ROUTES = {
     HOME: '',
-    MAIN: '',
     AUTH: {
         LOGIN: 'login',
         REGISTER: 'register',
         FORGOT_PASSWORD: 'forgot-password',
         RESET_PASSWORD: 'reset-password'
     },
-    DASHBOARD: 'dashboard'
+
+    MAIN: '',
+    DASHBOARD: 'dashboard',
+    GOAL_WISHLISTS: 'goal-wishlists',
+    ROADMAPS: 'roadmaps',
+    STATISTICS: 'statistics',
+
+    SETTINGS: 'settings'
 }
