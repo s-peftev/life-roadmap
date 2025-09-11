@@ -1,6 +1,6 @@
 ﻿using LR.Domain.Enums;
 
-namespace LR.Application.AppResult.Errors
+namespace LR.Application.AppResult.Errors.User
 {
     public static class UserErrors
     {

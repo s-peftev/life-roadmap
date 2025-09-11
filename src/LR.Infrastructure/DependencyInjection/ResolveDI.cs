@@ -15,6 +15,7 @@ namespace LR.Infrastructure.DependencyInjection
             PersistanceResolver.AddPersistance(services, connectionString);
             IdentityResolver.AddIdentityServices(services, configuration);
             UtilsResolver.AddUtils(services);
+            ExternalProvidersResolver.AddExternalProviders(services);
             ServiceResolver.AddServices(services);
             AutoMapperRegistration.RegisterProfiles(services);
             ValidatorsRegistration.RegisterValidators(services);

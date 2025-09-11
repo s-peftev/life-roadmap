@@ -10,9 +10,9 @@ namespace LR.Persistance.Repositories.Users
     {
         public async Task<RefreshToken?> GetByTokenValueAsync(
             string refreshTokenValue,
-            CancellationToken ct)
+            CancellationToken cancellationToken)
         {
-            return await _dbSet.FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue, ct);
+            return await _dbSet.FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue, cancellationToken);
         }
     }
 }

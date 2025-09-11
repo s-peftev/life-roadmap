@@ -3,7 +3,6 @@ using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
 using LR.Application.AppResult;
-using LR.Application.AppResult.Errors;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
 using LR.Infrastructure.Exceptions.RefreshToken;
@@ -17,6 +16,7 @@ using LR.Application.AppResult.ResultData.Account;
 using LR.Application.Responses.User;
 using LR.Infrastructure.Exceptions.User;
 using LR.Application.Requests.User;
+using LR.Application.AppResult.Errors.User;
 
 namespace LR.Infrastructure.Utils
 {

@@ -1,5 +1,5 @@
 ﻿using LR.Application.AppResult;
-using LR.Application.AppResult.Errors;
+using LR.Application.AppResult.Errors.User;
 using LR.Application.Interfaces.Services;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
@@ -16,9 +16,11 @@ namespace LR.Application.Services.User
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
-        public async Task<Result<RefreshToken>> GetByTokenValueAsync(string refreshTokenValue, CancellationToken ct = default)
+        public async Task<Result<RefreshToken>> GetByTokenValueAsync(
+            string refreshTokenValue,
+            CancellationToken cancellationToken = default)
         {
-            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
+            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, cancellationToken);
 
             return rt is null
                 ? Result<RefreshToken>.Failure(RefreshTokenErrors.NotFound)

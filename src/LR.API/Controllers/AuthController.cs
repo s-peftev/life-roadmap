@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using LR.Application.AppResult.Errors;
+using LR.Application.AppResult.Errors.User;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;

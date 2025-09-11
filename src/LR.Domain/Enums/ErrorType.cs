@@ -8,6 +8,7 @@
         Unauthorized = 3,
         Conflict = 4,
         Business = 5,
-        InternalServerError = 6
+        InternalServerError = 6,
+        ServiceUnavailable = 7
     }
 }

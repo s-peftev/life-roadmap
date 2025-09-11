@@ -1,7 +1,7 @@
 ﻿using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
 
-namespace LR.Application.AppResult.Errors
+namespace LR.Application.AppResult.Errors.User
 {
     public static class RefreshTokenErrors
     {
