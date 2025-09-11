@@ -14,9 +14,11 @@ import { GoalWishlistsComponent } from '../features/goal-wishlists/goal-wishlist
 import { RoadmapsComponent } from '../features/roadmaps/roadmaps.component';
 import { StatisticsComponent } from '../features/statistics/statistics.component';
 import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layout.component';
+import { ProfileSettingsComponent } from '../features/settings/components/profile-settings/profile-settings.component';
+import { GeneralSettingsComponent } from '../features/settings/components/general-settings/general-settings.component';
 
 export const routes: Routes = [
-    { 
+    {
         path: ROUTES.HOME,
         component: HomeLayoutComponent,
         canActivate: [GuestGuard],
@@ -37,16 +39,17 @@ export const routes: Routes = [
             { path: ROUTES.GOAL_WISHLISTS, component: GoalWishlistsComponent },
             { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
             { path: ROUTES.STATISTICS, component: StatisticsComponent },
-            { path: ROUTES.SETTINGS, component: SettingsLayoutComponent },
+            {
+                path: ROUTES.SETTINGS.BASE,
+                component: SettingsLayoutComponent,
+                outlet: 'modal',
+                children: [
+                    { path: ROUTES.SETTINGS.PROFILE, component: ProfileSettingsComponent },
+                    { path: ROUTES.SETTINGS.GENERAL, component: GeneralSettingsComponent },
+                ]
+            },
         ]
     },
-    {
-        path: ROUTES.SETTINGS,
-        component: SettingsLayoutComponent,
-        canActivate: [AuthGuard],
-        children: [
-            { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
-        ]
-    },
+
     { path: "**", redirectTo: ROUTES.HOME, pathMatch: "full" },
 ];

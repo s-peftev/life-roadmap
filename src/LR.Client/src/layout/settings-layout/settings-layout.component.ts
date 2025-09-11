@@ -1,20 +1,16 @@
-import { Location } from '@angular/common';
-import { Component, inject, output } from '@angular/core';
-import { RouterLink, RouterOutlet } from "@angular/router";
+import { Component, inject } from '@angular/core';
+import { Router, RouterOutlet } from "@angular/router";
+import { SettingsSidebarComponent } from './components/sidebar/settings-sidebar.component';
 
 @Component({
   selector: 'app-settings-layout',
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, SettingsSidebarComponent],
   templateUrl: './settings-layout.component.html',
-  styleUrl: './settings-layout.component.css'
 })
 export class SettingsLayoutComponent {
-  private location = inject(Location);
-
-  public closeSettings = output<void>();
+  private router = inject(Router);
 
   close() {
-    this.closeSettings.emit();
-    this.location.back();
+    this.router.navigate([{ outlets: { modal: null } }]);
   }
 }

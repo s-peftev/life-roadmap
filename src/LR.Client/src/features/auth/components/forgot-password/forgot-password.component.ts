@@ -19,8 +19,7 @@ import { ForgotPasswordRequest } from '../../../../models/auth/forgot-password-r
     TextInputComponent,
     RouterLink
   ],
-  templateUrl: './forgot-password.component.html',
-  styleUrl: './forgot-password.component.css'
+  templateUrl: './forgot-password.component.html'
 })
 export class ForgotPasswordComponent implements OnInit{
   private fb = inject(FormBuilder);

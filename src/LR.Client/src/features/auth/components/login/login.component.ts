@@ -20,8 +20,7 @@ import { ROUTES } from '../../../../core/constants/routes.constants';
     BusyComponent,
     RouterLink
 ],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  templateUrl: './login.component.html'
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);

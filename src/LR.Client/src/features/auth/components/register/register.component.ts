@@ -15,8 +15,7 @@ import { AuthStore } from '../../store/auth.store';
     TextInputComponent,
     ReactiveFormsModule
   ],
-  templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  templateUrl: './register.component.html'
 })
 export class RegisterComponent {
   private authStore = inject(AuthStore);

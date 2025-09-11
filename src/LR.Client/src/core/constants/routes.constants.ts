@@ -13,5 +13,9 @@ export const ROUTES = {
     ROADMAPS: 'roadmaps',
     STATISTICS: 'statistics',
 
-    SETTINGS: 'settings'
+    SETTINGS: {
+        BASE: 'settings',
+        PROFILE: 'profile',
+        GENERAL: 'general'
+    }
 }

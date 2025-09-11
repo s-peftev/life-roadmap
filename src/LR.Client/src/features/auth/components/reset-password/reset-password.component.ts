@@ -19,8 +19,7 @@ import { ResetPasswordRequest } from '../../../../models/auth/reset-password-req
     TextInputComponent,
     RouterLink
   ],
-  templateUrl: './reset-password.component.html',
-  styleUrl: './reset-password.component.css'
+  templateUrl: './reset-password.component.html'
 })
 export class ResetPasswordComponent implements OnInit {
   private fb = inject(FormBuilder);
