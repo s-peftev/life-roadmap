@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using LR.Application.DTOs.Token;
 using LR.Application.AppResult.ResultData.Account;
-using LR.Application.Responses.User;
 using LR.Infrastructure.Exceptions.User;
 using LR.Application.Requests.User;
 using LR.Application.AppResult.Errors.User;
@@ -107,7 +106,7 @@ namespace LR.Infrastructure.Utils
             var jwtToken = _tokenService
                 .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
 
-            return Result<AuthResult>.Success(BuildAuthResult(user, jwtToken, refreshToken));
+            return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
 
         public async Task<Result> LogoutAsync(string refreshTokenValue)
@@ -261,20 +260,14 @@ namespace LR.Infrastructure.Utils
             if (saveResult.Value is 0)
                 throw new TokenPersistingException();
 
-            return Result<AuthResult>.Success(BuildAuthResult(user, jwtToken, refreshToken));
+            return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
 
-        private AuthResult BuildAuthResult(AppUser user, AccessTokenDto jwtToken, RefreshToken refreshToken)
+        private AuthResult BuildAuthResult(AccessTokenDto jwtToken, RefreshToken refreshToken)
         {
-            var authResponse = new AuthResponse
-            {
-                AccessToken = jwtToken,
-                User = _mapper.Map<UserDto>(user)
-            };
-
             return new()
             {
-                AuthResponse = authResponse,
+                AccessToken = jwtToken,
                 RefreshToken = refreshToken
             };
         }

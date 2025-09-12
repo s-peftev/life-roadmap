@@ -1,11 +1,11 @@
-﻿using LR.Application.Responses.User;
+﻿using LR.Application.DTOs.Token;
 using LR.Domain.Entities.Users;
 
 namespace LR.Application.AppResult.ResultData.Account
 {
     public class AuthResult
     {
-        public required AuthResponse AuthResponse { get; init; }
+        public required AccessTokenDto AccessToken { get; set; }
         public required RefreshToken RefreshToken { get; init; }
     }
 }

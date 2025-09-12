@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using LR.Application.AppResult.Errors.User;
+using LR.Application.DTOs.Token;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Application.Responses;
-using LR.Application.Responses.User;
 using LR.Infrastructure.Constants;
 using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +43,7 @@ namespace LR.API.Controllers
         [HttpPost("register")]
         [SwaggerOperation(Summary = "Register new user",
             Description = "Creates a new user account and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AuthResponse>),
+        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AccessTokenDto>),
             Description = "User registered successfully")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<object>),
             Description = "Validation errors or registration failed")]
@@ -68,14 +68,14 @@ namespace LR.API.Controllers
                 {
                     _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
                 error => HandleFailure(error));
         }
 
         [HttpPost("login")]
         [SwaggerOperation(Summary = "Login user", Description = "Authenticates and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AuthResponse>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AccessTokenDto>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
         public async Task<IActionResult> Login(
@@ -97,14 +97,14 @@ namespace LR.API.Controllers
                 {
                     _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
                 error => HandleFailure(error));
         }
 
         [HttpPost("refresh")]
         [SwaggerOperation(Summary = "Refresh jwt token", Description = "Generates new JWT token")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AccessTokenDto>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
         public async Task<IActionResult> Refresh(CancellationToken ct)
@@ -121,7 +121,7 @@ namespace LR.API.Controllers
                 {
                     _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
                 error => 
                 {
