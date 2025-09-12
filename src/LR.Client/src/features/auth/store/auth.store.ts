@@ -6,17 +6,17 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { clearError, setAuthUser, setAuthUserWithJwt, setBusy, setError, setPasswordResetRequested } from "./auth.updaters";
+import { clearError, setAccessToken, setBusy, setError, setPasswordResetRequested } from "./auth.updaters";
 import { catchError, exhaustMap, filter, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { NavigationEnd, Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
 import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
 import { User } from "../../../models/auth/user.model";
-import { AuthResponse } from "../../../models/auth/auth-response.model";
 import { RegisterRequest } from "../../../models/auth/register-request.model";
 import { ForgotPasswordRequest } from "../../../models/auth/forgot-password-request.model";
 import { ResetPasswordRequest } from "../../../models/auth/reset-password-request.model";
+import { AccessToken } from "../../../models/auth/access-token.model";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -30,7 +30,7 @@ export const AuthStore = signalStore(
     }),
     withComputed((store) => {
         const hasValidAccessToken = computed(() =>
-            !!store.accessToken() && !!store.user() && !!store.expiresAt() && store.expiresAt()! > new Date());
+            !!store.accessToken() && !!store.expiresAt() && store.expiresAt()! > new Date());
 
         return {
             hasValidAccessToken
@@ -46,7 +46,7 @@ export const AuthStore = signalStore(
                     store._authService.login(request).pipe(
                         tapResponse({
                             next: response => {
-                                patchState(store, setAuthUserWithJwt(response), clearError());
+                                patchState(store, setAccessToken(response), clearError());
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
                             error: (err: any) => {
@@ -71,7 +71,7 @@ export const AuthStore = signalStore(
                     store._authService.register(request).pipe(
                         tapResponse({
                             next: response => {
-                                patchState(store, setAuthUserWithJwt(response), clearError());
+                                patchState(store, setAccessToken(response), clearError());
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
                             error: (err: any) => {
@@ -102,9 +102,9 @@ export const AuthStore = signalStore(
                 )
             )),
 
-            refresh: (): Observable<AuthResponse> => {
+            refresh: (): Observable<AccessToken> => {
                 return store._authService.refresh().pipe(
-                    tap((response) => patchState(store, setAuthUserWithJwt(response))),
+                    tap((response) => patchState(store, setAccessToken(response))),
                     catchError((err) => {
                         patchState(store, initialAuthSlice);
                         return throwError(() => err);
@@ -189,18 +189,6 @@ export const AuthStore = signalStore(
 
         return {
             onInit: () => {
-                const userJson = localStorage.getItem('user');
-                if (userJson) {
-                    const user = JSON.parse(userJson) as User;
-                    patchState(store, setAuthUser(user));
-                }
-
-                effect(() => {
-                    const state = getState(store);
-                    const userJson = JSON.stringify(state.user);
-                    localStorage.setItem('user', userJson);
-                });
-
                 //clear error after route changing
                 let first = true;
                 effect(() => {

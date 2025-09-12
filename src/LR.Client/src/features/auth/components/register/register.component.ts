@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { ASSETS } from '../../../../core/constants/assets.constants';
-import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TextInputComponent } from "../../../../shared/components/text-input/text-input.component";
 import { ValidationIndicator } from '../../../../core/types/utils/validation.type';
 import { USER_AUTH } from '../../../../core/constants/validation.constants';

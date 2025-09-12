@@ -29,8 +29,8 @@ export const authInterceptor: HttpInterceptorFn = (
 
           return authStore.refresh().pipe(
             switchMap(response => {
-              refreshTokenSubject.next(response.accessToken.tokenValue);
-              return next(addTokenHeader(request, response.accessToken.tokenValue));
+              refreshTokenSubject.next(response.tokenValue);
+              return next(addTokenHeader(request, response.tokenValue));
             }),
             catchError((refreshErr) => {
               authStore.logout();
