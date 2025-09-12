@@ -151,7 +151,7 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        //after implementing Email service replace Task<Result<string>> with Task<Result>
+        //todo after implementing Email service replace Task<Result<string>> with Task<Result>
         public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest)
         {
             var user = await _userManager.FindByEmailAsync(forgotPasswordRequest.Email);

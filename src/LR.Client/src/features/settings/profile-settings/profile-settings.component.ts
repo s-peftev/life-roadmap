@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { ASSETS } from '../../../../core/constants/assets.constants';
-import { AuthStore } from '../../../auth/store/auth.store';
 import { Router } from '@angular/router';
-import { ROUTES } from '../../../../core/constants/routes.constants';
+import { ASSETS } from '../../../core/constants/assets.constants';
+import { ROUTES } from '../../../core/constants/routes.constants';
+import { AuthStore } from '../../auth/store/auth.store';
 
 @Component({
   selector: 'app-profile-settings',

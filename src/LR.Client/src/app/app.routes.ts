@@ -14,8 +14,8 @@ import { GoalWishlistsComponent } from '../features/goal-wishlists/goal-wishlist
 import { RoadmapsComponent } from '../features/roadmaps/roadmaps.component';
 import { StatisticsComponent } from '../features/statistics/statistics.component';
 import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layout.component';
-import { ProfileSettingsComponent } from '../features/settings/components/profile-settings/profile-settings.component';
-import { GeneralSettingsComponent } from '../features/settings/components/general-settings/general-settings.component';
+import { GeneralSettingsComponent } from '../features/settings/general-settings/general-settings.component';
+import { ProfileSettingsComponent } from '../features/settings/profile-settings/profile-settings.component';
 
 export const routes: Routes = [
     {

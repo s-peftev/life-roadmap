@@ -1,4 +1,5 @@
 ﻿using LR.Domain.Entities.Users;
+using LR.Domain.Enums;
 
 namespace LR.Application.AppResult.Errors.User
 {
@@ -6,5 +7,10 @@ namespace LR.Application.AppResult.Errors.User
     {
         public static readonly Error NotFound =
             ErrorFactory.NotFound(nameof(UserProfile));
+
+        public static readonly Error InvalidProfilePhotoUploadRequest = new(
+            "InvalidProfilePhotoUploadRequest",
+            ErrorType.Validation,
+            "Profile photo upload request is invalid.");
     }
 }
