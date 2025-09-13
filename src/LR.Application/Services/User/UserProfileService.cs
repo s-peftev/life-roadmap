@@ -33,7 +33,7 @@ namespace LR.Application.Services.User
                 : Result<UserProfile>.Success(userProfile);
         }
 
-        public async Task<Result<PhotoUploadResult>> UploadProfilePhotoAsync(
+        public async Task<Result<string>> UploadProfilePhotoAsync(
             ProfilePhotoUploadRequest request,
             string userId,
             CancellationToken cancellationToken = default)
@@ -41,12 +41,12 @@ namespace LR.Application.Services.User
             var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
 
             if (!userProfileResult.IsSuccess)
-                return Result<PhotoUploadResult>.Failure(userProfileResult.Error);
+                return Result<string>.Failure(userProfileResult.Error);
 
             var uploadResult = await _photoService.UploadPhotoAsync(request.File);
 
             if (!uploadResult.IsSuccess)
-                return uploadResult;
+                return Result<string>.Failure(uploadResult.Error);
 
             var userProfile = userProfileResult.Value;
             userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
@@ -58,7 +58,7 @@ namespace LR.Application.Services.User
             if (saveResult is 0)
                 throw new ProfilePersistingException();
 
-            return uploadResult;
+            return Result<string>.Success(uploadResult.Value.Url);
         }
     }
 }

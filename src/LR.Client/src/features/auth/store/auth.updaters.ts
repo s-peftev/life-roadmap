@@ -3,10 +3,6 @@ import { AuthSlice } from "./auth.slice";
 import { ApiError } from "../../../models/api/api-error.model";
 import { AccessToken } from "../../../models/auth/access-token.model";
 
-export function setBusy(isBusy: boolean): PartialStateUpdater<AuthSlice> {
-    return _ => ({ isBusy });
-}
-
 export function setPasswordResetRequested(isPasswordResetRequested: boolean): PartialStateUpdater<AuthSlice> {
     return _ => ({ isPasswordResetRequested });
 }

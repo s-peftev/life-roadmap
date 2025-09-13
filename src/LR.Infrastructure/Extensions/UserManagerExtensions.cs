@@ -25,5 +25,14 @@ namespace LR.Infrastructure.Extensions
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
+
+        public static async Task<AppUser?> GetByIdWithProfileAsync(
+           this UserManager<AppUser> userManager,
+           string id)
+        {
+            return await userManager.Users
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == id);
+        }
     }
 }

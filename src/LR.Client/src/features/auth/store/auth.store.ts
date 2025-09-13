@@ -1,4 +1,4 @@
-import { getState, patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from "@ngrx/signals";
+import { patchState, signalStore, withComputed, withHooks, withMethods, withProps, withState } from "@ngrx/signals";
 import { initialAuthSlice } from "./auth.slice";
 import { computed, effect, inject } from "@angular/core";
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
@@ -6,26 +6,31 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { clearError, setAccessToken, setBusy, setError, setPasswordResetRequested } from "./auth.updaters";
+import { clearError, setAccessToken, setError, setPasswordResetRequested } from "./auth.updaters";
 import { catchError, exhaustMap, filter, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { NavigationEnd, Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
 import { ApiError, DefaultErrors, isApiError } from "../../../models/api/api-error.model";
-import { User } from "../../../models/auth/user.model";
 import { RegisterRequest } from "../../../models/auth/register-request.model";
 import { ForgotPasswordRequest } from "../../../models/auth/forgot-password-request.model";
 import { ResetPasswordRequest } from "../../../models/auth/reset-password-request.model";
 import { AccessToken } from "../../../models/auth/access-token.model";
+import { withBusy } from "../../../store-extentions/features/with-busy/with-busy.feature";
+import { setBusy, setIdle } from "../../../store-extentions/features/with-busy/with-busy.updaters";
+import { ProfileStore } from "../../settings/profile-settings/store/profile.store";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
     withState(initialAuthSlice),
+    withBusy(),
     withProps(() => {
         const _authService = inject(AuthService);
+        const _profileStore = inject(ProfileStore);
 
         return {
-            _authService
+            _authService,
+            _profileStore
         }
     }),
     withComputed((store) => {
@@ -41,11 +46,12 @@ export const AuthStore = signalStore(
 
         return {
             login: rxMethod<LoginRequest>(input$ => input$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(request =>
                     store._authService.login(request).pipe(
                         tapResponse({
                             next: response => {
+                                store._profileStore.getMyProfile();
                                 patchState(store, setAccessToken(response), clearError());
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
@@ -58,7 +64,7 @@ export const AuthStore = signalStore(
                                 }
                             },
                             finalize: () => {
-                                patchState(store, setBusy(false));
+                                patchState(store, setIdle());
                             }
                         })
                     )
@@ -66,11 +72,12 @@ export const AuthStore = signalStore(
             )),
 
             register: rxMethod<RegisterRequest>(input$ => input$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(request =>
                     store._authService.register(request).pipe(
                         tapResponse({
                             next: response => {
+                                store._profileStore.getMyProfile();
                                 patchState(store, setAccessToken(response), clearError());
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
@@ -83,7 +90,7 @@ export const AuthStore = signalStore(
                                 }
                             },
                             finalize: () => {
-                                patchState(store, setBusy(false));
+                                patchState(store, setIdle());
                             }
                         })
                     )
@@ -91,12 +98,13 @@ export const AuthStore = signalStore(
             )),
 
             logout: rxMethod<void>(trigger$ => trigger$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(_ =>
                     store._authService.logout().pipe(
                         finalize(() => {
-                            patchState(store, initialAuthSlice);
+                            patchState(store, initialAuthSlice, setIdle());
                             router.navigate([ROUTES.AUTH.LOGIN]);
+                            store._profileStore.resetState();
                         })
                     )
                 )
@@ -113,7 +121,7 @@ export const AuthStore = signalStore(
             },
 
             resetPasswordRequest: rxMethod<ForgotPasswordRequest>(input$ => input$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(request =>
                     store._authService.resetPasswordRequest(request).pipe(
                         tapResponse(({
@@ -129,7 +137,7 @@ export const AuthStore = signalStore(
                                 }
                             },
                             finalize: () => {
-                                patchState(store, setBusy(false));
+                                patchState(store, setIdle());
                             }
                         }))
                     )
@@ -137,7 +145,7 @@ export const AuthStore = signalStore(
             )),
 
             resetPassword: rxMethod<ResetPasswordRequest>(input$ => input$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(request =>
                     store._authService.resetPassword(request).pipe(
                         tapResponse(({
@@ -151,7 +159,7 @@ export const AuthStore = signalStore(
                                 }
                             },
                             finalize: () => {
-                                patchState(store, setBusy(false));
+                                patchState(store, setIdle());
                             }
                         }))
                     )
@@ -162,7 +170,7 @@ export const AuthStore = signalStore(
                 patchState(store, setPasswordResetRequested(isPasswordResetRequested)),
             // temporary test method
             testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
-                tap(_ => patchState(store, setBusy(true))),
+                tap(_ => patchState(store, setBusy())),
                 exhaustMap(_ => {
                     return store._authService.testUserList().pipe(
                         tapResponse(({
@@ -171,7 +179,7 @@ export const AuthStore = signalStore(
                                 patchState(store, { error: err.status })
                             },
                             finalize: () => {
-                                patchState(store, setBusy(false))
+                                patchState(store, setIdle())
                             }
                         }))
                     )

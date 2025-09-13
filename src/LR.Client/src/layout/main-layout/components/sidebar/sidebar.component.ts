@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 import { ROUTES } from '../../../../core/constants/routes.constants';
 import { AuthStore } from '../../../../features/auth/store/auth.store';
 import { ASSETS } from '../../../../core/constants/assets.constants';
+import { ProfileStore } from '../../../../features/settings/profile-settings/store/profile.store';
 
 
 @Component({
@@ -14,6 +15,8 @@ export class SidebarComponent {
   private router = inject(Router);
 
   public authStore = inject(AuthStore);
+  public profileStore = inject(ProfileStore);
+  
   public openSettings = output<void>();
   public routes = ROUTES;
   public icons = ASSETS.IMAGES.ICONS;
