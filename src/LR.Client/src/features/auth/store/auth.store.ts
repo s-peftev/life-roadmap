@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { clearError, setAccessToken, setError, setPasswordResetRequested } from "./auth.updaters";
+import { setAccessToken, setPasswordResetRequested } from "./auth.updaters";
 import { catchError, exhaustMap, filter, finalize, map, Observable, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { NavigationEnd, Router } from "@angular/router";
@@ -19,11 +19,14 @@ import { AccessToken } from "../../../models/auth/access-token.model";
 import { withBusy } from "../../../store-extentions/features/with-busy/with-busy.feature";
 import { setBusy, setIdle } from "../../../store-extentions/features/with-busy/with-busy.updaters";
 import { ProfileStore } from "../../settings/profile-settings/store/profile.store";
+import { withLocalError } from "../../../store-extentions/features/with-local-error/with-local-error.feature";
+import { clearError, setError } from "../../../store-extentions/features/with-local-error/with-local-error.updaters";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
     withState(initialAuthSlice),
     withBusy(),
+    withLocalError(),
     withProps(() => {
         const _authService = inject(AuthService);
         const _profileStore = inject(ProfileStore);
@@ -103,8 +106,8 @@ export const AuthStore = signalStore(
                     store._authService.logout().pipe(
                         finalize(() => {
                             patchState(store, initialAuthSlice, setIdle());
-                            router.navigate([ROUTES.AUTH.LOGIN]);
                             store._profileStore.resetState();
+                            router.navigate([ROUTES.AUTH.LOGIN]);
                         })
                     )
                 )

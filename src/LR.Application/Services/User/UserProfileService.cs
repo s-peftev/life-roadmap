@@ -1,12 +1,12 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors.User;
-using LR.Application.AppResult.ResultData.Photo;
 using LR.Application.Exceptions.UserProfile;
 using LR.Application.Interfaces.ExternalProviders;
 using LR.Application.Interfaces.Services;
 using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
+using LR.Domain.ValueObjects.UserProfile;
 
 namespace LR.Application.Services.User
 {
@@ -59,6 +59,31 @@ namespace LR.Application.Services.User
                 throw new ProfilePersistingException();
 
             return Result<string>.Success(uploadResult.Value.Url);
+        }
+
+        public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
+            string userId, CancellationToken cancellationToken = default)
+        {
+            var profileDetails = await _userProfileRepository.GetProfileProfileDetailsAsync(userId, cancellationToken);
+
+            return profileDetails is null
+                ? Result<UserProfileDetailsDto>.Failure(UserProfileErrors.NotFound)
+                : Result<UserProfileDetailsDto>.Success(profileDetails);
+        }
+
+        public async Task<Result> DeleteProfilePhotoAsync(string userId, CancellationToken cancellationToken = default)
+        {
+            var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
+
+            if (!userProfileResult.IsSuccess)
+                return Result.Failure(userProfileResult.Error);
+
+            if (string.IsNullOrEmpty(userProfileResult.Value.ProfilePhotoPublicId))
+                return Result.Success();
+
+            var deletionResult = await _photoService.DeletePhotoAsync(userProfileResult.Value.ProfilePhotoPublicId);
+
+            return deletionResult;
         }
     }
 }

@@ -20,4 +20,8 @@ export class ProfileService {
 
     return this._apiClient.post<FormData, string>(UserProfileApi.PROFILE_PHOTO.UPLOAD, formData);
   }
+
+  public deleteProfilePhoto(): Observable<void> {
+    return this._apiClient.deleteVoid(UserProfileApi.PROFILE_PHOTO.DELETE);
+  }
 }

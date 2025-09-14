@@ -9,11 +9,15 @@ import { exhaustMap, tap } from "rxjs";
 import { setBusy, setIdle } from "../../../../store-extentions/features/with-busy/with-busy.updaters";
 import { tapResponse } from "@ngrx/operators";
 import { setMyProfile, setProfilePhoto } from "./profile.updaters";
+import { ApiError, DefaultErrors, isApiError } from "../../../../models/api/api-error.model";
+import { withLocalError } from "../../../../store-extentions/features/with-local-error/with-local-error.feature";
+import { setError } from "../../../../store-extentions/features/with-local-error/with-local-error.updaters";
 
 export const ProfileStore = signalStore(
     { providedIn: 'root' },
     withState(initialProfileSlice),
     withBusy(),
+    withLocalError(),
     withProps(() => {
         const _profileService = inject(ProfileService);
 
@@ -32,11 +36,11 @@ export const ProfileStore = signalStore(
         return {
             getMyProfile: rxMethod<void>(trigger$ => trigger$.pipe(
                 tap(_ => patchState(store, setBusy())),
-                exhaustMap(_ => 
+                exhaustMap(_ =>
                     store._profileService.getMyProfile().pipe(
                         tapResponse({
                             next: response => patchState(store, setMyProfile(response)),
-                            error: _ => {},
+                            error: () => {},
                             finalize: () => patchState(store, setIdle())
                         })
                     )
@@ -44,17 +48,37 @@ export const ProfileStore = signalStore(
             )),
             uploadProfilePhoto: rxMethod<File>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
-                exhaustMap(file => 
+                exhaustMap(file =>
                     store._profileService.uploadProfilePhoto(file).pipe(
                         tapResponse({
                             next: photoUrl => patchState(store, setProfilePhoto(photoUrl)),
-                            error: _ => {}, //todo handle errors
+                            error:  (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
                             finalize: () => patchState(store, setIdle())
                         })
                     )
                 ),
-
             )),
+
+            deleteProfilePhoto: rxMethod<void>(trigger$ => trigger$.pipe(
+                tap(_ => patchState(store, setBusy())),
+                exhaustMap(_ =>
+                    store._profileService.deleteProfilePhoto().pipe(
+                        tapResponse({
+                            next: _ => patchState(store, setProfilePhoto(null)),
+                            error: () => {},
+                            finalize: () => patchState(store, setIdle())
+                        })
+                    )
+                )
+            )),
+            
             resetState: (): void => patchState(store, initialProfileSlice),
         }
     }),

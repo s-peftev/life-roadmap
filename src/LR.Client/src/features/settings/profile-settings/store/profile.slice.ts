@@ -1,3 +1,5 @@
+import { ApiError } from "../../../../models/api/api-error.model";
+
 export interface ProfileSlice {
     readonly userName: string | null;
     readonly firstName: string | null;
@@ -15,5 +17,5 @@ export const initialProfileSlice: ProfileSlice = {
     email: null,
     isEmailConfirmed: false,
     profilePhotoUrl: null,
-    birthDate: null
+    birthDate: null,
 }

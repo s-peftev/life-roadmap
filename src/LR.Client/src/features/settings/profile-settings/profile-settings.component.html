@@ -25,19 +25,27 @@
                         for="fileInput" 
                         class="px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
                             hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
-                        Change photo
+                        {{ profileStore.hasProfilePhoto() ? 'Change photo' : 'Upload photo'}}
                     </label>
                     <input type="file" id="fileInput" (change)="onFileSelected($event)" hidden accept=".png, .jpg, .jpeg" />
 
-                    <a class="px-4 py-1 rounded-md border-2 border-red-500 flex items-center font-semibold text-red-500 text-sm cursor-pointer
-                hover:text-red-700 hover:border-red-700 active:scale-95 transition duration-150 select-none">
-                        Remove photo
-                    </a>
+                    @if(profileStore.hasProfilePhoto()) {
+                        <a (click)="deleteProfilePhoto()"
+                            class="px-4 py-1 rounded-md border-2 border-red-500 flex items-center font-semibold text-red-500 text-sm cursor-pointer
+                            hover:text-red-700 hover:border-red-700 active:scale-95 transition duration-150 select-none">
+                            Remove photo
+                        </a>
+                    }
+
                 </div>
 
                 <p class="text-xs text-gray-600">
                     Pick a photo up to 4MB. Your avatar photo will be public.
                 </p>
+
+                <div *ngFor="let key of fileControl.errors | keyvalue" class="text-xs text-red-500">
+                    {{ key.value }}
+                </div>
             </div>
         </div>
     </div>
@@ -93,14 +101,18 @@
         </p>
 
         <div class="flex flex-row gap-2">
-            <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
-                hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
-                Change email
-            </a>
-            <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-orange-400 text-sm cursor-pointer border-2 border-orange-400
-                hover:border-orange-500 hover:text-orange-500 active:scale-95 transition duration-150 select-none">
-                Verify email
-            </a>
+            @if (!profileStore.email()) {
+                <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
+                    hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
+                    Provide email
+                </a>
+            }
+            @if(!profileStore.isEmailConfirmed()) {
+                <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-orange-400 text-sm cursor-pointer border-2 border-orange-400
+                    hover:border-orange-500 hover:text-orange-500 active:scale-95 transition duration-150 select-none">
+                    Verify email
+                </a>
+            }
         </div>
 
     </div>
@@ -116,4 +128,10 @@
             Reset password
         </a>
     </div>
+
+    @if(profileStore.error()) {
+        <div class="text-red-600 bg-red-100 border border-red-300 rounded-lg p-2 text-sm">
+            {{ profileStore.error()?.description }}
+        </div>
+    }
 </div>

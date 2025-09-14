@@ -14,7 +14,7 @@ export function setMyProfile(myProfile: MyProfileResponse): PartialStateUpdater<
     }) 
 }
 
-export function setProfilePhoto(profilePhotoUrl: string): PartialStateUpdater<ProfileSlice> {
+export function setProfilePhoto(profilePhotoUrl: string | null): PartialStateUpdater<ProfileSlice> {
     return _ => ({
         profilePhotoUrl
     }) 
