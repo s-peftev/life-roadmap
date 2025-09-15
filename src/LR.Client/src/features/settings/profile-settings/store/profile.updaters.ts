@@ -19,3 +19,9 @@ export function setProfilePhoto(profilePhotoUrl: string | null): PartialStateUpd
         profilePhotoUrl
     }) 
 }
+
+export function setUsername(userName: string): PartialStateUpdater<ProfileSlice> {
+        return _ => ({
+        userName
+    }) 
+}

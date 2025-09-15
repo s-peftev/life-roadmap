@@ -185,6 +185,32 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
+        public async Task<Result> ChangeUsernameAsync(
+            ChangeUsernameRequest changeUsernameRequest,
+            string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            { 
+                return Result.Failure(UserErrors.NotFound);
+            }
+
+            if (await _userManager.FindByNameAsync(changeUsernameRequest.NewUsername) is not null)
+            {
+                return Result.Failure(UserErrors.UsernameIsTaken);
+            }
+
+            user.UserName = changeUsernameRequest.NewUsername;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new ChangeUsernameException();
+
+            return Result.Success();
+        }
+
         private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto userRegisterDto)
         {
             if (await _userManager.FindByNameAsync(userRegisterDto.UserName) is not null)

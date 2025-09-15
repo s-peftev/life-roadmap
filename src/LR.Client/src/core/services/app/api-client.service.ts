@@ -41,7 +41,7 @@ export class ApiClientService {
   }
 
   public postVoid(url: string, body?: any, options?: { [key: string]: any }): Observable<void> {
-    
+
     return this.http.post<ApiResponse<null>>(url, body ?? null, { ...options, observe: 'body' })
       .pipe(
         map(this.unwrapVoid)
@@ -72,8 +72,16 @@ export class ApiClientService {
   }
 
   public deleteVoid(url: string, options?: { [key: string]: any }): Observable<void> {
-    
+
     return this.http.delete<ApiResponse<null>>(url, { ...options, observe: 'body' })
+      .pipe(
+        map(this.unwrapVoid)
+      );
+  }
+
+  public patchVoid<T>(url: string, body?: T, options?: { [key: string]: any }): Observable<void> {
+
+    return this.http.patch<ApiResponse<null>>(url, body ?? null, { ...options, observe: 'body' })
       .pipe(
         map(this.unwrapVoid)
       );

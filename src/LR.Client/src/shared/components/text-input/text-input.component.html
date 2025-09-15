@@ -1,4 +1,4 @@
-<div class="mb-5 relative">
+<div class="h-full relative">
     <div
         *ngIf="indicators().length"
         class="absolute -top-6 left-0 z-10 flex flex-wrap gap-x-4 gap-y-1 text-xs transition-all duration-200"
@@ -16,19 +16,10 @@
         [type]="type()" 
         [formControl]="control" 
          placeholder="{{label()}}" 
-        class="peer block w-full rounded-md border 
-               border-gray-300 px-3 pt-7 pb-2 text-sm placeholder-transparent 
-               focus:border-blue-500 focus:ring focus:ring-blue-200"
+        class="peer block w-full h-full rounded-md border focus:outline-none
+               border-neutral-300 px-3 text-sm placeholder-gray-500
+               focus:border-neutral-400 focus:ring"
         [class.border-red-500]="control.touched && control.invalid"
         (focus)="touchedOnce.set(true)"
     />
-
-    <label 
-        class="absolute left-3 top-2 text-gray-500 text-sm transition-all 
-            peer-placeholder-shown:top-5 peer-placeholder-shown:text-gray-400 
-            peer-placeholder-shown:text-xs peer-focus:top-2.5 
-            peer-focus:text-gray-500 peer-focus:text-sm pointer-events-none"
-    >
-        {{label()}}
-    </label>
 </div>

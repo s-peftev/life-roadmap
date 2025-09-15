@@ -55,11 +55,35 @@
             Username
         </h3>
 
-        <input type="text" class="border-2 border-neutral-300 rounded-sm max-w-xs w-full h-8 mx-2 p-2 text-sm
-            focus:border-neutral-400 focus:outline-none" [value]="profileStore.userName()">
-        <div class="flex flex-row-reverse max-w-xs w-full">
-            <p class="text-xs text-gray-600">5/20</p>
-        </div>
+        @if(!usernameEditMode()) {
+            <p class="text-sm p-2 font-semibold mt-5 mx-2 mb-2">
+                {{profileStore.userName()}}
+            </p>
+
+            <a (click)="toggleUsernameEdit()"
+                class="w-fit px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer
+                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                Change username
+            </a>
+        } @else {
+            <div class="max-w-xs w-full h-8 mt-5 mx-2 mb-3">
+                <app-text-input class="h-full"
+                    [formControl]="usernameControl"
+                    [label]="'Username'"
+                    [indicators]="validationIndicators['userName']"
+                />
+            </div>
+
+            <a (click)="changeUserName()"
+                class="w-fit px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer
+                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                Save username
+            </a>
+
+        }
+
+
+
     </div>
 
     <div class="flex flex-col">

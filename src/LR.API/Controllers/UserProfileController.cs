@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using LR.Application.AppResult.Errors.User;
 using LR.Application.Interfaces.Services;
+using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Application.Responses;
 using LR.Domain.ValueObjects.UserProfile;
@@ -13,10 +14,14 @@ namespace LR.API.Controllers
     [Authorize]
     public class UserProfileController(
         IUserProfileService userProfileService,
-        IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator) : BaseApiController
+        IAccountService accountService,
+        IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
+        IValidator<ChangeUsernameRequest> changeUserNameValidator) : BaseApiController
     {
         private readonly IUserProfileService _userProfileService = userProfileService;
+        private readonly IAccountService _accountService = accountService;
         private readonly IValidator<ProfilePhotoUploadRequest> _profilePhotoUploadValidator = profilePhotoUploadValidator;
+        private readonly IValidator<ChangeUsernameRequest> _changeUserNameValidator = changeUserNameValidator;
 
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile()
@@ -26,6 +31,30 @@ namespace LR.API.Controllers
             return myProfileResult.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),
                 error => HandleFailure(error));
+        }
+
+        [HttpPatch("me")]
+        public async Task<IActionResult> ChangeUsername(
+            [FromBody] ChangeUsernameRequest changeUsernameRequest,
+            CancellationToken cancellationToken)
+        {
+            var validationResult = await _changeUserNameValidator.ValidateAsync(changeUsernameRequest, cancellationToken);
+
+            if (!validationResult.IsValid)
+            {
+                return HandleFailure(UserProfileErrors.InvalidChangeUsernameRequest
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            var changeUsernameResult = await _accountService.ChangeUsernameAsync(
+                changeUsernameRequest,
+                User.GetAppUserId());
+
+            return changeUsernameResult.Match(
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+                );
         }
 
         [HttpPost("photo/upload")]

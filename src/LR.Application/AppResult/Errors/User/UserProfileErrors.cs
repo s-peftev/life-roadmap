@@ -12,5 +12,10 @@ namespace LR.Application.AppResult.Errors.User
             "InvalidProfilePhotoUploadRequest",
             ErrorType.Validation,
             "Profile photo upload request is invalid.");
+
+        public static readonly Error InvalidChangeUsernameRequest = new(
+            "InvalidChangeUsernameRequest",
+            ErrorType.Validation,
+            "Change username request is invalid.");
     }
 }

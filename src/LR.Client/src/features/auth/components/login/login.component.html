@@ -18,12 +18,17 @@
         Sign in with Google
       </button>
 
-      <app-text-input [formControl]="$any(loginForm.controls['userName'])" [label]="'Username'"
-        [indicators]="validationIndicators['userName']">
-      </app-text-input>
+      <div class="w-full h-14 mb-4">
+        <app-text-input class="h-full" [formControl]="$any(loginForm.controls['userName'])" [label]="'Username'"
+          [indicators]="validationIndicators['userName']">
+        </app-text-input>
+      </div>
 
-      <app-text-input [formControl]="$any(loginForm.controls['password'])" [label]="'Password'" [type]="'password'"
-        [indicators]="validationIndicators['password']" />
+
+      <div class="w-full h-14 mb-4">
+        <app-text-input class="h-full" [formControl]="$any(loginForm.controls['password'])" [label]="'Password'" [type]="'password'"
+          [indicators]="validationIndicators['password']" />
+      </div>
 
       <button type="submit" [disabled]="loginForm.invalid" class="bg-orange-600 text-white px-4 py-2 rounded-xl text-lg font-bold 
           hover:bg-orange-700 transition-colors disabled:opacity-50 

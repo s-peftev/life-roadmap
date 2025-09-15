@@ -8,10 +8,11 @@ import { rxMethod } from "@ngrx/signals/rxjs-interop";
 import { exhaustMap, tap } from "rxjs";
 import { setBusy, setIdle } from "../../../../store-extentions/features/with-busy/with-busy.updaters";
 import { tapResponse } from "@ngrx/operators";
-import { setMyProfile, setProfilePhoto } from "./profile.updaters";
+import { setMyProfile, setProfilePhoto, setUsername } from "./profile.updaters";
 import { ApiError, DefaultErrors, isApiError } from "../../../../models/api/api-error.model";
 import { withLocalError } from "../../../../store-extentions/features/with-local-error/with-local-error.feature";
 import { setError } from "../../../../store-extentions/features/with-local-error/with-local-error.updaters";
+import { ChangeUserNameRequest } from "../../../../models/user-profile/change-username-request";
 
 export const ProfileStore = signalStore(
     { providedIn: 'root' },
@@ -46,6 +47,28 @@ export const ProfileStore = signalStore(
                     )
                 ),
             )),
+
+            //rewrite on hot observable for toggling edit mode in component
+            changeUserName: rxMethod<ChangeUserNameRequest>(input$ => input$.pipe(
+                tap(_ => patchState(store, setBusy())),
+                exhaustMap(request =>
+                    store._profileService.changeUsername(request).pipe(
+                        tapResponse({
+                            next: _ => patchState(store, setUsername(request.newUsername)),
+                            error:  (err: any) => {
+                                if (isApiError(err.error.error)) {
+                                    const apiErr = err.error.error as ApiError;
+                                    patchState(store, setError(apiErr));
+                                } else {
+                                    patchState(store, setError(DefaultErrors.UnexpectedError))
+                                }
+                            },
+                            finalize: () => patchState(store, setIdle())
+                        })
+                    )
+                )
+            )),
+
             uploadProfilePhoto: rxMethod<File>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
                 exhaustMap(file =>
