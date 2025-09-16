@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using LR.Application.Requests.User;
+using LR.Domain.Constants.Validation;
 
 namespace LR.Application.Validators.User
 {
@@ -7,9 +8,11 @@ namespace LR.Application.Validators.User
     {
         public ChangeUsernameRequestValidator() 
         {
-            RuleFor(x => x.NewUsername)
+            RuleFor(x => x.UserName)
                     .NotEmpty().WithMessage("UserName is required.")
-                    .Length(4, 20).WithMessage("UserName must be between 4 and 20 characters.");
+                    .Length(UserValidationRules.MinUsernameNameLength, UserValidationRules.MaxUsernameNameLength)
+                    .WithMessage("UserName must be between " + UserValidationRules.MinUsernameNameLength +
+                                " and " + UserValidationRules.MaxUsernameNameLength + " characters.");
         }
     }
 }

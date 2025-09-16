@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using LR.Application.Requests.User;
 using LR.Application.Validators.Common.Validators;
+using LR.Domain.Constants.Validation;
 
 namespace LR.Application.Validators.User
 {
@@ -10,21 +11,27 @@ namespace LR.Application.Validators.User
         {
             RuleFor(x => x.UserName)
                 .NotEmpty().WithMessage("UserName is required.")
-                .Length(4, 20).WithMessage("UserName must be between 4 and 20 characters.");
+                .Length(UserValidationRules.MinUsernameNameLength, UserValidationRules.MaxUsernameNameLength)
+                .WithMessage("UserName must be between " + UserValidationRules.MinUsernameNameLength +
+                             " and " + UserValidationRules.MaxUsernameNameLength + " characters.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
-                .Length(8, 20).WithMessage("Password must be between 8 and 20 characters.")
+                .Length(UserValidationRules.MinPasswordLength, UserValidationRules.MaxPasswordLength)
+                .WithMessage("Password must be between " + UserValidationRules.MinPasswordLength +
+                            " and " + UserValidationRules.MaxPasswordLength + " characters.")
                 .Must(PasswordValidators.ContainDigit).WithMessage("Password must contain at least one digit.")
                 .Must(PasswordValidators.ContainLowercase).WithMessage("Password must contain at least one lowercase letter.")
                 .Must(PasswordValidators.ContainUppercase).WithMessage("Password must contain at least one uppercase letter.");
 
             RuleFor(x => x.FirstName)
-                .MaximumLength(50).WithMessage("FirstName cannot exceed 50 characters.")
+                .MaximumLength(UserValidationRules.MaxNameLength)
+                .WithMessage("FirstName cannot exceed " + UserValidationRules.MaxNameLength + " characters.")
                 .When(x => !string.IsNullOrEmpty(x.FirstName));
 
             RuleFor(x => x.LastName)
-                .MaximumLength(50).WithMessage("LastName cannot exceed 50 characters.")
+                .MaximumLength(UserValidationRules.MaxNameLength)
+                .WithMessage("LastName cannot exceed " + UserValidationRules.MaxNameLength + " characters.")
                 .When(x => !string.IsNullOrEmpty(x.LastName));
 
             RuleFor(x => x.Email)

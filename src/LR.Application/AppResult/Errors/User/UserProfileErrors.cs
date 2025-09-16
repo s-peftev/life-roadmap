@@ -17,5 +17,10 @@ namespace LR.Application.AppResult.Errors.User
             "InvalidChangeUsernameRequest",
             ErrorType.Validation,
             "Change username request is invalid.");
+
+        public static readonly Error InvalidChangePersonalInfoRequest = new(
+            "InvalidChangePersonalInfoRequest",
+            ErrorType.Validation,
+            "Change personal info request is invalid.");
     }
 }

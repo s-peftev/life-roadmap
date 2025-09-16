@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using LR.Application.Requests.User;
 using LR.Application.Validators.Common.Validators;
+using LR.Domain.Constants.Validation;
 
 namespace LR.Application.Validators.User
 {
@@ -10,7 +11,9 @@ namespace LR.Application.Validators.User
         {
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
-                .Length(8, 20).WithMessage("Password must be between 8 and 20 characters.")
+                .Length(UserValidationRules.MinPasswordLength, UserValidationRules.MaxPasswordLength)
+                .WithMessage("Password must be between " + UserValidationRules.MinPasswordLength + 
+                            " and " + UserValidationRules.MaxPasswordLength + " characters.")
                 .Must(PasswordValidators.ContainDigit).WithMessage("Password must contain at least one digit.")
                 .Must(PasswordValidators.ContainLowercase).WithMessage("Password must contain at least one lowercase letter.")
                 .Must(PasswordValidators.ContainUppercase).WithMessage("Password must contain at least one uppercase letter.");

@@ -196,12 +196,12 @@ namespace LR.Infrastructure.Utils
                 return Result.Failure(UserErrors.NotFound);
             }
 
-            if (await _userManager.FindByNameAsync(changeUsernameRequest.NewUsername) is not null)
+            if (await _userManager.FindByNameAsync(changeUsernameRequest.UserName) is not null)
             {
                 return Result.Failure(UserErrors.UsernameIsTaken);
             }
 
-            user.UserName = changeUsernameRequest.NewUsername;
+            user.UserName = changeUsernameRequest.UserName;
 
             var result = await _userManager.UpdateAsync(user);
 

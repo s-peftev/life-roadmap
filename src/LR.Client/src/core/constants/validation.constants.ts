@@ -3,5 +3,9 @@ export const USER_AUTH = {
     USERNAME_MAX_LENGTH: 20,
     PASSWORD_MIN_LENGTH: 8,
     PASSWORD_MAX_LENGTH: 20,
-    NAME_MAX_LENGTH: 50
+    NAME_MAX_LENGTH: 50,
+}
+
+export const USER_PROFILE = {
+    USER_MAX_AGE: 120,
 }

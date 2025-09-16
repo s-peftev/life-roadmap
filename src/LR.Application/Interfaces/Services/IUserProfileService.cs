@@ -7,7 +7,9 @@ namespace LR.Application.Interfaces.Services
 {
     public interface IUserProfileService : IEntityService<UserProfile, Guid>
     {
-        Task<Result<UserProfile>> GetByUserIdAsync(string userId, CancellationToken cancellationToken = default);
+        Task<Result<UserProfile>> GetByUserIdAsync(
+            string userId,
+            CancellationToken cancellationToken = default);
         Task<Result<string>> UploadProfilePhotoAsync(
             ProfilePhotoUploadRequest request,
             string userId,
@@ -17,6 +19,10 @@ namespace LR.Application.Interfaces.Services
             CancellationToken cancellationToken = default);
         Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
             string userId,
+            CancellationToken cancellationToken = default);
+        Task<Result> ChangePersonalInfoAsync(
+            string userId,
+            ChangePersonalInfoRequest request,
             CancellationToken cancellationToken = default);
     }
 }

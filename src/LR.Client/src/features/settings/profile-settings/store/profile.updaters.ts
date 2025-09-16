@@ -1,6 +1,7 @@
 import { PartialStateUpdater } from "@ngrx/signals";
 import { MyProfileResponse } from "../../../../models/user-profile/my-profile-response.model";
 import { ProfileSlice } from "./profile.slice";
+import { ChangePersonalInfoRequest } from "../../../../models/user-profile/change-personal-info-request";
 
 export function setMyProfile(myProfile: MyProfileResponse): PartialStateUpdater<ProfileSlice> {
     return _ => ({
@@ -23,5 +24,13 @@ export function setProfilePhoto(profilePhotoUrl: string | null): PartialStateUpd
 export function setUsername(userName: string): PartialStateUpdater<ProfileSlice> {
         return _ => ({
         userName
+    }) 
+}
+
+export function setPersonalInfo(personalInfo: ChangePersonalInfoRequest): PartialStateUpdater<ProfileSlice> {
+        return _ => ({
+        firstName: personalInfo.firstName,
+        lastName: personalInfo.lastName,
+        birthDate: personalInfo.birthDate ?  new Date(personalInfo.birthDate) : null
     }) 
 }

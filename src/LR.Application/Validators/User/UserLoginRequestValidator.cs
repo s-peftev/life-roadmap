@@ -8,12 +8,10 @@ namespace LR.Application.Validators.User
         public UserLoginRequestValidator()
         {
             RuleFor(x => x.UserName)
-                .NotEmpty()
-                .Length(4, 20);
+                .NotEmpty();
 
             RuleFor(x => x.Password)
-                .NotEmpty()
-                .Length(8, 20);
+                .NotEmpty();
         }
     }
 }

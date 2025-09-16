@@ -2,6 +2,6 @@
 {
     public class ChangeUsernameRequest
     {
-        public required string NewUsername { get; set; }
+        public required string UserName { get; set; }
     }
 }

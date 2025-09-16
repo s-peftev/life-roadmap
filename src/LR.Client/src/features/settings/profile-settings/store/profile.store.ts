@@ -5,14 +5,15 @@ import { computed, inject } from "@angular/core";
 import { ProfileService } from "../services/profile.service";
 import { withBusy } from "../../../../store-extentions/features/with-busy/with-busy.feature";
 import { rxMethod } from "@ngrx/signals/rxjs-interop";
-import { exhaustMap, tap } from "rxjs";
+import { exhaustMap, of, tap } from "rxjs";
 import { setBusy, setIdle } from "../../../../store-extentions/features/with-busy/with-busy.updaters";
 import { tapResponse } from "@ngrx/operators";
-import { setMyProfile, setProfilePhoto, setUsername } from "./profile.updaters";
+import { setMyProfile, setPersonalInfo, setProfilePhoto, setUsername } from "./profile.updaters";
 import { ApiError, DefaultErrors, isApiError } from "../../../../models/api/api-error.model";
 import { withLocalError } from "../../../../store-extentions/features/with-local-error/with-local-error.feature";
-import { setError } from "../../../../store-extentions/features/with-local-error/with-local-error.updaters";
+import { clearError, setError } from "../../../../store-extentions/features/with-local-error/with-local-error.updaters";
 import { ChangeUserNameRequest } from "../../../../models/user-profile/change-username-request";
+import { ChangePersonalInfoRequest } from "../../../../models/user-profile/change-personal-info-request";
 
 export const ProfileStore = signalStore(
     { providedIn: 'root' },
@@ -41,33 +42,56 @@ export const ProfileStore = signalStore(
                     store._profileService.getMyProfile().pipe(
                         tapResponse({
                             next: response => patchState(store, setMyProfile(response)),
-                            error: () => {},
+                            error: () => { },
                             finalize: () => patchState(store, setIdle())
                         })
                     )
                 ),
             )),
 
-            //rewrite on hot observable for toggling edit mode in component
-            changeUserName: rxMethod<ChangeUserNameRequest>(input$ => input$.pipe(
-                tap(_ => patchState(store, setBusy())),
-                exhaustMap(request =>
-                    store._profileService.changeUsername(request).pipe(
-                        tapResponse({
-                            next: _ => patchState(store, setUsername(request.newUsername)),
-                            error:  (err: any) => {
-                                if (isApiError(err.error.error)) {
-                                    const apiErr = err.error.error as ApiError;
-                                    patchState(store, setError(apiErr));
-                                } else {
-                                    patchState(store, setError(DefaultErrors.UnexpectedError))
-                                }
-                            },
-                            finalize: () => patchState(store, setIdle())
-                        })
+            changeUserName: (request: ChangeUserNameRequest) => {
+                return of(request).pipe(
+                    tap(() => patchState(store, setBusy())),
+                    exhaustMap(req =>
+                        store._profileService.changeUsername(req).pipe(
+                            tapResponse({
+                                next: () => patchState(store, setUsername(req.userName), clearError()),
+                                error: (err: any) => {
+                                    if (isApiError(err.error.error)) {
+                                        const apiErr = err.error.error as ApiError;
+                                        patchState(store, setError(apiErr));
+                                    } else {
+                                        patchState(store, setError(DefaultErrors.UnexpectedError));
+                                    }
+                                },
+                                finalize: () => patchState(store, setIdle())
+                            })
+                        )
                     )
-                )
-            )),
+                );
+            },
+
+            changePersonalInfo: (request: ChangePersonalInfoRequest) => {
+                return of(request).pipe(
+                    tap(() => patchState(store, setBusy())),
+                    exhaustMap(req =>
+                        store._profileService.changePersonalInfo(req).pipe(
+                            tapResponse({
+                                next: () => patchState(store, setPersonalInfo(req), clearError()),
+                                error: (err: any) => {
+                                    if (isApiError(err.error.error)) {
+                                        const apiErr = err.error.error as ApiError;
+                                        patchState(store, setError(apiErr));
+                                    } else {
+                                        patchState(store, setError(DefaultErrors.UnexpectedError));
+                                    }
+                                },
+                                finalize: () => patchState(store, setIdle())
+                            })
+                        )
+                    )
+                );
+            },
 
             uploadProfilePhoto: rxMethod<File>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
@@ -75,7 +99,7 @@ export const ProfileStore = signalStore(
                     store._profileService.uploadProfilePhoto(file).pipe(
                         tapResponse({
                             next: photoUrl => patchState(store, setProfilePhoto(photoUrl)),
-                            error:  (err: any) => {
+                            error: (err: any) => {
                                 if (isApiError(err.error.error)) {
                                     const apiErr = err.error.error as ApiError;
                                     patchState(store, setError(apiErr));
@@ -95,13 +119,13 @@ export const ProfileStore = signalStore(
                     store._profileService.deleteProfilePhoto().pipe(
                         tapResponse({
                             next: _ => patchState(store, setProfilePhoto(null)),
-                            error: () => {},
+                            error: () => { },
                             finalize: () => patchState(store, setIdle())
                         })
                     )
                 )
             )),
-            
+
             resetState: (): void => patchState(store, initialProfileSlice),
         }
     }),

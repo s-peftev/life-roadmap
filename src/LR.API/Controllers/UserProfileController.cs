@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Azure.Core;
+using FluentValidation;
 using LR.Application.AppResult.Errors.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
@@ -16,12 +17,14 @@ namespace LR.API.Controllers
         IUserProfileService userProfileService,
         IAccountService accountService,
         IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
-        IValidator<ChangeUsernameRequest> changeUserNameValidator) : BaseApiController
+        IValidator<ChangeUsernameRequest> changeUserNameValidator,
+        IValidator<ChangePersonalInfoRequest> changePersonalInfoValidator) : BaseApiController
     {
         private readonly IUserProfileService _userProfileService = userProfileService;
         private readonly IAccountService _accountService = accountService;
         private readonly IValidator<ProfilePhotoUploadRequest> _profilePhotoUploadValidator = profilePhotoUploadValidator;
         private readonly IValidator<ChangeUsernameRequest> _changeUserNameValidator = changeUserNameValidator;
+        private readonly IValidator<ChangePersonalInfoRequest> _changePersonalInfoValidator = changePersonalInfoValidator;
 
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile()
@@ -55,6 +58,31 @@ namespace LR.API.Controllers
                 () => Ok(ApiResponse<object>.Ok()),
                 error => HandleFailure(error)
                 );
+        }
+
+        [HttpPatch("me/personal")]
+        public async Task<IActionResult> ChangePersonalInfo(
+            [FromBody] ChangePersonalInfoRequest changePersonalInfoRequest,
+            CancellationToken cancellationToken)
+        {
+            var validationResult = await _changePersonalInfoValidator.ValidateAsync(changePersonalInfoRequest, cancellationToken);
+
+            if (!validationResult.IsValid)
+            {
+                return HandleFailure(UserProfileErrors.InvalidChangePersonalInfoRequest
+                    with
+                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+            }
+
+            var result = await _userProfileService.ChangePersonalInfoAsync(
+                User.GetAppUserId(),
+                changePersonalInfoRequest,
+                cancellationToken);
+
+            return result.Match(
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("photo/upload")]

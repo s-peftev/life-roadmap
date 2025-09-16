@@ -52,7 +52,6 @@ namespace LR.Application.Services.User
             userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
             userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
 
-            _userProfileRepository.Update(userProfile);
             var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
 
             if (saveResult is 0)
@@ -62,7 +61,8 @@ namespace LR.Application.Services.User
         }
 
         public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
-            string userId, CancellationToken cancellationToken = default)
+            string userId,
+            CancellationToken cancellationToken = default)
         {
             var profileDetails = await _userProfileRepository.GetProfileProfileDetailsAsync(userId, cancellationToken);
 
@@ -71,7 +71,9 @@ namespace LR.Application.Services.User
                 : Result<UserProfileDetailsDto>.Success(profileDetails);
         }
 
-        public async Task<Result> DeleteProfilePhotoAsync(string userId, CancellationToken cancellationToken = default)
+        public async Task<Result> DeleteProfilePhotoAsync(
+            string userId,
+            CancellationToken cancellationToken = default)
         {
             var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
 
@@ -83,7 +85,44 @@ namespace LR.Application.Services.User
 
             var deletionResult = await _photoService.DeletePhotoAsync(userProfileResult.Value.ProfilePhotoPublicId);
 
+            if (deletionResult.IsSuccess)
+            {
+                var userProfile = userProfileResult.Value;
+
+                userProfile.ProfilePhotoUrl = null;
+                userProfile.ProfilePhotoPublicId = null;
+
+                var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
+
+                if (saveResult is 0)
+                    throw new ProfilePersistingException();
+            }
+
             return deletionResult;
+        }
+
+        public async Task<Result> ChangePersonalInfoAsync(
+            string userId,
+            ChangePersonalInfoRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
+
+            if (!userProfileResult.IsSuccess)
+                return Result.Failure(userProfileResult.Error);
+
+            var userProfile = userProfileResult.Value;
+
+            userProfile.FirstName = request.FirstName;
+            userProfile.LastName = request.LastName;
+            userProfile.BirthDate = request.BirthDate;
+
+            var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
+
+            if (saveResult is 0)
+                throw new ProfilePersistingException();
+
+            return Result.Success();
         }
     }
 }
