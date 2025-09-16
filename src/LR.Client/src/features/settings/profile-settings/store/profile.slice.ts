@@ -7,7 +7,7 @@ export interface ProfileSlice {
     readonly email: string | null;
     readonly isEmailConfirmed: boolean;
     readonly profilePhotoUrl: string | null;
-    readonly birthDate: Date | null;
+    readonly birthDate: string | null;
 }
 
 export const initialProfileSlice: ProfileSlice = {

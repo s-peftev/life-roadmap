@@ -19,9 +19,9 @@ namespace LR.Application.Validators.User
                 .When(x => !string.IsNullOrEmpty(x.LastName));
 
             RuleFor(x => x.BirthDate)
-                .LessThanOrEqualTo(DateTime.Today)
+                .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
                 .WithMessage("BirthDate cannot be in the future.")
-                .GreaterThan(DateTime.Today.AddYears(-UserValidationRules.MaxUserAgeYears))
+                .GreaterThan(DateOnly.FromDateTime(DateTime.Today.AddYears(-UserValidationRules.MaxUserAgeYears)))
                 .WithMessage("BirthDate is not valid.")
                 .When(x => x.BirthDate.HasValue);
         }

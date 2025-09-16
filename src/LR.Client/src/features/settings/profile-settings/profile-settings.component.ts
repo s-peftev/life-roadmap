@@ -144,6 +144,9 @@ export class ProfileSettingsComponent {
 
     const request: ChangePersonalInfoRequest = this.personalForm.value;
 
+    if(request.birthDate === '')
+      request.birthDate = null;
+
     this.profileStore.changePersonalInfo(request).subscribe({
       next: () => this.togglePersonalEdit(),
       error: () => { }

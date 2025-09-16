@@ -8,10 +8,10 @@
         public string? Email { get; }
         public bool IsEmailConfirmed { get; }
         public string? ProfilePhotoUrl { get; }
-        public DateTime? BirthDate { get; }
+        public DateOnly? BirthDate { get; }
 
         public UserProfileDetailsDto(string userName, string? firstName, string? lastName, string? email,
-            bool isEmailConfirmed, string? profilePhotoUrl, DateTime? birthDate)
+            bool isEmailConfirmed, string? profilePhotoUrl, DateOnly? birthDate)
         {
             UserName = userName;
             FirstName = firstName;

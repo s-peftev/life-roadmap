@@ -4,6 +4,8 @@ import { ProfileSlice } from "./profile.slice";
 import { ChangePersonalInfoRequest } from "../../../../models/user-profile/change-personal-info-request";
 
 export function setMyProfile(myProfile: MyProfileResponse): PartialStateUpdater<ProfileSlice> {
+
+    
     return _ => ({
         userName: myProfile.userName,
         firstName: myProfile.firstName ?? null,
@@ -11,7 +13,7 @@ export function setMyProfile(myProfile: MyProfileResponse): PartialStateUpdater<
         email: myProfile.email ?? null,
         isEmailConfirmed: myProfile.isEmailConfirmed,
         profilePhotoUrl: myProfile.profilePhotoUrl ?? null,
-        birthDate: myProfile.birthDate ? new Date(myProfile.birthDate) : null
+        birthDate: myProfile.birthDate,
     }) 
 }
 
@@ -31,6 +33,6 @@ export function setPersonalInfo(personalInfo: ChangePersonalInfoRequest): Partia
         return _ => ({
         firstName: personalInfo.firstName,
         lastName: personalInfo.lastName,
-        birthDate: personalInfo.birthDate ?  new Date(personalInfo.birthDate) : null
+        birthDate: personalInfo.birthDate,
     }) 
 }

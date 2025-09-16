@@ -7,7 +7,7 @@
         public string? LastName { get; set; }
         public string? ProfilePhotoUrl { get; set; }
         public string? ProfilePhotoPublicId { get; set; }
-        public DateTime? BirthDate { get; set; }
+        public DateOnly? BirthDate { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime LastActive { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

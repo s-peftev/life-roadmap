@@ -73,6 +73,7 @@
                     [indicators]="validationIndicators['userName']"
                 />
             </div>
+            
 
             <a (click)="changeUserName()"
                 class="w-fit px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer
@@ -171,11 +172,18 @@
                 Change personal info
             </a>
         } @else {
-            <button type="submit"
-                class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer 
-                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
-                Save personal info
-            </button>
+            <div class="flex flex-row gap-2 items-center">
+                <button type="submit"
+                    class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer 
+                    hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                    Save personal info
+                </button>
+
+                <div *ngFor="let key of personalForm.controls['birthDate'].errors | keyvalue" class="text-xs text-red-500">
+                        {{ key.value }}
+                </div>
+            </div>
+            
         }
 
     </form>
