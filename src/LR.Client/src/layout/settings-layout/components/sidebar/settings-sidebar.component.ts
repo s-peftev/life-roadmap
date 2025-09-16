@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { ROUTES } from '../../../../core/constants/routes.constants';
 import { ASSETS } from '../../../../core/constants/assets.constants';
 import { Router } from '@angular/router';
+import { openSettingTab } from '../../shared/methods';
 
 @Component({
   selector: 'app-settings-sidebar',
@@ -15,9 +16,6 @@ export class SettingsSidebarComponent {
   public icons = ASSETS.IMAGES.ICONS
 
   openTab(settingTabName: string): void {
-    this.router.navigate(
-      [{ outlets: { modal: [ROUTES.SETTINGS.BASE, settingTabName] } }],
-      { skipLocationChange: true }
-    );
+    openSettingTab(settingTabName, this.router);
   }
 }

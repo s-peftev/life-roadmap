@@ -28,5 +28,8 @@ namespace LR.Application.Interfaces.Utils
         Task<Result> ChangeUsernameAsync(
             ChangeUsernameRequest changeUsernameRequest,
             string userId);
+        Task<Result> ChangePasswordAsync(
+            ChangePasswordRequest changePasswordRequest,
+            string userId);
     }
 }

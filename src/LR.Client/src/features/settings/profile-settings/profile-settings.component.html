@@ -43,9 +43,7 @@
                     Pick a photo up to 4MB. Your avatar photo will be public.
                 </p>
 
-                <div *ngFor="let key of fileControl.errors | keyvalue" class="text-xs text-red-500">
-                    {{ key.value }}
-                </div>
+                <app-base-validation-messages [control]="fileControl" />
             </div>
         </div>
     </div>
@@ -92,78 +90,33 @@
             Personal
         </h3>
 
-        <div class="flex flex-row gap-2">
-            <p class="text-sm p-2">
-                First name:
-            </p>
+        <app-profile-field
+            label="First name"
+            [value]="profileStore.firstName()"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['firstName'])"
+            [indicators]="validationIndicators['firstName']"
+            type="text"
+        />
 
-            @if(!personalEditMode()) {
-                <p class="text-sm py-2 mx-3 font-semibold">
-                    @if(profileStore.firstName()) {
-                        {{profileStore.firstName()}}
-                    } @else {
-                        not provided
-                    }
-                </p>
-            } @else {
-                <div class="max-w-xs w-full h-8">
-                    <app-text-input class="h-full"
-                        [formControl]="$any(personalForm.controls['firstName'])"
-                        [label]="'First name'"
-                        [indicators]="validationIndicators['firstName']"
-                    />
-                </div>
-            }
-        </div>
+        <app-profile-field
+            class="mt-6"
+            label="Last name"
+            [value]="profileStore.lastName()"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['lastName'])"
+            [indicators]="validationIndicators['lastName']"
+            type="text"
+        />
 
-        <div class="flex flex-row gap-2">
-            <p class="text-sm p-2 mt-6">
-                Last name:
-            </p>
-
-            @if(!personalEditMode()) {
-                <p class="text-sm py-2 mt-6 mx-3 font-semibold">
-                    @if(profileStore.lastName()) {
-                        {{profileStore.lastName()}}
-                    } @else {
-                        not provided
-                    }
-                </p>
-            } @else {
-                <div class="max-w-xs w-full h-8 mt-6">
-                    <app-text-input class="h-full"
-                        [formControl]="$any(personalForm.controls['lastName'])"
-                        [label]="'Last name'"
-                        [indicators]="validationIndicators['lastName']"
-                    />
-                </div>
-            }
-        </div>
-
-        <div class="flex flex-row gap-2">
-            <p class="text-sm p-2 mt-6">
-                Date of birth:
-            </p>
-
-            @if(!personalEditMode()) {
-                <p class="text-sm py-2 mt-6 mx-3 font-semibold">
-                    @if(profileStore.birthDate()) {
-                        {{profileStore.birthDate()}}
-                    } @else {
-                        not provided
-                    }
-                </p>
-            } @else {
-                <div class="max-w-xs w-full h-8 mt-6">
-                    <input
-                        type="date"
-                        [formControl]="$any(personalForm.controls['birthDate'])"
-                        class="block w-full h-full rounded-md border border-gray-300 px-3 text-sm
-                            focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    />
-                </div>
-            }
-        </div>
+        <app-profile-field
+            class="mt-6"
+            label="Date of birth"
+            [value]="profileStore.birthDate()"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['birthDate'])"
+            type="date"
+        />
 
         @if(!personalEditMode()) {
             <a (click)="togglePersonalEdit()"
@@ -179,9 +132,7 @@
                     Save personal info
                 </button>
 
-                <div *ngFor="let key of personalForm.controls['birthDate'].errors | keyvalue" class="text-xs text-red-500">
-                        {{ key.value }}
-                </div>
+                <app-base-validation-messages [control]="$any(personalForm.controls['birthDate'])" />
             </div>
             
         }
@@ -209,7 +160,7 @@
                     Provide email
                 </a>
             }
-            @if(!profileStore.isEmailConfirmed()) {
+            @if(profileStore.email() && !profileStore.isEmailConfirmed()) {
                 <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-orange-400 text-sm cursor-pointer border-2 border-orange-400
                     hover:border-orange-500 hover:text-orange-500 active:scale-95 transition duration-150 select-none">
                     Verify email
@@ -224,11 +175,15 @@
             Password
         </h3>
 
-        <a
-            class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
-                hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
-            Reset password
-        </a>
+        <div class="relative group w-fit">
+            <button (click)="openChangePasswordTab()"
+                [disabled]="!profileStore.email()"
+                class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm 
+                    hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none cursor-pointer"
+            >
+                Change password
+            </button>
+        </div>
     </div>
 
     @if(profileStore.error()) {

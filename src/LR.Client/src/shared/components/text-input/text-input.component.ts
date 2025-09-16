@@ -7,7 +7,6 @@ import { ValidationIndicator } from '../../../core/types/utils/validation.type';
   selector: 'app-text-input',
   imports: [NgFor, NgIf, ReactiveFormsModule],
   templateUrl: './text-input.component.html',
-  styleUrl: './text-input.component.css'
 })
 export class TextInputComponent implements ControlValueAccessor {
   public label = input<string>('');

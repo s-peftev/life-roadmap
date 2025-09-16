@@ -16,6 +16,7 @@ import { StatisticsComponent } from '../features/statistics/statistics.component
 import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layout.component';
 import { GeneralSettingsComponent } from '../features/settings/general-settings/general-settings.component';
 import { ProfileSettingsComponent } from '../features/settings/profile-settings/profile-settings.component';
+import { ChangePasswordComponent } from '../features/settings/profile-settings/components/change-password/change-password.component';
 
 export const routes: Routes = [
     {
@@ -46,6 +47,7 @@ export const routes: Routes = [
                 children: [
                     { path: ROUTES.SETTINGS.PROFILE, component: ProfileSettingsComponent },
                     { path: ROUTES.SETTINGS.GENERAL, component: GeneralSettingsComponent },
+                    { path: ROUTES.SETTINGS.CHANGE_PASSWORD, component: ChangePasswordComponent },
                 ]
             },
         ]

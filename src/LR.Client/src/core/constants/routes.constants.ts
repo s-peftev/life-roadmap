@@ -16,6 +16,7 @@ export const ROUTES = {
     SETTINGS: {
         BASE: 'settings',
         PROFILE: 'profile',
-        GENERAL: 'general'
+        GENERAL: 'general',
+        CHANGE_PASSWORD: 'change-password'
     }
 }

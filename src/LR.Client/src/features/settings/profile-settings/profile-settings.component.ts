@@ -5,7 +5,6 @@ import { ProfileStore } from './store/profile.store';
 import { BusyComponent } from "../../../shared/components/busy/busy.component";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { fileSizeValidator, fileTypeValidator } from '../../../shared/validators/file.validator';
-import { KeyValuePipe, NgFor } from '@angular/common';
 import { TextInputComponent } from "../../../shared/components/text-input/text-input.component";
 import { minLengthInstant } from '../../../shared/validators/string-pattern.validator';
 import { USER_AUTH, USER_PROFILE } from '../../../core/constants/validation.constants';
@@ -14,28 +13,32 @@ import { ValidationIndicatorService } from '../../../core/services/utils/validat
 import { ChangeUserNameRequest } from '../../../models/user-profile/change-username-request';
 import { birthDateValidator } from '../../../shared/validators/date.validator';
 import { ChangePersonalInfoRequest } from '../../../models/user-profile/change-personal-info-request';
+import { BaseValidationMessagesComponent } from "../../../shared/components/base-validation-messages/base-validation-messages.component";
+import { ProfileFieldComponent } from "./components/profile-field/profile-field.component";
+import { openSettingTab } from '../../../layout/settings-layout/shared/methods';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-profile-settings',
   imports: [
     BusyComponent,
-    NgFor,
-    KeyValuePipe,
     TextInputComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    BaseValidationMessagesComponent,
+    ProfileFieldComponent
   ],
   templateUrl: './profile-settings.component.html'
 })
 export class ProfileSettingsComponent {
   private fb = inject(FormBuilder);
   private validationIndicatorService = inject(ValidationIndicatorService);
+  private router = inject(Router);
 
   protected personalForm: FormGroup = new FormGroup({});
 
   public usernameEditMode = signal<boolean>(false);
   public personalEditMode = signal<boolean>(false);
   public profileStore = inject(ProfileStore);
-  public routes = ROUTES;
   public icons = ASSETS.IMAGES.ICONS
   public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
@@ -91,15 +94,15 @@ export class ProfileSettingsComponent {
     };
   }
 
-  public toggleUsernameEdit() {
+  public toggleUsernameEdit(): void {
     this.usernameEditMode.set(!this.usernameEditMode());
   }
 
-  public togglePersonalEdit() {
+  public togglePersonalEdit(): void {
     this.personalEditMode.set(!this.personalEditMode());
   }
 
-  public uploadProfilePhoto(event: Event) {
+  public uploadProfilePhoto(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
@@ -110,11 +113,11 @@ export class ProfileSettingsComponent {
       this.profileStore.uploadProfilePhoto(file);
   }
 
-  public deleteProfilePhoto() {
+  public deleteProfilePhoto(): void {
     this.profileStore.deleteProfilePhoto();
   }
 
-  public changeUserName() {
+  public changeUserName(): void {
     if (!this.usernameControl.valid) return;
 
     if (this.profileStore.userName() === this.usernameControl.value) {
@@ -130,8 +133,11 @@ export class ProfileSettingsComponent {
     });
   }
 
-  public changePersonalInfo() {
+  public changePersonalInfo(): void {
     if (!this.personalForm.valid) return;
+
+    if (this.personalForm.controls['birthDate'].value === '')
+      this.personalForm.controls['birthDate'].setValue(null);
 
     if (
       this.profileStore.firstName() === this.personalForm.controls['firstName'].value &&
@@ -144,12 +150,13 @@ export class ProfileSettingsComponent {
 
     const request: ChangePersonalInfoRequest = this.personalForm.value;
 
-    if(request.birthDate === '')
-      request.birthDate = null;
-
     this.profileStore.changePersonalInfo(request).subscribe({
       next: () => this.togglePersonalEdit(),
       error: () => { }
     });
+  }
+
+  public openChangePasswordTab() {
+    openSettingTab(ROUTES.SETTINGS.CHANGE_PASSWORD, this.router);
   }
 }

@@ -211,6 +211,26 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
+        public async Task<Result> ChangePasswordAsync(
+            ChangePasswordRequest changePasswordRequest,
+            string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            {
+                return Result.Failure(UserErrors.NotFound);
+            }
+
+            var result = await _userManager.ChangePasswordAsync(
+                user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
+
+            if (!result.Succeeded)
+                return Result.Failure(UserErrors.WrongCurrentPassword);
+
+            return Result.Success();
+        }
+
         private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto userRegisterDto)
         {
             if (await _userManager.FindByNameAsync(userRegisterDto.UserName) is not null)
