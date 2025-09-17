@@ -8,4 +8,5 @@ export const USER_AUTH = {
 
 export const USER_PROFILE = {
     USER_MAX_AGE: 120,
+    MAX_AVATAR_SIZE_MB: 4
 }

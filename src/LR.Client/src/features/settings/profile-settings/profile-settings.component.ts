@@ -17,6 +17,7 @@ import { BaseValidationMessagesComponent } from "../../../shared/components/base
 import { ProfileFieldComponent } from "./components/profile-field/profile-field.component";
 import { openSettingTab } from '../../../layout/settings-layout/shared/methods';
 import { Router } from '@angular/router';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-profile-settings',
@@ -25,7 +26,8 @@ import { Router } from '@angular/router';
     TextInputComponent,
     ReactiveFormsModule,
     BaseValidationMessagesComponent,
-    ProfileFieldComponent
+    ProfileFieldComponent,
+    DatePipe
   ],
   templateUrl: './profile-settings.component.html'
 })
@@ -44,7 +46,8 @@ export class ProfileSettingsComponent {
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
 
   fileControl = new FormControl<File | null>(null, [
-    fileSizeValidator(4 * 1024 * 1024, 'That photo is a bit too large. Try something smaller.'),
+    fileSizeValidator(USER_PROFILE.MAX_AVATAR_SIZE_MB * 1024 * 1024,
+      'That photo is a bit too large. Try something smaller.'),
     fileTypeValidator(['image/png', 'image/jpeg'])
   ]);
 

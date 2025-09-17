@@ -1,20 +1,35 @@
-import { NgFor } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
-import { AuthStore } from '../auth/store/auth.store';
-import { MyProfileResponse } from '../../models/user-profile/my-profile-response.model';
+import { DatePipe, NgFor } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { AdminStore } from './store/admin.store';
+import { BusyComponent } from "../../shared/components/busy/busy.component";
+import { ASSETS } from '../../core/constants/assets.constants';
+import { UserForAdmin } from '../../models/admin/user-for-admin.model';
+import { Role } from '../../core/enums/role.enum';
 
 
 @Component({
   selector: 'app-admin-dashboard',
   imports: [
     NgFor,
+    BusyComponent,
+    DatePipe
   ],
   templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent {
-  public authStore = inject(AuthStore);
-  public users = signal<MyProfileResponse[]>([]);
+export class AdminDashboardComponent implements OnInit {
+  public adminStore = inject(AdminStore);
+  public isBusy = computed(() => this.adminStore.isBusy());
+  public icons = ASSETS.IMAGES.ICONS
 
-  public toggleRole(user: MyProfileResponse) {}
-  public changePassword(user: MyProfileResponse) {}
+  ngOnInit(): void {
+    this.adminStore.loadUserList();
+  }
+
+  public getRolesString(user: UserForAdmin): string {
+    return user.roles.map(role => Role[role]).join(', ');
+  }
+
+  public deleteUserPhoto(userId: string) {
+    this.adminStore.deleteUserPhoto(userId);
+  }
 }

@@ -1,36 +1,46 @@
+@if(isBusy()) {
+  <app-busy />
+}
 <div class="p-4">
   <h2 class="text-xl font-bold mb-4">Administrator Dashboard</h2>
 
   <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
     <thead class="bg-gray-100">
       <tr>
+        <th class="px-4 py-2 text-left">Photo</th>
         <th class="px-4 py-2 text-left">Username</th>
         <th class="px-4 py-2 text-left">Email</th>
+        <th class="px-4 py-2 text-left">Email Confirmed</th>
+        <th class="px-4 py-2 text-left">Firstname</th>
+        <th class="px-4 py-2 text-left">Lastname</th>
+        <th class="px-4 py-2 text-left">Date of birth</th>
         <th class="px-4 py-2 text-left">Roles</th>
-        <th class="px-4 py-2 text-left">Status</th>
         <th class="px-4 py-2 text-left">Created</th>
-        <th class="px-4 py-2 text-left">Actions</th>
+        <th class="px-4 py-2 text-left">Last active</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of users()" class="border-t border-gray-200">
+      <tr *ngFor="let user of adminStore.userList()" class="border-t border-gray-200">
+        <td class="px-4 py-2 flex flex-row gap-1">
+            <img 
+                [src]="user.profilePhotoUrl ? user.profilePhotoUrl : icons.PROFILE.DEFAULT_AVATAR" 
+                alt="avatar" 
+                class="w-16 h-16 rounded-full mr-1" 
+            />
+            @if(user.profilePhotoUrl) {
+              <button (click)="deleteUserPhoto(user.id)"
+                class="cursor-pointer font-bold text-red-600" title="Delete photo">✕</button>
+            } 
+        </td>
         <td class="px-4 py-2">{{ user.userName }}</td>
         <td class="px-4 py-2">{{ user.email }}</td>
-        <td class="px-4 py-2">{{ authStore.roles()?.join(', ') }}</td>
-        <td class="px-4 py-2 flex gap-2">
-          <button
-            (click)="toggleRole(user)"
-            class="px-2 py-1 border rounded text-sm hover:bg-gray-100"
-          >
-            {{ authStore.isAdmin() ? 'Demote' : 'Promote' }}
-          </button>
-          <button
-            (click)="changePassword(user)"
-            class="px-2 py-1 border rounded text-sm hover:bg-gray-100"
-          >
-            Change Password
-          </button>
-        </td>
+        <td class="px-4 py-2">{{ user.isEmailConfirmed }}</td>
+        <td class="px-4 py-2">{{ user.firstName }}</td>
+        <td class="px-4 py-2">{{ user.lastName }}</td>
+        <td class="px-4 py-2">{{ user.birthDate | date }}</td>
+        <td class="px-4 py-2">{{ getRolesString(user) }}</td>
+        <td class="px-4 py-2">{{ user.createdAt | date }}</td>
+        <td class="px-4 py-2">{{ user.lastActive | date }}</td>
       </tr>
     </tbody>
   </table>
