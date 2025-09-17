@@ -7,7 +7,7 @@ import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
 import { setAccessToken, setPasswordResetRequested } from "./auth.updaters";
-import { catchError, exhaustMap, filter, finalize, map, Observable, tap, throwError } from "rxjs";
+import { catchError, exhaustMap, filter, finalize, map, Observable, of, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { NavigationEnd, Router } from "@angular/router";
 import { ROUTES } from "../../../core/constants/routes.constants";
@@ -21,6 +21,7 @@ import { setBusy, setIdle } from "../../../store-extentions/features/with-busy/w
 import { ProfileStore } from "../../settings/profile-settings/store/profile.store";
 import { withLocalError } from "../../../store-extentions/features/with-local-error/with-local-error.feature";
 import { clearError, setError } from "../../../store-extentions/features/with-local-error/with-local-error.updaters";
+import { ChangePasswordRequest } from "../../../models/auth/change-password-request.model";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -151,7 +152,7 @@ export const AuthStore = signalStore(
                 tap(_ => patchState(store, setBusy())),
                 exhaustMap(request =>
                     store._authService.resetPassword(request).pipe(
-                        tapResponse(({
+                        tapResponse({
                             next: _ => router.navigate([ROUTES.AUTH.LOGIN]),
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
@@ -164,13 +165,36 @@ export const AuthStore = signalStore(
                             finalize: () => {
                                 patchState(store, setIdle());
                             }
-                        }))
+                        })
                     )
                 )
             )),
 
+            changePassword: (request: ChangePasswordRequest) => {
+                return of(request).pipe(
+                    tap(_ => patchState(store, setBusy())),
+                    exhaustMap(req => 
+                        store._authService.changePassword(req).pipe(
+                            tapResponse({
+                                next: () => patchState(store, clearError()),
+                                error: (err: any) => {
+                                    if (isApiError(err.error.error)) {
+                                        const apiErr = err.error.error as ApiError;
+                                        patchState(store, setError(apiErr));
+                                    } else {
+                                        patchState(store, setError(DefaultErrors.UnexpectedError));
+                                    }
+                                },
+                                finalize: () => patchState(store, setIdle())
+                            })
+                        )
+                    )
+                )
+            },
+
             setPasswordResetRequested: (isPasswordResetRequested: boolean) =>
                 patchState(store, setPasswordResetRequested(isPasswordResetRequested)),
+
             // temporary test method
             testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
                 tap(_ => patchState(store, setBusy())),

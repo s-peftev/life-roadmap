@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AuthStore } from '../../../../auth/store/auth.store';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ValidationIndicatorService } from '../../../../../core/services/utils/validation-indicator.service';
@@ -8,6 +8,7 @@ import { digitValidator, lowercaseValidator, matchToFieldValue, minLengthInstant
 import { USER_AUTH } from '../../../../../core/constants/validation.constants';
 import { TextInputComponent } from "../../../../../shared/components/text-input/text-input.component";
 import { BusyComponent } from "../../../../../shared/components/busy/busy.component";
+import { ChangePasswordRequest } from '../../../../../models/auth/change-password-request.model';
 
 @Component({
   selector: 'app-change-password',
@@ -27,6 +28,7 @@ export class ChangePasswordComponent {
   public authStore = inject(AuthStore);
   public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
+  public isPasswordChanged = signal<boolean>(false);
 
   constructor() {
     this.initForm();
@@ -50,7 +52,7 @@ export class ChangePasswordComponent {
       ]],
       confirmPassword: ['', [
         Validators.required,
-        matchToFieldValue('password')
+        matchToFieldValue('newPassword')
       ]],
     });
 
@@ -82,6 +84,14 @@ export class ChangePasswordComponent {
   }
 
   public changePassword(): void {
-    
+    this.isPasswordChanged.set(false);
+
+    if(!this.changePassForm.valid) return;
+
+    const request: ChangePasswordRequest = this.changePassForm.value;
+
+    this.authStore.changePassword(request).subscribe({
+      next: _ => this.isPasswordChanged.set(true),
+    });
   }
 }

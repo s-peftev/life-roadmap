@@ -8,6 +8,7 @@ import { User } from '../../../models/auth/user.model';
 import { ForgotPasswordRequest } from '../../../models/auth/forgot-password-request.model';
 import { ResetPasswordRequest } from '../../../models/auth/reset-password-request.model';
 import { AccessToken } from '../../../models/auth/access-token.model';
+import { ChangePasswordRequest } from '../../../models/auth/change-password-request.model';
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +38,10 @@ export class AuthService {
 
   public resetPassword(resetPasswordRequest: ResetPasswordRequest): Observable<void> {
     return this._apiClient.postVoid(AuthApi.PASSWORD.RESET, resetPasswordRequest);
+  }
+
+  public changePassword(changePasswordRequest: ChangePasswordRequest): Observable<void> {
+    return this._apiClient.patchVoid(AuthApi.PASSWORD.BASE, changePasswordRequest);
   }
 
   //temporary test endpoint

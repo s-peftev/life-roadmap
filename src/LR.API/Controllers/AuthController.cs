@@ -220,6 +220,13 @@ namespace LR.API.Controllers
 
         [Authorize]
         [HttpPatch("password")]
+        [SwaggerOperation(
+            Summary = "Changes users` password",
+            Description = "Sets a new password for authenticated user if correct current password is provided.")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Password was successfully changed.", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, 
+            "Request for password change is invalid or wrong current password provided.", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found.", typeof(ApiResponse<object>))]
         public async Task<IActionResult> ChangePassword(
             [FromBody] ChangePasswordRequest request,
             CancellationToken cancellationToken)

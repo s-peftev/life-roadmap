@@ -8,6 +8,7 @@ export const AuthApi = {
     LOGOUT: baseApiUrl + 'logout',
     REFRESH: baseApiUrl + 'refresh',
     PASSWORD: {
+        BASE: baseApiUrl + 'password',
         RESET_REQUEST: baseApiUrl + 'password/reset-request',
         RESET: baseApiUrl + 'password/reset'
     }
