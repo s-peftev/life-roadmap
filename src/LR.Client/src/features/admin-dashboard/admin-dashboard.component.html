@@ -1,0 +1,37 @@
+<div class="p-4">
+  <h2 class="text-xl font-bold mb-4">Administrator Dashboard</h2>
+
+  <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2 text-left">Username</th>
+        <th class="px-4 py-2 text-left">Email</th>
+        <th class="px-4 py-2 text-left">Roles</th>
+        <th class="px-4 py-2 text-left">Status</th>
+        <th class="px-4 py-2 text-left">Created</th>
+        <th class="px-4 py-2 text-left">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users()" class="border-t border-gray-200">
+        <td class="px-4 py-2">{{ user.userName }}</td>
+        <td class="px-4 py-2">{{ user.email }}</td>
+        <td class="px-4 py-2">{{ authStore.roles()?.join(', ') }}</td>
+        <td class="px-4 py-2 flex gap-2">
+          <button
+            (click)="toggleRole(user)"
+            class="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+          >
+            {{ authStore.isAdmin() ? 'Demote' : 'Promote' }}
+          </button>
+          <button
+            (click)="changePassword(user)"
+            class="px-2 py-1 border rounded text-sm hover:bg-gray-100"
+          >
+            Change Password
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

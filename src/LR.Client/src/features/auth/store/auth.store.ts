@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { withDevtools } from "@angular-architects/ngrx-toolkit";
 import { AuthService } from "../services/auth-service.service";
 import { LoginRequest } from "../../../models/auth/login-request.model";
-import { setAccessToken, setPasswordResetRequested } from "./auth.updaters";
+import { setAccessToken, setPasswordResetRequested, setRoles } from "./auth.updaters";
 import { catchError, exhaustMap, filter, finalize, map, Observable, of, tap, throwError } from "rxjs";
 import { tapResponse } from "@ngrx/operators";
 import { NavigationEnd, Router } from "@angular/router";
@@ -22,6 +22,8 @@ import { ProfileStore } from "../../settings/profile-settings/store/profile.stor
 import { withLocalError } from "../../../store-extentions/features/with-local-error/with-local-error.feature";
 import { clearError, setError } from "../../../store-extentions/features/with-local-error/with-local-error.updaters";
 import { ChangePasswordRequest } from "../../../models/auth/change-password-request.model";
+import { Role } from "../../../core/enums/role.enum";
+import { environment } from "../../../environments/environment";
 
 export const AuthStore = signalStore(
     { providedIn: 'root' },
@@ -41,12 +43,33 @@ export const AuthStore = signalStore(
         const hasValidAccessToken = computed(() =>
             !!store.accessToken() && !!store.expiresAt() && store.expiresAt()! > new Date());
 
+        const isAdmin = computed(() => store.roles()?.includes(Role.Admin));
+
         return {
-            hasValidAccessToken
+            hasValidAccessToken,
+            isAdmin
         };
     }),
     withMethods((store) => {
         const router = inject(Router);
+
+        const _parseRolesFromJwt = (token: string): Role[] => {
+            if (!token) return [];
+
+            const payloadBase64 = token.split('.')[1];
+            const payload = JSON.parse(atob(payloadBase64));
+
+            const roleClaim = payload[environment.roleClaimJwtKey];
+            const roles = Array.isArray(roleClaim) ? roleClaim : [roleClaim].filter(Boolean);
+
+            return roles.map((r: string) => {
+                switch (r.toLowerCase()) {
+                    case 'admin': return Role.Admin;
+                    case 'user': return Role.User;
+                    default: return Role.None;
+                }
+            });
+        }
 
         return {
             login: rxMethod<LoginRequest>(input$ => input$.pipe(
@@ -56,7 +79,12 @@ export const AuthStore = signalStore(
                         tapResponse({
                             next: response => {
                                 store._profileStore.getMyProfile();
-                                patchState(store, setAccessToken(response), clearError());
+
+                                patchState(store, 
+                                    setAccessToken(response),
+                                    setRoles(_parseRolesFromJwt(response.tokenValue)),
+                                    clearError());
+
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
                             error: (err: any) => {
@@ -82,7 +110,12 @@ export const AuthStore = signalStore(
                         tapResponse({
                             next: response => {
                                 store._profileStore.getMyProfile();
-                                patchState(store, setAccessToken(response), clearError());
+
+                                patchState(store,
+                                    setAccessToken(response),
+                                    setRoles(_parseRolesFromJwt(response.tokenValue)),
+                                    clearError());
+
                                 router.navigate([ROUTES.DASHBOARD]);
                             },
                             error: (err: any) => {
@@ -116,7 +149,10 @@ export const AuthStore = signalStore(
 
             refresh: (): Observable<AccessToken> => {
                 return store._authService.refresh().pipe(
-                    tap((response) => patchState(store, setAccessToken(response))),
+                    tap((response) => patchState(store,
+                        setAccessToken(response),
+                        setRoles(_parseRolesFromJwt(response.tokenValue)))),
+
                     catchError((err) => {
                         patchState(store, initialAuthSlice);
                         return throwError(() => err);
@@ -173,7 +209,7 @@ export const AuthStore = signalStore(
             changePassword: (request: ChangePasswordRequest) => {
                 return of(request).pipe(
                     tap(_ => patchState(store, setBusy())),
-                    exhaustMap(req => 
+                    exhaustMap(req =>
                         store._authService.changePassword(req).pipe(
                             tapResponse({
                                 next: () => patchState(store, clearError()),
@@ -194,24 +230,6 @@ export const AuthStore = signalStore(
 
             setPasswordResetRequested: (isPasswordResetRequested: boolean) =>
                 patchState(store, setPasswordResetRequested(isPasswordResetRequested)),
-
-            // temporary test method
-            testUsers: rxMethod<void>(trigger$ => trigger$.pipe(
-                tap(_ => patchState(store, setBusy())),
-                exhaustMap(_ => {
-                    return store._authService.testUserList().pipe(
-                        tapResponse(({
-                            next: resp => patchState(store, { testUsersList: resp }),
-                            error: (err: any) => {
-                                patchState(store, { error: err.status })
-                            },
-                            finalize: () => {
-                                patchState(store, setIdle())
-                            }
-                        }))
-                    )
-                })
-            )),
         };
     }),
     withHooks(store => {

@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { AuthApi } from '../../../core/constants/api/auth-api.constants';
 import { RegisterRequest } from '../../../models/auth/register-request.model';
 import { ApiClientService } from '../../../core/services/app/api-client.service';
-import { User } from '../../../models/auth/user.model';
 import { ForgotPasswordRequest } from '../../../models/auth/forgot-password-request.model';
 import { ResetPasswordRequest } from '../../../models/auth/reset-password-request.model';
 import { AccessToken } from '../../../models/auth/access-token.model';
@@ -42,10 +41,5 @@ export class AuthService {
 
   public changePassword(changePasswordRequest: ChangePasswordRequest): Observable<void> {
     return this._apiClient.patchVoid(AuthApi.PASSWORD.BASE, changePasswordRequest);
-  }
-
-  //temporary test endpoint
-  public testUserList(): Observable<User[]> {
-    return this._apiClient.get<User[]>('https://localhost:5001/api/userTest');
   }
 }

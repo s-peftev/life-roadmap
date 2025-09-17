@@ -17,6 +17,8 @@ import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layo
 import { GeneralSettingsComponent } from '../features/settings/general-settings/general-settings.component';
 import { ProfileSettingsComponent } from '../features/settings/profile-settings/profile-settings.component';
 import { ChangePasswordComponent } from '../features/settings/profile-settings/components/change-password/change-password.component';
+import { AdminDashboardComponent } from '../features/admin-dashboard/admin-dashboard.component';
+import { AdminGuard } from '../core/guards/admin.guard';
 
 export const routes: Routes = [
     {
@@ -40,6 +42,7 @@ export const routes: Routes = [
             { path: ROUTES.GOAL_WISHLISTS, component: GoalWishlistsComponent },
             { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
             { path: ROUTES.STATISTICS, component: StatisticsComponent },
+            { path: ROUTES.ADMIN.DASHBOARD, component: AdminDashboardComponent, canActivate: [AdminGuard] },
             {
                 path: ROUTES.SETTINGS.BASE,
                 component: SettingsLayoutComponent,

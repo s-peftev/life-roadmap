@@ -1,13 +1,10 @@
-import { Component, inject } from '@angular/core';
-import { AuthStore } from '../auth/store/auth.store';
-import { BusyComponent } from "../../shared/components/busy/busy.component";
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [BusyComponent],
+  imports: [],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent {
-  public authStore = inject(AuthStore);
   
 }

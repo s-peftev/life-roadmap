@@ -13,6 +13,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.AddSingleton<ITokenService, TokenService>();
 
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IRefreshTokenCookieWriter, RefreshTokenCookieWriter>();
             services.AddScoped<IRequestInfoService, RequestInfoService>();
         }

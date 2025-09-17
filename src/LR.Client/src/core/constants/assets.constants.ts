@@ -14,7 +14,7 @@ function profileIcon(name: string) {
     return `${basePath}/img/icons/profile/${name}`;
 }
 
-function sidebarleIcon(name: string) {
+function sidebarIcon(name: string) {
     return `${basePath}/img/icons/sidebar/${name}`;
 }
 
@@ -66,11 +66,12 @@ export const ASSETS = {
                 LOGOUT: profileIcon('logout.png')
             },
             SIDEBAR: {
-                SIDEBAR_TOGGLE: sidebarleIcon('sidebar_toggle.png'),
-                DASHBOARD: sidebarleIcon('dashboard.png'),
-                GOAL_WISHLIST: sidebarleIcon('goal_wishlist.png'),
-                STATISTICS: sidebarleIcon('statistics.png'),
-                ROADMAP: sidebarleIcon('roadmap.png'),
+                SIDEBAR_TOGGLE: sidebarIcon('sidebar_toggle.png'),
+                DASHBOARD: sidebarIcon('dashboard.png'),
+                GOAL_WISHLIST: sidebarIcon('goal_wishlist.png'),
+                STATISTICS: sidebarIcon('statistics.png'),
+                ROADMAP: sidebarIcon('roadmap.png'),
+                ADMIN: sidebarIcon('admin.png'),
             }
         }
     }

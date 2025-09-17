@@ -18,5 +18,9 @@ export const ROUTES = {
         PROFILE: 'profile',
         GENERAL: 'general',
         CHANGE_PASSWORD: 'change-password'
+    },
+
+    ADMIN: {
+        DASHBOARD: 'admin/dashboard'
     }
 }
