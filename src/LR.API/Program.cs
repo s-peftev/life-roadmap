@@ -28,6 +28,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 await RoleSeeder.SeedRolesAsync(app.Services);
+await UserSeeder.SeedUsersAsync(app.Services);
 
 if (app.Environment.IsDevelopment())
 {
