@@ -4,6 +4,7 @@ import { ROUTES } from '../../../../core/constants/routes.constants';
 import { AuthStore } from '../../../../features/auth/store/auth.store';
 import { ASSETS } from '../../../../core/constants/assets.constants';
 import { ProfileStore } from '../../../../features/settings/profile-settings/store/profile.store';
+import { openSettingTab } from '../../../settings-layout/shared/methods';
 
 
 @Component({
@@ -23,10 +24,7 @@ export class SidebarComponent {
   public isSidebarOpen = true;
 
   public openSettingsPage() {
-    this.router.navigate(
-      [{ outlets: { modal: [ROUTES.SETTINGS.BASE, ROUTES.SETTINGS.PROFILE] } }],
-      { skipLocationChange: true }
-    );
+    openSettingTab(ROUTES.SETTINGS.PROFILE, this.router);
   }
 
   public toggleSidebar() {
