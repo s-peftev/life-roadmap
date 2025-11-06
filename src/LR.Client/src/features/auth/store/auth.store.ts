@@ -78,12 +78,12 @@ export const AuthStore = signalStore(
                     store._authService.login(request).pipe(
                         tapResponse({
                             next: response => {
-                                store._profileStore.getMyProfile();
-
                                 patchState(store, 
                                     setAccessToken(response),
                                     setRoles(_parseRolesFromJwt(response.tokenValue)),
                                     clearError());
+                                
+                                store._profileStore.getMyProfile();
 
                                 router.navigate([ROUTES.DASHBOARD]);
                             },

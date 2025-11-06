@@ -23,7 +23,7 @@ namespace LR.Infrastructure.Utils
                     Expires = expires,
                     IsEssential = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict
+                    SameSite = SameSiteMode.None
                 });
         }
 

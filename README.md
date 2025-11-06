@@ -1,54 +1,32 @@
 # life-roadmap
-## 🏗️ Architecture Overview
 
-```plaintext
-Solution 'LifeRoadmap'
+# Local Development Setup
 
-src
-├── Infrastructure
-│   ├── LR.Infrastructure
-│   │   ├── DependencyInjection     // DI resolvers and registration logic
-│   │   │   └── Resolvers           
-│   │   ├── Extensions              // Extension methods for infrastructure setup
-│   │   └── Utils                   // Infrastructure-related utility classes
-│   ├── LR.Mapping
-│   │   ├── DtoToEntity             // Mapping logic from DTOs to domain entities
-│   │   └── EntityToDto             // Mapping logic from domain entities to DTOs
-│   └── LR.Persistance
-│       └── Repositories            // Concrete implementations of domain repositories
+## Backend Setup
 
-├── LR.API
-│   ├── Properties                  // Assembly metadata (e.g., launchSettings.json)
-│   ├── Controllers                 // API endpoints
-│   ├── Exceptions                  // Custom API exception types
-│   ├── Filters                     // Global filters like error handling or validation
-│   ├── Middleware                  // Custom HTTP middleware
-│   ├── Models                      // API request/response models
-│   │   ├── RequestModels
-│   │   └── ResponseModels
-│   ├── appsettings.json            // App configuration
-│   └── Program.cs                  // Application startup logic
+1. Publish the database project via Visual Studio publish profile.
+2. Update `ConnectionStrings` in `appsettings.json` if needed.
+3. Run the API via Visual Studio (F5) or Debug.
 
-├── LR.Application
-│   ├── DTOs                        // Data Transfer Objects used between layers
-│   ├── Interfaces
-│   │   ├── Services                // Application service contracts
-│   │   └── Utils                   // Utility service interfaces (e.g., token generators)
-│   ├── Services                    // Application service implementations
-│   └── Validators                  // Input validation logic (e.g., FluentValidation)
+## Frontend Setup
 
-├── LR.Domain
-│   ├── Constants                   // Domain-level constant values
-│   ├── Entities                    // Core domain models
-│   ├── Enums                       // Domain-related enumerations
-│   ├── Interfaces
-│   │   └── Repositories            // Repository interfaces (contracts)
-│   └── ValueObjects                // Immutable types with value-based equality
+1. Navigate to frontend folder:
 
-├── LR.DatabaseProject              // SQL Server Database Project (.sql schema scripts)
+   ```bash
+   cd LR.CLIENT
+   ```
+2. Install deps:
 
-└── LR.Client                       // Angular frontend
-```
+   ```bash
+   npm i
+   ```
+3. Start UI:
 
-The backend will be available at https://localhost:5001,
-and Angular frontend at http://localhost:4200.
+   ```bash
+   ng s
+   ```
+
+## Notes
+
+* API runs on [https://localhost:5001](https://localhost:5001)
+* UI runs on [http://localhost:4200](http://localhost:4200)
