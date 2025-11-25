@@ -55,10 +55,10 @@ namespace LR.API.Controllers
             Description = "User with given username or email already exists")]
         public async Task<IActionResult> Register(
             [FromBody] UserRegisterRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _registerValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -67,7 +67,7 @@ namespace LR.API.Controllers
             }
 
             var registerResult = await _accountService
-                .RegisterAsync(_mapper.Map<UserRegisterDto>(request), cancellationToken);
+                .RegisterAsync(_mapper.Map<UserRegisterDto>(request), ct);
 
             return registerResult.Match(
                 data =>
@@ -86,10 +86,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
         public async Task<IActionResult> Login(
             [FromBody] UserLoginRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _loginValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -98,7 +98,7 @@ namespace LR.API.Controllers
             }
 
             var loginResult = await _accountService
-                .LoginAsync(_mapper.Map<UserLoginDto>(request), cancellationToken);
+                .LoginAsync(_mapper.Map<UserLoginDto>(request), ct);
 
             return loginResult.Match(
                 data =>
@@ -115,7 +115,7 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AccessTokenDto>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
-        public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
+        public async Task<IActionResult> Refresh(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
@@ -123,7 +123,7 @@ namespace LR.API.Controllers
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
             var refreshResult = await _accountService
-                .RefreshToken(refreshTokenValue, cancellationToken);
+                .RefreshToken(refreshTokenValue, ct);
             
             return refreshResult.Match(
                 data =>
@@ -170,10 +170,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for email confirmation code is invalid", typeof(ApiResponse<string>))]
         public async Task<IActionResult> SendEmailVerificationCode(
             [FromBody] EmailCodeRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _emailCodeValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -198,10 +198,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed", typeof(ApiResponse<object>))]
         public async Task<IActionResult> ConfirmEmail(
             [FromBody] EmailConfirmationRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _emailConfirmationValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
             
             if (!validationResult.IsValid)
             {
@@ -229,10 +229,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found.", typeof(ApiResponse<object>))]
         public async Task<IActionResult> ChangePassword(
             [FromBody] ChangePasswordRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _changePasswordRequestValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -257,10 +257,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for password reset token is invalid", typeof(ApiResponse<string>))]
         public async Task<IActionResult> ForgotPassword(
             [FromBody] ForgotPasswordRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var validationResult = await _forgotPasswordRequestValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -285,10 +285,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed", typeof(ApiResponse<object>))]
         public async Task<IActionResult> ResetPassword(
             [FromBody] ResetPasswordRequest request,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         { 
             var validationResult = await _resetPasswordRequestValidator
-                .ValidateAsync(request, cancellationToken);
+                .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             { 

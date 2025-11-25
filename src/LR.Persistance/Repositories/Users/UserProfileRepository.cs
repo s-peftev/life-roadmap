@@ -11,13 +11,13 @@ namespace LR.Persistance.Repositories.Users
     {
         public async Task<UserProfile?> GetByUserIdAsync(
             string userId,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            return await _dbSet.FirstOrDefaultAsync(up => up.UserId == userId, cancellationToken);
+            return await _dbSet.FirstOrDefaultAsync(up => up.UserId == userId, ct);
         }
 
         public async Task<UserProfileDetailsDto?> GetProfileProfileDetailsAsync(
-            string userId, CancellationToken cancellationToken = default)
+            string userId, CancellationToken ct = default)
         {
             return await (from p in _dbSet
                           join u in _context.Users on p.UserId equals u.Id
@@ -31,7 +31,7 @@ namespace LR.Persistance.Repositories.Users
                               u.EmailConfirmed,
                               p.ProfilePhotoUrl,
                               p.BirthDate
-                          )).FirstOrDefaultAsync(cancellationToken);
+                          )).FirstOrDefaultAsync(ct);
         }
     }
 }

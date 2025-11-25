@@ -18,9 +18,9 @@ namespace LR.API.Controllers
         private readonly IUserProfileService _userProfileService = userProfileService;
 
         [HttpGet("users")]
-        public async Task<IActionResult> GetUsers(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetUsers(CancellationToken ct)
         { 
-            var userListResult = await _adminService.GetUserListAsync(cancellationToken);
+            var userListResult = await _adminService.GetUserListAsync(ct);
 
             return userListResult.Match(
                     data => Ok(ApiResponse<IEnumerable<UserForAdminDto>>.Ok(
@@ -33,10 +33,10 @@ namespace LR.API.Controllers
         [HttpDelete("users/{userId}/photo")]
         public async Task<IActionResult> DeleteUserProfilePhoto(
             string userId,
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var deletionResult = await _userProfileService
-                .DeleteProfilePhotoAsync(userId, cancellationToken);
+                .DeleteProfilePhotoAsync(userId, ct);
 
             return deletionResult.Match(
                 () => Ok(ApiResponse<object>.Ok()),

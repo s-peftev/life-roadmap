@@ -9,20 +9,20 @@ namespace LR.Application.Interfaces.Services
     {
         Task<Result<UserProfile>> GetByUserIdAsync(
             string userId,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result<string>> UploadProfilePhotoAsync(
             ProfilePhotoUploadRequest request,
             string userId,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result> DeleteProfilePhotoAsync(
             string userId,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
             string userId,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result> ChangePersonalInfoAsync(
             string userId,
             ChangePersonalInfoRequest request,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
     }
 }

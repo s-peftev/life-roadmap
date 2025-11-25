@@ -15,7 +15,7 @@ namespace LR.API.Handlers
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext, 
             Exception exception, 
-            CancellationToken cancellationToken)
+            CancellationToken ct)
         {
             var (statusCode, error) = GetExceptionDetails(exception);
 
@@ -32,7 +32,7 @@ namespace LR.API.Handlers
             httpContext.Response.StatusCode = (int)statusCode;
             var response = ApiResponse<object>.Fail(error);
 
-            await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
+            await httpContext.Response.WriteAsJsonAsync(response, ct);
 
             return true;
         }

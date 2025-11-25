@@ -24,9 +24,9 @@ namespace LR.Application.Services.User
 
         public async Task<Result<UserProfile>> GetByUserIdAsync(
             string userId,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            var userProfile = await _userProfileRepository.GetByUserIdAsync(userId, cancellationToken);
+            var userProfile = await _userProfileRepository.GetByUserIdAsync(userId, ct);
 
             return userProfile is null
                 ? Result<UserProfile>.Failure(UserProfileErrors.NotFound)
@@ -36,9 +36,9 @@ namespace LR.Application.Services.User
         public async Task<Result<string>> UploadProfilePhotoAsync(
             ProfilePhotoUploadRequest request,
             string userId,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         { 
-            var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
+            var userProfileResult = await GetByUserIdAsync(userId, ct);
 
             if (!userProfileResult.IsSuccess)
                 return Result<string>.Failure(userProfileResult.Error);
@@ -53,7 +53,7 @@ namespace LR.Application.Services.User
             userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
             userProfile.UpdatedAt = DateTime.UtcNow;
 
-            var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
+            var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
 
             if (saveResult is 0)
                 throw new ProfilePersistingException();
@@ -63,9 +63,9 @@ namespace LR.Application.Services.User
 
         public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
             string userId,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            var profileDetails = await _userProfileRepository.GetProfileProfileDetailsAsync(userId, cancellationToken);
+            var profileDetails = await _userProfileRepository.GetProfileProfileDetailsAsync(userId, ct);
 
             return profileDetails is null
                 ? Result<UserProfileDetailsDto>.Failure(UserProfileErrors.NotFound)
@@ -74,9 +74,9 @@ namespace LR.Application.Services.User
 
         public async Task<Result> DeleteProfilePhotoAsync(
             string userId,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
+            var userProfileResult = await GetByUserIdAsync(userId, ct);
 
             if (!userProfileResult.IsSuccess)
                 return Result.Failure(userProfileResult.Error);
@@ -94,7 +94,7 @@ namespace LR.Application.Services.User
                 userProfile.ProfilePhotoPublicId = null;
                 userProfile.UpdatedAt = DateTime.UtcNow;
 
-                var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
+                var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
 
                 if (saveResult is 0)
                     throw new ProfilePersistingException();
@@ -106,9 +106,9 @@ namespace LR.Application.Services.User
         public async Task<Result> ChangePersonalInfoAsync(
             string userId,
             ChangePersonalInfoRequest request,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            var userProfileResult = await GetByUserIdAsync(userId, cancellationToken);
+            var userProfileResult = await GetByUserIdAsync(userId, ct);
 
             if (!userProfileResult.IsSuccess)
                 return Result.Failure(userProfileResult.Error);
@@ -120,7 +120,7 @@ namespace LR.Application.Services.User
             userProfile.BirthDate = request.BirthDate;
             userProfile.UpdatedAt = DateTime.UtcNow;
 
-            var saveResult = await _userProfileRepository.SaveChangesAsync(cancellationToken);
+            var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
 
             if (saveResult is 0)
                 throw new ProfilePersistingException();

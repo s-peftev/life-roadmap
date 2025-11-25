@@ -6,6 +6,6 @@ namespace LR.Application.Interfaces.Utils
     public interface IAdminService
     {
         Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
     }
 }

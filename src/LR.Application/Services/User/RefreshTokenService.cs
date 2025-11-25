@@ -18,9 +18,9 @@ namespace LR.Application.Services.User
 
         public async Task<Result<RefreshToken>> GetByTokenValueAsync(
             string refreshTokenValue,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
-            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, cancellationToken);
+            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
 
             return rt is null
                 ? Result<RefreshToken>.Failure(RefreshTokenErrors.NotFound)

@@ -9,14 +9,14 @@ namespace LR.Application.Interfaces.Utils
     {
         Task<Result<AuthResult>> RegisterAsync(
             UserRegisterDto userRegisterDto,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result<AuthResult>> LoginAsync(
             UserLoginDto userLoginDto,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result> LogoutAsync(string userId);
         Task<Result<AuthResult>> RefreshToken(
             string refreshToken,
-            CancellationToken cancellationToken = default);
+            CancellationToken ct = default);
         Task<Result<string>> GenerateEmailConfirmationCodeAsync(
             EmailCodeRequest emailCodeRequest);
         Task<Result> ConfirmEmailAsync(

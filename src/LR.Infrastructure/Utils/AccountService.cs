@@ -43,43 +43,43 @@ namespace LR.Infrastructure.Utils
 
         public async Task<Result<AuthResult>> RegisterAsync(
             UserRegisterDto userRegisterDto,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
             var userCheck = await EnsureUserIsUniqueAsync(userRegisterDto);
             if (!userCheck.IsSuccess)
                 return Result<AuthResult>.Failure(userCheck.Error);
 
-            await _userProfileService.BeginTransactionAsync(cancellationToken);
+            await _userProfileService.BeginTransactionAsync(ct);
 
             var userResult = await CreateUserAsync(userRegisterDto);
             var user = userResult.Value;
 
             await AssignDefaultRoleAsync(user);
-            await CreateProfileAsync(user, userRegisterDto, cancellationToken);
+            await CreateProfileAsync(user, userRegisterDto, ct);
 
-            await _userProfileService.CommitTransactionAsync(cancellationToken);
+            await _userProfileService.CommitTransactionAsync(ct);
 
-            return await AuthenticateUserAsync(user, cancellationToken: cancellationToken);
+            return await AuthenticateUserAsync(user, ct: ct);
         }
 
         public async Task<Result<AuthResult>> LoginAsync(
             UserLoginDto userLoginDto,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
             var user = await _userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
             if (user is null || !await _userManager.CheckPasswordAsync(user, userLoginDto.Password))
                 return Result<AuthResult>.Failure(UserErrors.LoginFailed);
 
-            return await AuthenticateUserAsync(user, cancellationToken: cancellationToken);
+            return await AuthenticateUserAsync(user, ct: ct);
         }
 
         public async Task<Result<AuthResult>> RefreshToken(
             string refreshTokenValue,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
             var rtResult = await _refreshTokenService
-                .GetByTokenValueAsync(refreshTokenValue, cancellationToken);
+                .GetByTokenValueAsync(refreshTokenValue, ct);
             if (!rtResult.IsSuccess)
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
@@ -95,12 +95,12 @@ namespace LR.Infrastructure.Utils
             {
                 refreshToken.IsRevoked = true;
                 refreshToken.RevokedAtUtc = DateTime.UtcNow;
-                var saveResult = await _refreshTokenService.SaveChangesAsync(cancellationToken);
+                var saveResult = await _refreshTokenService.SaveChangesAsync(ct);
 
                 if (!saveResult.IsSuccess)
                     throw new TokenRevokingException();
 
-                return await AuthenticateUserAsync(user, refreshToken.SessionId, cancellationToken);
+                return await AuthenticateUserAsync(user, refreshToken.SessionId, ct);
             }
 
             var jwtToken = _tokenService
@@ -267,13 +267,13 @@ namespace LR.Infrastructure.Utils
         private async Task<Result<UserProfile>> CreateProfileAsync(
             AppUser user,
             UserRegisterDto userRegisterDto,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
             var profile = _mapper.Map<UserProfile>(userRegisterDto);
             profile.UserId = user.Id;
             _userProfileService.Add(profile);
 
-            var saveResult = await _userProfileService.SaveChangesAsync(cancellationToken);
+            var saveResult = await _userProfileService.SaveChangesAsync(ct);
 
             if (saveResult.Value is 0)
                 throw new UserRegisterException();
@@ -284,7 +284,7 @@ namespace LR.Infrastructure.Utils
         private async Task<Result<AuthResult>> AuthenticateUserAsync(
             AppUser user,
             Guid? sessionId = default,
-            CancellationToken cancellationToken = default)
+            CancellationToken ct = default)
         {
             var jwtToken = _tokenService
                 .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
@@ -301,7 +301,7 @@ namespace LR.Infrastructure.Utils
             var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
 
             _refreshTokenService.Add(refreshToken);
-            var saveResult = await _refreshTokenService.SaveChangesAsync(cancellationToken);
+            var saveResult = await _refreshTokenService.SaveChangesAsync(ct);
 
             if (saveResult.Value is 0)
                 throw new TokenPersistingException();
