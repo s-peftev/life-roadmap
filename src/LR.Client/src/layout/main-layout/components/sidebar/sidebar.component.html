@@ -29,14 +29,14 @@
                         <div (click)="openSettingsPage()"
                             class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
                             <img [src]="icons.PROFILE.SETTINGS" alt="settings" class="w-5 h-5 flex-none" />
-                            <span  class="ml-2">Settings</span>
+                            <span  class="ml-2">{{ 'common.settings' | translate }}</span>
                         </div>
                     </li>
                     <li class="pt-3 pb-3 mb-8 border-b border-b-gray-200">
                         <div (click)="logout()"
                             class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
                             <img [src]="icons.PROFILE.LOGOUT" alt="log out" class="w-5 h-5 flex-none" />
-                            <span class="ml-2">Log out</span>
+                            <span class="ml-2">{{ 'common.log_out' | translate }}</span>
                         </div>
                     </li>
                 </ul>
@@ -48,34 +48,10 @@
         <nav class="flex-1 text-sm p-2 mt-10">
             <ul class="space-y-1">
                 <li >
-                    <a [routerLink]="routes.DASHBOARD" routerLinkActive="bg-orange-200 hover:bg-orange-200"
+                    <a [routerLink]="routes.FINANCES" routerLinkActive="bg-orange-200 hover:bg-orange-200"
                     class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
-                    <img [src]="icons.SIDEBAR.DASHBOARD" alt="dashboard" class="w-7 h-7 flex-none" />
-                    <span class="ml-2">Dashboard</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a [routerLink]="routes.GOAL_WISHLISTS" routerLinkActive="bg-orange-200 hover:bg-orange-200"
-                    class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
-                    <img [src]="icons.SIDEBAR.GOAL_WISHLIST" alt="goal wishlists" class="w-7 h-7 flex-none" />
-                    <span class="ml-2">Goal wishlists</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a [routerLink]="routes.ROADMAPS" routerLinkActive="bg-orange-200 hover:bg-orange-200"
-                    class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
-                    <img [src]="icons.SIDEBAR.ROADMAP" alt="roadmaps" class="w-7 h-7 flex-none" />
-                    <span class="ml-2">Roadmaps</span>
-                    </a>
-                </li>
-
-                <li>
-                    <a [routerLink]="routes.STATISTICS" routerLinkActive="bg-orange-200 hover:bg-orange-200"
-                    class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
-                    <img [src]="icons.SIDEBAR.STATISTICS" alt="statistics" class="w-7 h-7 flex-none" />
-                    <span class="ml-2">Statistics</span>
+                    <img [src]="icons.SIDEBAR.FINANCES" alt="dashboard" class="w-7 h-7 flex-none" />
+                    <span class="ml-2">{{ 'sidebar.finances' | translate }}</span>
                     </a>
                 </li>
 
@@ -84,7 +60,7 @@
                         <a [routerLink]="routes.ADMIN.DASHBOARD" routerLinkActive="bg-orange-200 hover:bg-orange-200"
                         class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
                         <img [src]="icons.SIDEBAR.ADMIN" alt="statistics" class="w-7 h-7 flex-none" />
-                        <span class="ml-2">Admin dashboard</span>
+                        <span class="ml-2">{{ 'sidebar.admin_dashboard' | translate }}</span>
                         </a>
                     </li>
                 }

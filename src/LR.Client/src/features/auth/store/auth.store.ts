@@ -85,7 +85,7 @@ export const AuthStore = signalStore(
                                 
                                 store._profileStore.getMyProfile();
 
-                                router.navigate([ROUTES.DASHBOARD]);
+                                router.navigate([ROUTES.FINANCES]);
                             },
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {
@@ -116,7 +116,7 @@ export const AuthStore = signalStore(
                                     setRoles(_parseRolesFromJwt(response.tokenValue)),
                                     clearError());
 
-                                router.navigate([ROUTES.DASHBOARD]);
+                                router.navigate([ROUTES.FINANCES]);
                             },
                             error: (err: any) => {
                                 if (isApiError(err.error.error)) {

@@ -5,6 +5,7 @@ import { BusyComponent } from "../../shared/components/busy/busy.component";
 import { ASSETS } from '../../core/constants/assets.constants';
 import { UserForAdmin } from '../../models/admin/user-for-admin.model';
 import { Role } from '../../core/enums/role.enum';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
@@ -12,7 +13,8 @@ import { Role } from '../../core/enums/role.enum';
   imports: [
     NgFor,
     BusyComponent,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './admin-dashboard.component.html',
 })

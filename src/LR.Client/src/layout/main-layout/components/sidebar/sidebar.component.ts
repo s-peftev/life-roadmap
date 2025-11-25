@@ -5,11 +5,16 @@ import { AuthStore } from '../../../../features/auth/store/auth.store';
 import { ASSETS } from '../../../../core/constants/assets.constants';
 import { ProfileStore } from '../../../../features/settings/profile-settings/store/profile.store';
 import { openSettingTab } from '../../../settings-layout/shared/methods';
+import { TranslatePipe } from '@ngx-translate/core';
 
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [
+    RouterLink, 
+    RouterLinkActive,
+    TranslatePipe
+  ],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {

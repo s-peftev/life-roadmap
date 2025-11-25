@@ -1,11 +1,16 @@
-import { NgFor, NgIf, } from '@angular/common';
+import { AsyncPipe, NgFor, NgIf, } from '@angular/common';
 import { Component, input, Self, signal } from '@angular/core';
 import { ControlValueAccessor, FormControl, NgControl, ReactiveFormsModule } from '@angular/forms';
 import { ValidationIndicator } from '../../../core/types/utils/validation.type';
 
 @Component({
   selector: 'app-text-input',
-  imports: [NgFor, NgIf, ReactiveFormsModule],
+  imports: [
+    NgFor,
+    NgIf,
+    ReactiveFormsModule,
+    AsyncPipe
+  ],
   templateUrl: './text-input.component.html',
 })
 export class TextInputComponent implements ControlValueAccessor {

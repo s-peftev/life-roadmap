@@ -11,6 +11,7 @@ import { BusyComponent } from "../../../../shared/components/busy/busy.component
 import { LoginRequest } from '../../../../models/auth/login-request.model';
 import { RouterLink } from '@angular/router';
 import { ROUTES } from '../../../../core/constants/routes.constants';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +19,8 @@ import { ROUTES } from '../../../../core/constants/routes.constants';
     TextInputComponent,
     ReactiveFormsModule,
     BusyComponent,
-    RouterLink
+    RouterLink,
+    TranslatePipe
 ],
   templateUrl: './login.component.html'
 })
@@ -57,12 +59,12 @@ export class LoginComponent {
   private initIndicators() {
     this.validationIndicators = {
       userName: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Username' },
+        { indicator: 'required' },
         { indicator: 'minlength', param: USER_AUTH.USERNAME_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.USERNAME_MAX_LENGTH }
       ]),
       password: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Password' }, 
+        { indicator: 'required' }, 
         { indicator: 'minlength', param: USER_AUTH.PASSWORD_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.PASSWORD_MAX_LENGTH },
       ])

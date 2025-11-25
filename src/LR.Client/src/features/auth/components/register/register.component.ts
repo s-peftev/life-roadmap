@@ -8,12 +8,14 @@ import { digitValidator, lowercaseValidator, matchToFieldValue, minLengthInstant
 import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
 import { RegisterRequest } from '../../../../models/auth/register-request.model';
 import { AuthStore } from '../../store/auth.store';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-register',
   imports: [
     TextInputComponent,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TranslatePipe
   ],
   templateUrl: './register.component.html'
 })
@@ -65,12 +67,12 @@ export class RegisterComponent {
   private initIndicators(): void {
     this.validationIndicators = {
       userName: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Username' },
+        { indicator: 'required' },
         { indicator: 'minlength', param: USER_AUTH.USERNAME_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.USERNAME_MAX_LENGTH }
       ]),
       password: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Password' }, 
+        { indicator: 'required' }, 
         { indicator: 'minlength', param: USER_AUTH.PASSWORD_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.PASSWORD_MAX_LENGTH },
         { indicator: 'lowercase' },
@@ -78,7 +80,7 @@ export class RegisterComponent {
         { indicator: 'digit' }
       ]),
       confirmPassword: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Password confirmation' }, 
+        { indicator: 'required' }, 
         { indicator: 'passwordMismatching' }
       ]),
       firstName: this.validationIndicatorService.getIndicators([

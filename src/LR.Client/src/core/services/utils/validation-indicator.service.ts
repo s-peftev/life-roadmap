@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidationIcon, ValidationIndicator } from '../../types/utils/validation.type';
 import { ASSETS } from '../../constants/assets.constants';
+import { TranslateService } from '@ngx-translate/core';
 
 type IndicatorParameter = {
   indicator: string;
@@ -11,21 +12,25 @@ type IndicatorParameter = {
   providedIn: 'root'
 })
 export class ValidationIndicatorService {
-
+  private translateServise = inject(TranslateService);
   private validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
 
-  private createIndicator = (key: string, message: string, icons: ValidationIcon): ValidationIndicator =>
-    ({ key, message, icons });
+  private createIndicator = (key: string, messageKey: string, icons: ValidationIcon, params?: Record<string, any>): ValidationIndicator =>
+    ({ 
+      key,
+      message$: this.translateServise.stream(messageKey, params),
+      icons 
+    });
 
   private validationIndicators: Record<string, (param?: number | string) => ValidationIndicator> = {
-    required: (param) => this.createIndicator('required', `${param} is required`, this.validationIcons.REQUIRED),
-    minlength: (param) => this.createIndicator('minlength', `Must be at least ${param} characters`, this.validationIcons.MIN),
-    maxlength: (param) => this.createIndicator('maxlength', `Must be at most ${param} characters`, this.validationIcons.MAX),
-    lowercase: () => this.createIndicator('lowercase', 'Must contain at least one lowercase letter', this.validationIcons.L_CASE),
-    uppercase: () => this.createIndicator('uppercase', 'Must contain at least one uppercase letter', this.validationIcons.U_CASE),
-    digit: () => this.createIndicator('digit', 'Must contain at least one digit', this.validationIcons.DIGIT),
-    passwordMismatching: () => this.createIndicator('passwordMismatching', 'Passwords must match', this.validationIcons.PASS_MATCH),
-    email: () => this.createIndicator('email', `Email must have a valid format`, this.validationIcons.EMAIL)
+    required: () => this.createIndicator('required', 'validation_indicator.required', this.validationIcons.REQUIRED),
+    minlength: (param) => this.createIndicator('minlength', 'validation_indicator.minlength', this.validationIcons.MIN, { length: param }),
+    maxlength: (param) => this.createIndicator('maxlength', 'validation_indicator.maxlength', this.validationIcons.MAX, { length: param }),
+    lowercase: () => this.createIndicator('lowercase', 'validation_indicator.lowercase', this.validationIcons.L_CASE),
+    uppercase: () => this.createIndicator('uppercase', 'validation_indicator.uppercase', this.validationIcons.U_CASE),
+    digit: () => this.createIndicator('digit', 'validation_indicator.digit', this.validationIcons.DIGIT),
+    passwordMismatching: () => this.createIndicator('passwordMismatching', 'validation_indicator.passwordMismatching', this.validationIcons.PASS_MATCH),
+    email: () => this.createIndicator('email', 'validation_indicator.email', this.validationIcons.EMAIL)
   }
 
   public getIndicators(indicatorParams: IndicatorParameter[]): ValidationIndicator[] {

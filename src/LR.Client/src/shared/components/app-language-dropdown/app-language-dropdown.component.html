@@ -1,0 +1,16 @@
+<div class="dropdown dropdown-hover">
+    <div tabindex="0" role="button" class="btn bg-transparent shadow-none border-none m-1">
+        <img [src]="[langIcons[generalAppStore.selectedLanguage()]]" alt="flag" class="w-8 h-auto">
+        {{ generalAppStore.selectedLanguage() }}
+    </div>
+    <ul tabindex="-1" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+        @for (lang of generalAppStore.avaiableLanguages(); track $index) {
+        <li (click)="changeLanguage(lang)">
+            <a>
+                <img [src]="[langIcons[lang]]" alt="flag" class="w-8 h-auto">
+                {{ lang }}
+            </a>
+        </li>
+        }
+    </ul>
+</div>

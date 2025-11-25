@@ -1,6 +1,6 @@
 <nav class="flex flex-col w-52 p-2">
     <h2 class="text-lg font-bold mb-4">
-        Settings
+        {{ 'common.settings' | translate }}
     </h2>
     <ul>
         <li>
@@ -8,7 +8,7 @@
                 class="flex items-center gap-2 w-full px-4 py-1 hover:bg-orange-100 
                     active:scale-95 transition duration-150 cursor-pointer rounded-md">
                 <img [src]="icons.PROFILE.DEFAULT_AVATAR" alt="profile" class="w-5 h-5 flex-none" />
-                <span class="ml-2">Profile</span>
+                <span class="ml-2">{{ 'common.profile' | translate }}</span>
             </a>
         </li>
         <li>
@@ -16,7 +16,7 @@
                 class="flex items-center gap-2 w-full px-4 py-1 hover:bg-orange-100 
                     active:scale-95 transition duration-150 cursor-pointer rounded-md">
                 <img [src]="icons.PROFILE.SETTINGS" alt="profile" class="w-5 h-5 flex-none" />
-                <span class="ml-2">General</span>
+                <span class="ml-2">{{ 'common.general' | translate }}</span>
             </a>
         </li>
     </ul>

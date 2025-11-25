@@ -1,18 +1,13 @@
 <div class="flex flex-col gap-3">
   <h2 class="text-lg font-bold p-2 mb-4 border-b-gray-200 border-b-2">
-    General
+    {{ 'common.general' | translate }}
   </h2>
 
   <div class="flex flex-col">
     <h3 class="text-sm font-bold p-2">
-      Language
+      {{ 'general_settings.language' | translate }}
     </h3>
 
-    <select class="max-w-xs w-full border-2 border-neutral-300 rounded-md p-2 text-sm">
-      <option value="en">English</option>
-      <option value="uk">Українська</option>
-      <option value="de">Deutsch</option>
-      <option value="fr">Français</option>
-    </select>
+    <app-language-dropdown />
   </div>
 </div>

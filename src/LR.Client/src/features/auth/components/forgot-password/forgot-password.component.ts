@@ -10,6 +10,7 @@ import { USER_AUTH } from '../../../../core/constants/validation.constants';
 import { RouterLink } from '@angular/router';
 import { ROUTES } from '../../../../core/constants/routes.constants';
 import { ForgotPasswordRequest } from '../../../../models/auth/forgot-password-request.model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-forgot-password',
@@ -17,7 +18,8 @@ import { ForgotPasswordRequest } from '../../../../models/auth/forgot-password-r
     BusyComponent,
     ReactiveFormsModule,
     TextInputComponent,
-    RouterLink
+    RouterLink,
+    TranslatePipe
   ],
   templateUrl: './forgot-password.component.html'
 })
@@ -57,12 +59,12 @@ export class ForgotPasswordComponent implements OnInit{
   private initIndicators(): void {
     this.validationIndicators = {
       userName: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Username'},
+        { indicator: 'required' },
         { indicator: 'minlength', param: USER_AUTH.USERNAME_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.USERNAME_MAX_LENGTH }
       ]),
       email: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Email'},
+        { indicator: 'required' },
         { indicator: 'email' }
       ])
     }

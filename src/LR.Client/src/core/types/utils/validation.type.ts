@@ -1,6 +1,8 @@
+import { Observable } from "rxjs";
+
 export type ValidationIndicator = {
   key: string;
-  message: string;
+  message$: Observable<string>;
   icons: ValidationIcon;
 }
 

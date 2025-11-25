@@ -9,13 +9,15 @@ import { USER_AUTH } from '../../../../../core/constants/validation.constants';
 import { TextInputComponent } from "../../../../../shared/components/text-input/text-input.component";
 import { BusyComponent } from "../../../../../shared/components/busy/busy.component";
 import { ChangePasswordRequest } from '../../../../../models/auth/change-password-request.model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-change-password',
   imports: [
     TextInputComponent,
     ReactiveFormsModule,
-    BusyComponent
+    BusyComponent,
+    TranslatePipe
 ],
   templateUrl: './change-password.component.html',
 })

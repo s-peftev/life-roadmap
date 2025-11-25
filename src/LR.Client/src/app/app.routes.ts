@@ -5,14 +5,11 @@ import { RegisterComponent } from '../features/auth/components/register/register
 import { LoginComponent } from '../features/auth/components/login/login.component';
 import { HomeLayoutComponent } from '../layout/home-layout/home-layout.component';
 import { MainLayoutComponent } from '../layout/main-layout/main-layout.component';
-import { DashboardComponent } from '../features/dashboard/dashboard.component';
+import { FinancesComponent } from '../features/finances/finances.component';
 import { GuestGuard } from '../core/guards/guest.guard';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { ForgotPasswordComponent } from '../features/auth/components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from '../features/auth/components/reset-password/reset-password.component';
-import { GoalWishlistsComponent } from '../features/goal-wishlists/goal-wishlists.component';
-import { RoadmapsComponent } from '../features/roadmaps/roadmaps.component';
-import { StatisticsComponent } from '../features/statistics/statistics.component';
 import { SettingsLayoutComponent } from '../layout/settings-layout/settings-layout.component';
 import { GeneralSettingsComponent } from '../features/settings/general-settings/general-settings.component';
 import { ProfileSettingsComponent } from '../features/settings/profile-settings/profile-settings.component';
@@ -38,10 +35,7 @@ export const routes: Routes = [
         component: MainLayoutComponent,
         canActivate: [AuthGuard],
         children: [
-            { path: ROUTES.DASHBOARD, component: DashboardComponent },
-            { path: ROUTES.GOAL_WISHLISTS, component: GoalWishlistsComponent },
-            { path: ROUTES.ROADMAPS, component: RoadmapsComponent },
-            { path: ROUTES.STATISTICS, component: StatisticsComponent },
+            { path: ROUTES.FINANCES, component: FinancesComponent },
             { path: ROUTES.ADMIN.DASHBOARD, component: AdminDashboardComponent, canActivate: [AdminGuard] },
             {
                 path: ROUTES.SETTINGS.BASE,

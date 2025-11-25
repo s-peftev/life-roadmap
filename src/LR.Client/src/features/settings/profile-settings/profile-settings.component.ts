@@ -18,6 +18,7 @@ import { ProfileFieldComponent } from "./components/profile-field/profile-field.
 import { openSettingTab } from '../../../layout/settings-layout/shared/methods';
 import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-profile-settings',
@@ -27,13 +28,15 @@ import { DatePipe } from '@angular/common';
     ReactiveFormsModule,
     BaseValidationMessagesComponent,
     ProfileFieldComponent,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './profile-settings.component.html'
 })
 export class ProfileSettingsComponent {
   private fb = inject(FormBuilder);
   private validationIndicatorService = inject(ValidationIndicatorService);
+  private translateService = inject(TranslateService);
   private router = inject(Router);
 
   protected personalForm: FormGroup = new FormGroup({});
@@ -42,12 +45,13 @@ export class ProfileSettingsComponent {
   public personalEditMode = signal<boolean>(false);
   public profileStore = inject(ProfileStore);
   public icons = ASSETS.IMAGES.ICONS
+  public maxAvatarSize = USER_PROFILE.MAX_AVATAR_SIZE_MB;
   public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
   public validationIndicators: Record<string, ValidationIndicator[]> = {};
 
   fileControl = new FormControl<File | null>(null, [
-    fileSizeValidator(USER_PROFILE.MAX_AVATAR_SIZE_MB * 1024 * 1024,
-      'That photo is a bit too large. Try something smaller.'),
+    fileSizeValidator(this.maxAvatarSize * 1024 * 1024,
+      this.translateService.instant('profile_settings.too_big_photo')),
     fileTypeValidator(['image/png', 'image/jpeg'])
   ]);
 

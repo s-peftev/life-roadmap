@@ -10,6 +10,7 @@ import { ROUTES } from '../../../../core/constants/routes.constants';
 import { digitValidator, lowercaseValidator, matchToFieldValue, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
 import { USER_AUTH } from '../../../../core/constants/validation.constants';
 import { ResetPasswordRequest } from '../../../../models/auth/reset-password-request.model';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
@@ -17,7 +18,8 @@ import { ResetPasswordRequest } from '../../../../models/auth/reset-password-req
     BusyComponent,
     ReactiveFormsModule,
     TextInputComponent,
-    RouterLink
+    RouterLink,
+    TranslatePipe
   ],
   templateUrl: './reset-password.component.html'
 })
@@ -67,7 +69,7 @@ export class ResetPasswordComponent implements OnInit {
   private initIndicators(): void {
     this.validationIndicators = {
       password: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Password' }, 
+        { indicator: 'required' }, 
         { indicator: 'minlength', param: USER_AUTH.PASSWORD_MIN_LENGTH },
         { indicator: 'maxlength', param: USER_AUTH.PASSWORD_MAX_LENGTH },
         { indicator: 'lowercase' },
@@ -75,7 +77,7 @@ export class ResetPasswordComponent implements OnInit {
         { indicator: 'digit' }
       ]),
       confirmPassword: this.validationIndicatorService.getIndicators([
-        { indicator: 'required', param: 'Password confirmation' }, 
+        { indicator: 'required' }, 
         { indicator: 'passwordMismatching' }
       ])
     };

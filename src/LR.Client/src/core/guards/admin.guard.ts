@@ -9,6 +9,6 @@ export const AdminGuard: CanActivateFn = (route, state) => {
 
     if(authStore.isAdmin()) return true;
 
-    router.navigate([authStore.hasValidAccessToken() ? ROUTES.DASHBOARD : ROUTES.HOME]);
+    router.navigate([authStore.hasValidAccessToken() ? ROUTES.FINANCES : ROUTES.HOME]);
     return false;
 }

@@ -1,5 +1,3 @@
-import { ApiError } from "../../../../models/api/api-error.model";
-
 export interface ProfileSlice {
     readonly userName: string | null;
     readonly firstName: string | null;

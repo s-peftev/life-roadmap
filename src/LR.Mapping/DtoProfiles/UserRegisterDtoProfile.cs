@@ -6,9 +6,12 @@ namespace LR.Mapping.DtoProfiles
 {
     public class UserRegisterDtoProfile : Profile
     {
-        public UserRegisterDtoProfile() 
+        public UserRegisterDtoProfile()
         {
-            CreateMap<UserRegisterRequest, UserRegisterDto>();
+            CreateMap<UserRegisterRequest, UserRegisterDto>()
+                .ForMember(dest => dest.Email,
+                    opt => opt.MapFrom(src =>
+                        string.IsNullOrWhiteSpace(src.Email) ? null : src.Email));
         }
     }
 }

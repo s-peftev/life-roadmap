@@ -1,20 +1,20 @@
 <header class="p-3 w-full fixed top-0 z-50">
     <div class="max-w-350 mx-auto">
         <div class="flex justify-between items-center px-10 mx-auto">
-            <a [routerLink]="[ROUTES.HOME]" 
-                class="max-h-16 font-sans text-orange-600 pr-6 text-2xl font-bold">
-                Life Roadmap
-            </a>
-            <nav class="flex gap-3 my-2 text-lg text-black font-bold items-center">
-                <a [routerLink]="[ROUTES.AUTH.LOGIN]"
-                    class="px-4 py-2 rounded-xl flex items-center justify-center
-                        hover:bg-gray-100 transition-colors">
-                    Log in
+            <div class="flex flex-1 justify-between items-center my-2">
+                <a [routerLink]="[ROUTES.HOME]" class="max-h-16 font-sans text-orange-600 pr-6 text-2xl font-bold">
+                    Life Roadmap
                 </a>
-                <a [routerLink]="[ROUTES.AUTH.REGISTER]"
-                        class="bg-orange-600 text-white px-4 py-2 rounded-xl flex items-center justify-center w-30
+                <app-language-dropdown />
+            </div>
+            <nav class="flex gap-3 my-2 text-lg text-black font-bold items-center">
+                <a [routerLink]="[ROUTES.AUTH.LOGIN]" class="px-4 py-2 rounded-xl flex items-center justify-center
+                        hover:bg-gray-100 transition-colors">
+                    {{ 'common.log_in' | translate }}
+                </a>
+                <a [routerLink]="[ROUTES.AUTH.REGISTER]" class="bg-orange-600 text-white px-4 py-2 rounded-xl flex items-center justify-center w-30
                             hover:bg-orange-700 transition-colors">
-                    Sign up
+                    {{ 'common.sign_up' | translate }}
                 </a>
             </nav>
         </div>

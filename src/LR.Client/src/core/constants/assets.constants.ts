@@ -18,6 +18,10 @@ function sidebarIcon(name: string) {
     return `${basePath}/img/icons/sidebar/${name}`;
 }
 
+function i18nIcon(name: string) {
+    return `${basePath}/img/icons/i18n/${name}`;
+}
+
 export const ASSETS = {
     IMAGES: {
         ILLUSTRATIONS: {
@@ -67,11 +71,12 @@ export const ASSETS = {
             },
             SIDEBAR: {
                 SIDEBAR_TOGGLE: sidebarIcon('sidebar_toggle.png'),
-                DASHBOARD: sidebarIcon('dashboard.png'),
-                GOAL_WISHLIST: sidebarIcon('goal_wishlist.png'),
-                STATISTICS: sidebarIcon('statistics.png'),
-                ROADMAP: sidebarIcon('roadmap.png'),
+                FINANCES: sidebarIcon('finances.png'),
                 ADMIN: sidebarIcon('admin.png'),
+            },
+            I18N: {
+                UK: i18nIcon('uk.png'),
+                EN: i18nIcon('en.png')
             }
         }
     }

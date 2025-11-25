@@ -1,0 +1,80 @@
+{
+    "common": {
+        "sign_up": "Sign up",
+        "log_in": "Log in",
+        "log_out": "Log out",
+        "username": "Username",
+        "password": "Password",
+        "first_name": "First name",
+        "last_name": "Last name",
+        "confirm_password": "Confirm password",
+        "email": "Email",
+        "email_confirmed": "Email confirmed",
+        "forgot_password": "Forgot your password?",
+        "back_to_login": "Back to login page",
+        "settings": "Settings",
+        "profile": "Profile",
+        "general": "General",
+        "photo": "Photo",
+        "birth_date": "Birth date",
+        "roles": "Roles",
+        "created": "Created",
+        "last_active": "Last active",
+        "not_provided": "Not provided"
+    },
+    "validation_indicator": {
+        "required": "The field is required",
+        "minlength": "Must be at least {{length}} characters",
+        "maxlength": "Must be at most {{length}} characters",
+        "lowercase": "Must contain at least one lowercase letter",
+        "uppercase": "Must contain at least one uppercase letter",
+        "digit": "Must contain at least one digit",
+        "passwordMismatching": "Passwords must match",
+        "email": "Email must have a valid format"
+    },
+    "home": {
+        "slogan": "You`re never gonna lose your own way",
+        "description": "Create and track roadmaps for different areas of your life. Set goals, follow your progress, and visualize achievements on your personal life timeline.",
+        "start_now": "Start now"
+    },
+    "sidebar": {
+        "finances": "Finances",
+        "admin_dashboard": "Admin dashboard"
+    },
+    "forgot_password": {
+        "reset_link_sent": "You`ve been emailed a password reset link.",
+        "enter_creds": "To reset your password, please enter your username and the email address of your account.",
+        "reset_password": "Reset my password"
+    },
+    "reset_password": {
+        "about_reset": "You are about to reset your password.",
+        "create_new_password": "Create a new password for your account.",
+        "save_password": "Save new password",
+        "current_password": "Current password",
+        "enter_current_password": "Enter current password:",
+        "enter_new_password": "Enter current password:",
+        "new_password": "New password",
+        "confirm_new_password": "Confirm new password:",
+        "password_changed": "Password has been changed",
+        "change_password": "Change password"
+    },
+    "general_settings": {
+        "language": "Language"
+    },
+    "profile_settings": {
+        "reset_password": "Reset password",
+        "change_photo": "Change photo",
+        "upload_photo": "Upload photo",
+        "remove_photo": "Remove photo",
+        "change_username": "Change username",
+        "save_username": "Save username",
+        "personal": "Personal",
+        "change_personal": "Change personal info",
+        "save_personal": "Save personal info",
+        "email_not_provided": "Email is not provided",
+        "provide_email": "Provide email",
+        "verify_email": "Verify email",
+        "pick_photo_hint": "Pick a photo up to {{size}}MB. Your avatar photo will be public.",
+        "too_big_photo": "That photo is a bit too large. Try something smaller."
+    }
+}

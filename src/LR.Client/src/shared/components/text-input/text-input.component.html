@@ -7,7 +7,7 @@
         [class.opacity-100]="shouldShowIndicators"
         [class.translate-y-0]="shouldShowIndicators"
     >
-        <span *ngFor="let indicator of indicators()" class="tooltip tooltip-bottom" [attr.data-tip]="indicator.message">
+        <span *ngFor="let indicator of indicators()" class="tooltip tooltip-bottom" [attr.data-tip]="indicator.message$ | async">
         <img [src]="getIcon(indicator)" class="w-4 h-4" alt="" />
         </span>
     </div>
