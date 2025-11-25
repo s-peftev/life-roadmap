@@ -3,7 +3,6 @@ using LR.Application.Interfaces.Utils;
 using LR.Domain.Entities.Users;
 using LR.Infrastructure.Constants.ExceptionMessages;
 using LR.Infrastructure.Options;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,7 +17,7 @@ namespace LR.Infrastructure.Utils
         private readonly JwtOptions _jwtOptions;
         private readonly SigningCredentials _signingCredentials;
 
-        public TokenService(IOptions<JwtOptions> jwtOptions, IHttpContextAccessor httpContextAccessor)
+        public TokenService(IOptions<JwtOptions> jwtOptions)
         {
             _jwtOptions = jwtOptions.Value;
 

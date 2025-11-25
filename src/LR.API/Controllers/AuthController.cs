@@ -8,10 +8,8 @@ using LR.Application.Requests.User;
 using LR.Application.Responses;
 using LR.Infrastructure.Constants;
 using LR.Infrastructure.Extensions;
-using LR.Infrastructure.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace LR.API.Controllers
@@ -19,8 +17,6 @@ namespace LR.API.Controllers
     public class AuthController(
         IAccountService accountService,
         IMapper mapper,
-        IOptions<JwtOptions> jwtOptions,
-        IOptions<RefreshTokenOptions> refreshTokenOptions,
         IValidator<UserRegisterRequest> registerValidator,
         IValidator<UserLoginRequest> loginValidator,
         IValidator<EmailCodeRequest> emailCodeValidator,
@@ -33,8 +29,6 @@ namespace LR.API.Controllers
     {
         private readonly IAccountService _accountService = accountService;
         private readonly IMapper _mapper = mapper;
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-        private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
         private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
         private readonly IValidator<EmailCodeRequest> _emailCodeValidator = emailCodeValidator;

@@ -21,7 +21,6 @@ namespace LR.Infrastructure.Utils
 {
     public class AccountService(
         ITokenService tokenService,
-        IOptions<JwtOptions> jwtOptions,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IOptions<FrontendOptions> frontendOptions,
         IMapper mapper,
@@ -32,7 +31,6 @@ namespace LR.Infrastructure.Utils
         ) : IAccountService
     {
         private readonly ITokenService _tokenService = tokenService;
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
         private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
         private readonly FrontendOptions _frontendOptions = frontendOptions.Value;
         private readonly IMapper _mapper = mapper;
