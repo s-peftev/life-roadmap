@@ -1,5 +1,5 @@
-﻿using LR.Application.Responses;
-using LR.Application.AppResult;
+﻿using LR.Application.AppResult;
+using LR.Application.Responses;
 using LR.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 

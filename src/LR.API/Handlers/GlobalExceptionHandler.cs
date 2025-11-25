@@ -1,9 +1,9 @@
-﻿using LR.Application.Responses;
-using LR.Application.AppResult;
+﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
+using LR.Application.Responses;
+using LR.Infrastructure.Constants;
 using Microsoft.AspNetCore.Diagnostics;
 using System.Net;
-using LR.Infrastructure.Constants;
 
 namespace LR.API.Handlers
 {

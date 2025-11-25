@@ -5,7 +5,6 @@ using LR.Infrastructure.DependencyInjection.Resolvers;
 using LR.Mapping;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace LR.Infrastructure.DependencyInjection
 {

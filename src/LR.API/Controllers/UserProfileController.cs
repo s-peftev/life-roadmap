@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using FluentValidation;
+﻿using FluentValidation;
 using LR.Application.AppResult.Errors.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;

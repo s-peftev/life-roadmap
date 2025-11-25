@@ -1,21 +1,21 @@
 ﻿using AutoMapper;
+using LR.Application.AppResult;
+using LR.Application.AppResult.Errors.User;
+using LR.Application.AppResult.ResultData.Account;
+using LR.Application.DTOs.Token;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
-using LR.Application.AppResult;
+using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
 using LR.Infrastructure.Exceptions.RefreshToken;
+using LR.Infrastructure.Exceptions.User;
 using LR.Infrastructure.Extensions;
 using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using LR.Application.DTOs.Token;
-using LR.Application.AppResult.ResultData.Account;
-using LR.Infrastructure.Exceptions.User;
-using LR.Application.Requests.User;
-using LR.Application.AppResult.Errors.User;
 
 namespace LR.Infrastructure.Utils
 {
