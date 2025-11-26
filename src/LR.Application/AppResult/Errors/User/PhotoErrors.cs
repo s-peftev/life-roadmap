@@ -13,7 +13,7 @@
             "Failed to delete photo from storage.");
 
         public static readonly Error ServiceUnavailable = new(
-            "PhotoDeletionFailed",
+            "ServiceUnavailable",
             Domain.Enums.ErrorType.ServiceUnavailable,
             "Failed to connect with storage.");
     }
