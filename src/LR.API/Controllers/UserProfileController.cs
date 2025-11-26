@@ -26,9 +26,9 @@ namespace LR.API.Controllers
         private readonly IValidator<ChangePersonalInfoRequest> _changePersonalInfoValidator = changePersonalInfoValidator;
 
         [HttpGet("me")]
-        public async Task<IActionResult> GetMyProfile()
+        public async Task<IActionResult> GetMyProfile(CancellationToken ct)
         {
-            var myProfileResult = await _userProfileService.GetMyProfileAsync(User.GetAppUserId());
+            var myProfileResult = await _userProfileService.GetMyProfileAsync(User.GetAppUserId(), ct);
 
             return myProfileResult.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),
