@@ -8,16 +8,19 @@ namespace LR.Application.AppResult.Errors
         public static readonly Error RequestCancelled = new(
             ExceptionErrorIDs.RequestCancelled,
             ErrorType.None,
-            "The request was canceled.");
+            "The request was canceled."
+        );
 
         public static readonly Error Timeout = new(
             ExceptionErrorIDs.Timeout,
             ErrorType.InternalServerError,
-            "The request timed out.");
+            "The request timed out."
+        );
 
         public static readonly Error Unexpected = new(
             ExceptionErrorIDs.UnexpectedError,
             ErrorType.InternalServerError,
-            "An unexpected error occurred.");
+            "An unexpected error occurred."
+        );
     }
 }

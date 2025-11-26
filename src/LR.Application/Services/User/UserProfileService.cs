@@ -11,14 +11,11 @@ using LR.Domain.ValueObjects.UserProfile;
 namespace LR.Application.Services.User
 {
     public class UserProfileService(
-        IUserProfileRepository repository,
+        IUserProfileRepository userProfileRepository,
         IPhotoService photoService)
-        : EntityService<UserProfile, Guid>(repository),
+        : EntityService<UserProfile, Guid>(userProfileRepository),
         IUserProfileService
     {
-        private readonly IUserProfileRepository _userProfileRepository = repository;
-        private readonly IPhotoService _photoService = photoService;
-
         protected override Error NotFoundError() => 
             UserProfileErrors.NotFound;
 
@@ -26,7 +23,7 @@ namespace LR.Application.Services.User
             string userId,
             CancellationToken ct = default)
         {
-            var userProfile = await _userProfileRepository.GetByUserIdAsync(userId, ct);
+            var userProfile = await userProfileRepository.GetByUserIdAsync(userId, ct);
 
             return userProfile is null
                 ? Result<UserProfile>.Failure(UserProfileErrors.NotFound)
@@ -43,7 +40,7 @@ namespace LR.Application.Services.User
             if (!userProfileResult.IsSuccess)
                 return Result<string>.Failure(userProfileResult.Error);
 
-            var uploadResult = await _photoService.UploadPhotoAsync(request.File);
+            var uploadResult = await photoService.UploadPhotoAsync(request.File);
 
             if (!uploadResult.IsSuccess)
                 return Result<string>.Failure(uploadResult.Error);
@@ -53,7 +50,7 @@ namespace LR.Application.Services.User
             userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
             userProfile.UpdatedAt = DateTime.UtcNow;
 
-            var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
+            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
 
             if (saveResult is 0)
                 throw new ProfilePersistingException();
@@ -65,7 +62,7 @@ namespace LR.Application.Services.User
             string userId,
             CancellationToken ct = default)
         {
-            var profileDetails = await _userProfileRepository.GetProfileProfileDetailsAsync(userId, ct);
+            var profileDetails = await userProfileRepository.GetProfileProfileDetailsAsync(userId, ct);
 
             return profileDetails is null
                 ? Result<UserProfileDetailsDto>.Failure(UserProfileErrors.NotFound)
@@ -84,7 +81,7 @@ namespace LR.Application.Services.User
             if (string.IsNullOrEmpty(userProfileResult.Value.ProfilePhotoPublicId))
                 return Result.Success();
 
-            var deletionResult = await _photoService.DeletePhotoAsync(userProfileResult.Value.ProfilePhotoPublicId);
+            var deletionResult = await photoService.DeletePhotoAsync(userProfileResult.Value.ProfilePhotoPublicId);
 
             if (deletionResult.IsSuccess)
             {
@@ -94,7 +91,7 @@ namespace LR.Application.Services.User
                 userProfile.ProfilePhotoPublicId = null;
                 userProfile.UpdatedAt = DateTime.UtcNow;
 
-                var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
+                var saveResult = await userProfileRepository.SaveChangesAsync(ct);
 
                 if (saveResult is 0)
                     throw new ProfilePersistingException();
@@ -120,7 +117,7 @@ namespace LR.Application.Services.User
             userProfile.BirthDate = request.BirthDate;
             userProfile.UpdatedAt = DateTime.UtcNow;
 
-            var saveResult = await _userProfileRepository.SaveChangesAsync(ct);
+            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
 
             if (saveResult is 0)
                 throw new ProfilePersistingException();

@@ -10,8 +10,6 @@ namespace LR.API.Handlers
     public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) 
         : IExceptionHandler
     {
-        private readonly ILogger<GlobalExceptionHandler> _logger = logger;
-
         public async ValueTask<bool> TryHandleAsync(
             HttpContext httpContext, 
             Exception exception, 
@@ -26,7 +24,7 @@ namespace LR.API.Handlers
 
                 var loggerMessage = $"CorrelationId: {correlationId}, Message: {exception.Message}";
 
-                _logger.LogError(exception, loggerMessage);
+                logger.LogError(exception, loggerMessage);
             }
 
             httpContext.Response.StatusCode = (int)statusCode;

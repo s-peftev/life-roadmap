@@ -8,10 +8,9 @@ namespace LR.Infrastructure.Utils
     public class RefreshTokenCookieWriter(IHttpContextAccessor httpContextAccessor)
         : IRefreshTokenCookieWriter
     {
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         public void Set(string refreshToken, DateTime expires)
         {
-            var httpContext = _httpContextAccessor.HttpContext
+            var httpContext = httpContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(HttpContextExceptionMessages.NotAvailable);
 
             httpContext.Response.Cookies.Append(
@@ -30,7 +29,7 @@ namespace LR.Infrastructure.Utils
 
         public void Delete()
         {
-            var httpContext = _httpContextAccessor.HttpContext
+            var httpContext = httpContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(HttpContextExceptionMessages.NotAvailable);
 
             httpContext.Response.Cookies.Delete(CookieNames.RefreshToken);

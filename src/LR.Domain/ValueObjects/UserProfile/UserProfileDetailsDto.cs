@@ -1,25 +1,20 @@
 ﻿namespace LR.Domain.ValueObjects.UserProfile
 {
-    public class UserProfileDetailsDto
+    public class UserProfileDetailsDto(
+        string userName,
+        string? firstName,
+        string? lastName,
+        string? email,
+        bool isEmailConfirmed,
+        string? profilePhotoUrl,
+        DateOnly? birthDate)
     {
-        public string UserName { get; }
-        public string? FirstName { get; }
-        public string? LastName { get; }
-        public string? Email { get; }
-        public bool IsEmailConfirmed { get; }
-        public string? ProfilePhotoUrl { get; }
-        public DateOnly? BirthDate { get; }
-
-        public UserProfileDetailsDto(string userName, string? firstName, string? lastName, string? email,
-            bool isEmailConfirmed, string? profilePhotoUrl, DateOnly? birthDate)
-        {
-            UserName = userName;
-            FirstName = firstName;
-            LastName = lastName;
-            Email = email;
-            IsEmailConfirmed = isEmailConfirmed;
-            ProfilePhotoUrl = profilePhotoUrl;
-            BirthDate = birthDate;
-        }
+        public string UserName { get; } = userName;
+        public string? FirstName { get; } = firstName;
+        public string? LastName { get; } = lastName;
+        public string? Email { get; } = email;
+        public bool IsEmailConfirmed { get; } = isEmailConfirmed;
+        public string? ProfilePhotoUrl { get; } = profilePhotoUrl;
+        public DateOnly? BirthDate { get; } = birthDate;
     }
 }

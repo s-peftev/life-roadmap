@@ -8,24 +8,23 @@ namespace LR.Application.Services
         : IEntityService<TEntity, TKey>
         where TEntity : class
     {
-        private readonly IRepository<TEntity, TKey> _repository = repository;
         private readonly IUnitOfWork _unitOfWork = repository.UoW;
 
         protected abstract Error NotFoundError();
 
         public virtual TEntity Add(TEntity entity)
         {
-            return _repository.Add(entity);
+            return repository.Add(entity);
         }
 
         public virtual TEntity Update(TEntity entity)
         {
-            return _repository.Update(entity);
+            return repository.Update(entity);
         }
 
         public virtual async Task<Result> RemoveAsync(TKey id, CancellationToken ct = default)
         {
-            if (!await _repository.RemoveAsync(id, ct))
+            if (!await repository.RemoveAsync(id, ct))
                 return Result.Failure(NotFoundError());
 
             return Result.Success();
@@ -33,12 +32,12 @@ namespace LR.Application.Services
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
         {
-            return await _repository.GetAllAsync(ct);
+            return await repository.GetAllAsync(ct);
         }
 
         public virtual async Task<Result<TEntity>> GetByIdAsync(TKey id, CancellationToken ct = default)
         {
-            var entity = await _repository.GetByIdAsync(id, ct);
+            var entity = await repository.GetByIdAsync(id, ct);
 
             if (entity is null)
                 return Result<TEntity>.Failure(NotFoundError());
@@ -48,7 +47,7 @@ namespace LR.Application.Services
 
         public virtual async Task<Result<int>> SaveChangesAsync(CancellationToken ct = default)
         {
-            var changes = await _repository.SaveChangesAsync(ct);
+            var changes = await repository.SaveChangesAsync(ct);
 
             return Result<int>.Success(changes);
         }

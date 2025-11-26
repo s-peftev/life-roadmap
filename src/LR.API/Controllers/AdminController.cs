@@ -14,13 +14,10 @@ namespace LR.API.Controllers
         IAdminService adminService,
         IUserProfileService userProfileService) : BaseApiController
     {
-        private readonly IAdminService _adminService = adminService;
-        private readonly IUserProfileService _userProfileService = userProfileService;
-
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers(CancellationToken ct)
         { 
-            var userListResult = await _adminService.GetUserListAsync(ct);
+            var userListResult = await adminService.GetUserListAsync(ct);
 
             return userListResult.Match(
                 data => Ok(
@@ -37,7 +34,7 @@ namespace LR.API.Controllers
             string userId,
             CancellationToken ct)
         {
-            var deletionResult = await _userProfileService
+            var deletionResult = await userProfileService
                 .DeleteProfilePhotoAsync(userId, ct);
 
             return deletionResult.Match(

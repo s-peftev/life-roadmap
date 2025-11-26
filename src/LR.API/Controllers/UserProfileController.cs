@@ -19,16 +19,10 @@ namespace LR.API.Controllers
         IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
         IValidator<ChangePersonalInfoRequest> changePersonalInfoValidator) : BaseApiController
     {
-        private readonly IAccountService _accountService = accountService;
-        private readonly IUserProfileService _userProfileService = userProfileService;
-        private readonly IValidator<ChangePersonalInfoRequest> _changePersonalInfoValidator = changePersonalInfoValidator;
-        private readonly IValidator<ChangeUsernameRequest> _changeUserNameValidator = changeUserNameValidator;
-        private readonly IValidator<ProfilePhotoUploadRequest> _profilePhotoUploadValidator = profilePhotoUploadValidator;
-
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile(CancellationToken ct)
         {
-            var myProfileResult = await _userProfileService.GetMyProfileAsync(User.GetAppUserId(), ct);
+            var myProfileResult = await userProfileService.GetMyProfileAsync(User.GetAppUserId(), ct);
 
             return myProfileResult.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),
@@ -41,7 +35,7 @@ namespace LR.API.Controllers
             [FromBody] ChangeUsernameRequest changeUsernameRequest,
             CancellationToken ct)
         {
-            var validationResult = await _changeUserNameValidator.ValidateAsync(changeUsernameRequest, ct);
+            var validationResult = await changeUserNameValidator.ValidateAsync(changeUsernameRequest, ct);
 
             if (!validationResult.IsValid)
             {
@@ -51,7 +45,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var changeUsernameResult = await _accountService.ChangeUsernameAsync(
+            var changeUsernameResult = await accountService.ChangeUsernameAsync(
                 changeUsernameRequest,
                 User.GetAppUserId());
 
@@ -66,7 +60,7 @@ namespace LR.API.Controllers
             [FromBody] ChangePersonalInfoRequest changePersonalInfoRequest,
             CancellationToken ct)
         {
-            var validationResult = await _changePersonalInfoValidator.ValidateAsync(changePersonalInfoRequest, ct);
+            var validationResult = await changePersonalInfoValidator.ValidateAsync(changePersonalInfoRequest, ct);
 
             if (!validationResult.IsValid)
             {
@@ -76,7 +70,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var result = await _userProfileService.ChangePersonalInfoAsync(
+            var result = await userProfileService.ChangePersonalInfoAsync(
                 User.GetAppUserId(),
                 changePersonalInfoRequest,
                 ct);
@@ -92,7 +86,7 @@ namespace LR.API.Controllers
             [FromForm] ProfilePhotoUploadRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _profilePhotoUploadValidator.ValidateAsync(request, ct);
+            var validationResult = await profilePhotoUploadValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -102,7 +96,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var uploadResult = await _userProfileService.UploadProfilePhotoAsync(request, User.GetAppUserId(), ct);
+            var uploadResult = await userProfileService.UploadProfilePhotoAsync(request, User.GetAppUserId(), ct);
 
             return uploadResult.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
@@ -113,7 +107,7 @@ namespace LR.API.Controllers
         [HttpDelete("photo/delete")]
         public async Task<IActionResult> DeletePhoto(CancellationToken ct)
         {
-            var deletionResult = await _userProfileService.DeleteProfilePhotoAsync(User.GetAppUserId(), ct);
+            var deletionResult = await userProfileService.DeleteProfilePhotoAsync(User.GetAppUserId(), ct);
 
             return deletionResult.Match(
                 () => Ok(ApiResponse<object>.Ok()),

@@ -6,15 +6,13 @@ namespace LR.Persistance.Repositories
 {
     public class UnitOfWork(AppDbContext context) : IUnitOfWork
     {
-        private readonly AppDbContext _context = context 
-            ?? throw new ArgumentNullException(nameof(context));
         private IDbContextTransaction? _transaction;
         public async Task BeginTransactionAsync(CancellationToken ct = default)
         {
             if (_transaction != null)
                 return;
 
-            _transaction = await _context.Database.BeginTransactionAsync(ct);
+            _transaction = await context.Database.BeginTransactionAsync(ct);
         }
 
         public async Task CommitTransactionAsync(CancellationToken ct = default)

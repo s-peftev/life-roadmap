@@ -12,16 +12,19 @@ namespace LR.Application.AppResult.Errors.User
         public static readonly Error InvalidProfilePhotoUploadRequest = new(
             UserErrorIDs.InvalidProfilePhotoUploadRequest,
             ErrorType.Validation,
-            "Profile photo upload request is invalid.");
+            "Profile photo upload request is invalid."
+        );
 
         public static readonly Error InvalidChangeUsernameRequest = new(
             UserErrorIDs.InvalidChangeUsernameRequest,
             ErrorType.Validation,
-            "Change username request is invalid.");
+            "Change username request is invalid."
+        );
 
         public static readonly Error InvalidChangePersonalInfoRequest = new(
             UserErrorIDs.InvalidChangePersonalInfoRequest,
             ErrorType.Validation,
-            "Change personal info request is invalid.");
+            "Change personal info request is invalid."
+        );
     }
 }

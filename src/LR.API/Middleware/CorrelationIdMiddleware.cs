@@ -4,8 +4,6 @@ namespace LR.API.Middleware
 {
     public class CorrelationIdMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next = next;
-
         public async Task InvokeAsync(HttpContext context)
         {
             const string headerName = HttpHeaders.XCorrelationId;
@@ -18,7 +16,7 @@ namespace LR.API.Middleware
             context.Response.Headers[headerName] = correlationId;
             context.Items[headerName] = correlationId;
 
-            await _next(context);
+            await next(context);
         }
     }
 }

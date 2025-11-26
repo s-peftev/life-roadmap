@@ -20,6 +20,5 @@ namespace LR.Application.Responses
 
         public static ApiResponse<T> Fail(Error error) =>
             new(default, false, error);
-
     }
 }

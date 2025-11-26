@@ -12,11 +12,13 @@ namespace LR.Application.AppResult.Errors.User
         public static readonly Error RefreshTokenInvalid = new(
             UserErrorIDs.RefreshTokenInvalid,
             ErrorType.Unauthorized,
-            "Refresh token is invalid.");
+            "Refresh token is invalid."
+        );
 
         public static readonly Error TokenMissing = new(
             UserErrorIDs.TokenMissing,
             ErrorType.Validation,
-            "Refresh token is missing.");
+            "Refresh token is missing."
+        );
     }
 }

@@ -11,8 +11,6 @@ namespace LR.Application.Services.User
         : EntityService<RefreshToken, Guid>(repository),
         IRefreshTokenService
     {
-        private readonly IRefreshTokenRepository _repository = repository;
-
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
@@ -20,7 +18,7 @@ namespace LR.Application.Services.User
             string refreshTokenValue,
             CancellationToken ct = default)
         {
-            var rt = await _repository.GetByTokenValueAsync(refreshTokenValue, ct);
+            var rt = await repository.GetByTokenValueAsync(refreshTokenValue, ct);
 
             return rt is null
                 ? Result<RefreshToken>.Failure(RefreshTokenErrors.NotFound)

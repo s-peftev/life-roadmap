@@ -13,17 +13,14 @@ namespace LR.Infrastructure.Utils
         UserManager<AppUser> userManager,
         IMapper mapper) : IAdminService
     {
-        private readonly UserManager<AppUser> _userManager = userManager;
-        private readonly IMapper _mapper = mapper;
-
         public async Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(
             CancellationToken ct)
         {
-            var dtoList = await _userManager.Users
+            var dtoList = await userManager.Users
                 .Include(u => u.Profile)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
-                .ProjectTo<UserForAdminDto>(_mapper.ConfigurationProvider)
+                .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider)
                 .ToListAsync(ct);
 
             return Result<IEnumerable<UserForAdminDto>>.Success(dtoList);

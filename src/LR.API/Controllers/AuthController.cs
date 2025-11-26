@@ -27,17 +27,6 @@ namespace LR.API.Controllers
         IRefreshTokenCookieWriter refreshTokenCookieWriter
         ) : BaseApiController
     {
-        private readonly IAccountService _accountService = accountService;
-        private readonly IMapper _mapper = mapper;
-        private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
-        private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
-        private readonly IValidator<EmailCodeRequest> _emailCodeValidator = emailCodeValidator;
-        private readonly IValidator<EmailConfirmationRequest> _emailConfirmationValidator = emailConfirmationValidator;
-        private readonly IValidator<ForgotPasswordRequest> _forgotPasswordRequestValidator = forgotPasswordRequestValidator;
-        private readonly IValidator<ResetPasswordRequest> _resetPasswordRequestValidator = resetPasswordRequestValidator;
-        private readonly IValidator<ChangePasswordRequest> _changePasswordRequestValidator = changePasswordRequestValidator;
-        private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
-
         [HttpPost("register")]
         [SwaggerOperation(Summary = "Register new user",
             Description = "Creates a new user account and returns tokens")]
@@ -51,7 +40,7 @@ namespace LR.API.Controllers
             [FromBody] UserRegisterRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _registerValidator
+            var validationResult = await registerValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -62,13 +51,13 @@ namespace LR.API.Controllers
                 });
             }
 
-            var registerResult = await _accountService
-                .RegisterAsync(_mapper.Map<UserRegisterDto>(request), ct);
+            var registerResult = await accountService
+                .RegisterAsync(mapper.Map<UserRegisterDto>(request), ct);
 
             return registerResult.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
                     return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
@@ -85,7 +74,7 @@ namespace LR.API.Controllers
             [FromBody] UserLoginRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _loginValidator
+            var validationResult = await loginValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -96,13 +85,13 @@ namespace LR.API.Controllers
                 });
             }
 
-            var loginResult = await _accountService
-                .LoginAsync(_mapper.Map<UserLoginDto>(request), ct);
+            var loginResult = await accountService
+                .LoginAsync(mapper.Map<UserLoginDto>(request), ct);
 
             return loginResult.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
                     return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
@@ -122,19 +111,19 @@ namespace LR.API.Controllers
             if (string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var refreshResult = await _accountService
+            var refreshResult = await accountService
                 .RefreshToken(refreshTokenValue, ct);
             
             return refreshResult.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
                     return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
                 error => 
                 {
-                    _refreshTokenCookieWriter.Delete();
+                    refreshTokenCookieWriter.Delete();
 
                     return HandleFailure(error);
                 }
@@ -152,9 +141,9 @@ namespace LR.API.Controllers
             if(string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var result = await _accountService.LogoutAsync(refreshTokenValue, ct);
+            var result = await accountService.LogoutAsync(refreshTokenValue, ct);
 
-            _refreshTokenCookieWriter.Delete();
+            refreshTokenCookieWriter.Delete();
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
@@ -172,7 +161,7 @@ namespace LR.API.Controllers
             [FromBody] EmailCodeRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _emailCodeValidator
+            var validationResult = await emailCodeValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -183,7 +172,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var codeResult = await _accountService.GenerateEmailConfirmationCodeAsync(request);
+            var codeResult = await accountService.GenerateEmailConfirmationCodeAsync(request);
 
             return codeResult.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
@@ -201,7 +190,7 @@ namespace LR.API.Controllers
             [FromBody] EmailConfirmationRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _emailConfirmationValidator
+            var validationResult = await emailConfirmationValidator
                 .ValidateAsync(request, ct);
             
             if (!validationResult.IsValid)
@@ -212,7 +201,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var result = await _accountService.ConfirmEmailAsync(request);
+            var result = await accountService.ConfirmEmailAsync(request);
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
@@ -233,7 +222,7 @@ namespace LR.API.Controllers
             [FromBody] ChangePasswordRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _changePasswordRequestValidator
+            var validationResult = await changePasswordRequestValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -244,7 +233,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var result = await _accountService.ChangePasswordAsync(request, User.GetAppUserId());
+            var result = await accountService.ChangePasswordAsync(request, User.GetAppUserId());
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
@@ -262,7 +251,7 @@ namespace LR.API.Controllers
             [FromBody] ForgotPasswordRequest request,
             CancellationToken ct)
         {
-            var validationResult = await _forgotPasswordRequestValidator
+            var validationResult = await forgotPasswordRequestValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -273,7 +262,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var result = await _accountService.GeneratePasswordResetTokenAsync(request);
+            var result = await accountService.GeneratePasswordResetTokenAsync(request);
 
             return result.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
@@ -291,7 +280,7 @@ namespace LR.API.Controllers
             [FromBody] ResetPasswordRequest request,
             CancellationToken ct)
         { 
-            var validationResult = await _resetPasswordRequestValidator
+            var validationResult = await resetPasswordRequestValidator
                 .ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
@@ -302,7 +291,7 @@ namespace LR.API.Controllers
                 });
             }
 
-            var result = await _accountService.ResetPasswordAsync(request);
+            var result = await accountService.ResetPasswordAsync(request);
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
