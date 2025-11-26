@@ -139,14 +139,14 @@ namespace LR.API.Controllers
         [SwaggerOperation(Summary = "Logout user", Description = "Revokes refresh token and clears auth cookie")]
         [SwaggerResponse(StatusCodes.Status200OK, "Logout successful", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
             if(string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var result = await _accountService.LogoutAsync(refreshTokenValue);
+            var result = await _accountService.LogoutAsync(refreshTokenValue, ct);
 
             _refreshTokenCookieWriter.Delete();
 

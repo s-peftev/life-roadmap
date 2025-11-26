@@ -13,7 +13,8 @@ namespace LR.Application.Interfaces.Utils
         Task<Result<AuthResult>> LoginAsync(
             UserLoginDto userLoginDto,
             CancellationToken ct = default);
-        Task<Result> LogoutAsync(string userId);
+        Task<Result> LogoutAsync(string userId,
+            CancellationToken ct = default);
         Task<Result<AuthResult>> RefreshToken(
             string refreshToken,
             CancellationToken ct = default);

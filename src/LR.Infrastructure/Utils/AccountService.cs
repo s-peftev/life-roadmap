@@ -107,9 +107,9 @@ namespace LR.Infrastructure.Utils
             return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
 
-        public async Task<Result> LogoutAsync(string refreshTokenValue)
+        public async Task<Result> LogoutAsync(string refreshTokenValue, CancellationToken ct = default)
         {
-            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
+            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue, ct);
 
             if (!rtResult.IsSuccess)
                 return Result.Success();
@@ -117,7 +117,7 @@ namespace LR.Infrastructure.Utils
             rtResult.Value.IsRevoked = true;
             rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
 
-            await _refreshTokenService.SaveChangesAsync();
+            await _refreshTokenService.SaveChangesAsync(ct);
 
             return Result.Success();
         }
