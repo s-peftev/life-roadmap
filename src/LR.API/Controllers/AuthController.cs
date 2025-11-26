@@ -56,8 +56,10 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.InvalidRegisterRequest
-                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.InvalidRegisterRequest with 
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
+                });
             }
 
             var registerResult = await _accountService
@@ -70,7 +72,8 @@ namespace LR.API.Controllers
 
                     return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("login")]
@@ -87,8 +90,10 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.InvalidLoginRequest
-                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.InvalidLoginRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var loginResult = await _accountService
@@ -101,7 +106,8 @@ namespace LR.API.Controllers
 
                     return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("refresh")]
@@ -151,9 +157,9 @@ namespace LR.API.Controllers
             _refreshTokenCookieWriter.Delete();
 
             return result.Match(
-                    () => Ok(ApiResponse<object>.Ok()),
-                    error => HandleFailure(error)
-                );
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("email/verification-code")]
@@ -171,17 +177,18 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.InvalidEmailCodeRequest
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.InvalidEmailCodeRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var codeResult = await _accountService.GenerateEmailConfirmationCodeAsync(request);
 
             return codeResult.Match(
-                    data => Ok(ApiResponse<string>.Ok(data)),
-                    error => HandleFailure(error)
-                ); 
+                data => Ok(ApiResponse<string>.Ok(data)),
+                error => HandleFailure(error)
+            ); 
         }
 
         [HttpPost("email/verification")]
@@ -199,17 +206,18 @@ namespace LR.API.Controllers
             
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.EmailConfirmationFailed
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.EmailConfirmationFailed with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var result = await _accountService.ConfirmEmailAsync(request);
 
             return result.Match(
-                    () => Ok(ApiResponse<object>.Ok()),
-                    error => HandleFailure(error)
-                );
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+            );
         }
 
         [Authorize]
@@ -230,17 +238,18 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.InvalidChangePasswordRequest
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.InvalidChangePasswordRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var result = await _accountService.ChangePasswordAsync(request, User.GetAppUserId());
 
             return result.Match(
-                    () => Ok(ApiResponse<object>.Ok()),
-                    error => HandleFailure(error)
-                );
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPost("password/reset-request")]
@@ -258,9 +267,10 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserErrors.InvalidForgotPasswordRequest
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.InvalidForgotPasswordRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var result = await _accountService.GeneratePasswordResetTokenAsync(request);
@@ -268,7 +278,7 @@ namespace LR.API.Controllers
             return result.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
                 error => HandleFailure(error)
-                );
+            );
         }
 
         [HttpPost("password/reset")]
@@ -286,17 +296,18 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             { 
-                return HandleFailure(UserErrors.PasswordResetFailed
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserErrors.PasswordResetFailed with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage)
+                });
             }
 
             var result = await _accountService.ResetPasswordAsync(request);
 
             return result.Match(
-                    () => Ok(ApiResponse<object>.Ok()),
-                    error => HandleFailure(error)
-                );
+                () => Ok(ApiResponse<object>.Ok()),
+                error => HandleFailure(error)
+            );
         }
     }
 }

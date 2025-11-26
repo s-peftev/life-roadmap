@@ -23,11 +23,13 @@ namespace LR.API.Controllers
             var userListResult = await _adminService.GetUserListAsync(ct);
 
             return userListResult.Match(
-                    data => Ok(ApiResponse<IEnumerable<UserForAdminDto>>.Ok(
+                data => Ok(
+                    ApiResponse<IEnumerable<UserForAdminDto>>.Ok(
                         data.Where(u => u.Id != User.GetAppUserId())
-                    )),
-                    error => HandleFailure(error)
-                );
+                    )
+                ),
+                error => HandleFailure(error)
+            );
         }
 
         [HttpDelete("users/{userId}/photo")]
@@ -40,7 +42,8 @@ namespace LR.API.Controllers
 
             return deletionResult.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
     }
 }

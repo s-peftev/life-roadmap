@@ -19,7 +19,8 @@ namespace LR.Infrastructure.ExternalProviders
             var account = new Account(
                 options.Value.CloudName,
                 options.Value.ApiKey,
-                options.Value.ApiSecret);
+                options.Value.ApiSecret
+            );
 
             _cloudinary = new Cloudinary(account);
             _options = options;

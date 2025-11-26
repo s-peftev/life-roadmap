@@ -24,7 +24,8 @@ namespace LR.Infrastructure.Utils
                     IsEssential = true,
                     Secure = true,
                     SameSite = SameSiteMode.None
-                });
+                }
+            );
         }
 
         public void Delete()

@@ -57,7 +57,8 @@ namespace LR.Infrastructure.Utils
                 audience: _jwtOptions.Audience,
                 claims: claims,
                 expires: expires,
-                signingCredentials: _signingCredentials);
+                signingCredentials: _signingCredentials
+            );
 
             var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 

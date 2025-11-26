@@ -13,17 +13,17 @@ namespace LR.API.Controllers
 {
     [Authorize]
     public class UserProfileController(
-        IUserProfileService userProfileService,
         IAccountService accountService,
-        IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
+        IUserProfileService userProfileService,
         IValidator<ChangeUsernameRequest> changeUserNameValidator,
+        IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
         IValidator<ChangePersonalInfoRequest> changePersonalInfoValidator) : BaseApiController
     {
-        private readonly IUserProfileService _userProfileService = userProfileService;
         private readonly IAccountService _accountService = accountService;
-        private readonly IValidator<ProfilePhotoUploadRequest> _profilePhotoUploadValidator = profilePhotoUploadValidator;
-        private readonly IValidator<ChangeUsernameRequest> _changeUserNameValidator = changeUserNameValidator;
+        private readonly IUserProfileService _userProfileService = userProfileService;
         private readonly IValidator<ChangePersonalInfoRequest> _changePersonalInfoValidator = changePersonalInfoValidator;
+        private readonly IValidator<ChangeUsernameRequest> _changeUserNameValidator = changeUserNameValidator;
+        private readonly IValidator<ProfilePhotoUploadRequest> _profilePhotoUploadValidator = profilePhotoUploadValidator;
 
         [HttpGet("me")]
         public async Task<IActionResult> GetMyProfile(CancellationToken ct)
@@ -32,7 +32,8 @@ namespace LR.API.Controllers
 
             return myProfileResult.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
 
         [HttpPatch("me")]
@@ -44,9 +45,10 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserProfileErrors.InvalidChangeUsernameRequest
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserProfileErrors.InvalidChangeUsernameRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
+                });
             }
 
             var changeUsernameResult = await _accountService.ChangeUsernameAsync(
@@ -56,7 +58,7 @@ namespace LR.API.Controllers
             return changeUsernameResult.Match(
                 () => Ok(ApiResponse<object>.Ok()),
                 error => HandleFailure(error)
-                );
+            );
         }
 
         [HttpPatch("me/personal")]
@@ -68,9 +70,10 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserProfileErrors.InvalidChangePersonalInfoRequest
-                    with
-                { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserProfileErrors.InvalidChangePersonalInfoRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
+                });
             }
 
             var result = await _userProfileService.ChangePersonalInfoAsync(
@@ -93,25 +96,29 @@ namespace LR.API.Controllers
 
             if (!validationResult.IsValid)
             {
-                return HandleFailure(UserProfileErrors.InvalidProfilePhotoUploadRequest 
-                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
+                return HandleFailure(UserProfileErrors.InvalidProfilePhotoUploadRequest with
+                {
+                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
+                });
             }
 
             var uploadResult = await _userProfileService.UploadProfilePhotoAsync(request, User.GetAppUserId(), ct);
 
             return uploadResult.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
 
         [HttpDelete("photo/delete")]
         public async Task<IActionResult> DeletePhoto(CancellationToken ct)
-        { 
+        {
             var deletionResult = await _userProfileService.DeleteProfilePhotoAsync(User.GetAppUserId(), ct);
 
             return deletionResult.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error));
+                error => HandleFailure(error)
+            );
         }
     }
 }
