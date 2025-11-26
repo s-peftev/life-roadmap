@@ -1,4 +1,5 @@
-﻿using LR.Domain.Enums;
+﻿using LR.Application.Constants.ErrorIDs;
+using LR.Domain.Enums;
 
 namespace LR.Application.AppResult.Errors.User
 {
@@ -8,57 +9,57 @@ namespace LR.Application.AppResult.Errors.User
             ErrorFactory.NotFound("User");
 
         public static readonly Error UsernameIsTaken = new(
-            "UsernameIsTaken",
+            UserErrorIDs.UsernameIsTaken,
             ErrorType.Conflict,
             "Username is taken.");
 
         public static readonly Error EmailIsTaken = new(
-            "EmailIsTaken",
+            UserErrorIDs.EmailIsTaken,
             ErrorType.Conflict,
             "Email is taken.");
 
         public static readonly Error LoginFailed = new(
-            "LoginFailed",
+            UserErrorIDs.LoginFailed,
             ErrorType.Unauthorized,
             "User login failed. Wrong username or password");
 
         public static readonly Error InvalidRegisterRequest = new(
-            "InvalidRegisterRequest",
+            UserErrorIDs.InvalidRegisterRequest,
             ErrorType.Validation,
             "Register request is invalid.");
 
         public static readonly Error InvalidLoginRequest = new(
-            "InvalidLoginRequest",
+            UserErrorIDs.InvalidLoginRequest,
             ErrorType.Validation,
             "Login request is invalid.");
 
         public static readonly Error InvalidEmailCodeRequest = new(
-            "InvalidEmailCodeRequest",
+            UserErrorIDs.InvalidEmailCodeRequest,
             ErrorType.Validation,
             "Request for email confirmation code is invalid.");
 
         public static readonly Error EmailConfirmationFailed = new(
-            "EmailConfirmationFailed",
+            UserErrorIDs.EmailConfirmationFailed,
             ErrorType.Validation,
             "Email confirmation failed.");
 
         public static readonly Error InvalidForgotPasswordRequest = new(
-            "InvalidForgotPasswordRequest",
+            UserErrorIDs.InvalidForgotPasswordRequest,
             ErrorType.Validation,
             "Request for password reset is invalid.");
 
         public static readonly Error PasswordResetFailed = new(
-            "PasswordResetFailed",
+            UserErrorIDs.PasswordResetFailed,
             ErrorType.Validation,
             "Password reset failed.");
 
         public static readonly Error InvalidChangePasswordRequest = new(
-            "InvalidChangePasswordRequest",
+            UserErrorIDs.InvalidChangePasswordRequest,
             ErrorType.Validation,
             "Request for password change is invalid.");
 
         public static readonly Error WrongCurrentPassword = new(
-            "WrongCurrentPassword",
+            UserErrorIDs.WrongCurrentPassword,
             ErrorType.Validation,
             "Wrong current password.");
     }
