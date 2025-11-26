@@ -1,6 +1,6 @@
 ﻿namespace LR.Application.AppResult.Errors.User
 {
-    public class PhotoErrors
+    public static class PhotoErrors
     {
         public static readonly Error PhotoUploadFailed = new(
             "PhotoUploadFailed",
