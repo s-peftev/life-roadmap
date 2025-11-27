@@ -12,6 +12,7 @@ namespace LR.Infrastructure.Seeders
         public static async Task SeedUsersAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
+
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 

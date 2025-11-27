@@ -12,14 +12,15 @@ namespace LR.API.Controllers
     [Authorize(Policy = Policies.RequireAdministratorRole)]
     public class AdminController(
         IAdminService adminService,
-        IUserProfileService userProfileService) : BaseApiController
+        IUserProfileService userProfileService)
+        : BaseApiController
     {
         [HttpGet("users")]
         public async Task<IActionResult> GetUsers(CancellationToken ct)
         { 
-            var userListResult = await adminService.GetUserListAsync(ct);
+            var result = await adminService.GetUserListAsync(ct);
 
-            return userListResult.Match(
+            return result.Match(
                 data => Ok(
                     ApiResponse<IEnumerable<UserForAdminDto>>.Ok(
                         data.Where(u => u.Id != User.GetAppUserId())
@@ -30,14 +31,11 @@ namespace LR.API.Controllers
         }
 
         [HttpDelete("users/{userId}/photo")]
-        public async Task<IActionResult> DeleteUserProfilePhoto(
-            string userId,
-            CancellationToken ct)
+        public async Task<IActionResult> DeleteUserProfilePhoto(string userId, CancellationToken ct)
         {
-            var deletionResult = await userProfileService
-                .DeleteProfilePhotoAsync(userId, ct);
+            var result = await userProfileService.DeleteProfilePhotoAsync(userId, ct);
 
-            return deletionResult.Match(
+            return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
                 error => HandleFailure(error)
             );

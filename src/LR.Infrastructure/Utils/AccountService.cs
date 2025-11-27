@@ -30,9 +30,7 @@ namespace LR.Infrastructure.Utils
         UserManager<AppUser> userManager
         ) : IAccountService
     {
-        public async Task<Result<AuthResult>> RegisterAsync(
-            UserRegisterDto userRegisterDto,
-            CancellationToken ct = default)
+        public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto userRegisterDto, CancellationToken ct = default)
         {
             var userCheck = await EnsureUserIsUniqueAsync(userRegisterDto);
             if (!userCheck.IsSuccess)
@@ -51,9 +49,7 @@ namespace LR.Infrastructure.Utils
             return await AuthenticateUserAsync(user, ct: ct);
         }
 
-        public async Task<Result<AuthResult>> LoginAsync(
-            UserLoginDto userLoginDto,
-            CancellationToken ct = default)
+        public async Task<Result<AuthResult>> LoginAsync(UserLoginDto userLoginDto, CancellationToken ct = default)
         {
             var user = await userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
@@ -63,21 +59,19 @@ namespace LR.Infrastructure.Utils
             return await AuthenticateUserAsync(user, ct: ct);
         }
 
-        public async Task<Result<AuthResult>> RefreshToken(
-            string refreshTokenValue,
-            CancellationToken ct = default)
+        public async Task<Result<AuthResult>> RefreshToken(string refreshTokenValue, CancellationToken ct = default)
         {
-            var rtResult = await refreshTokenService
-                .GetByTokenValueAsync(refreshTokenValue, ct);
+            var rtResult = await refreshTokenService.GetByTokenValueAsync(refreshTokenValue, ct);
+
             if (!rtResult.IsSuccess)
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
             var refreshToken = rtResult.Value;
             var user = await userManager.GetByIdWithRolesAsync(refreshToken.UserId);
 
-            if (user is null ||
-                refreshToken.IsRevoked ||
-                (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
+            if (user is null
+                || refreshToken.IsRevoked
+                || (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
             if (IsTimeToRotateToken(refreshToken))
@@ -92,8 +86,7 @@ namespace LR.Infrastructure.Utils
                 return await AuthenticateUserAsync(user, refreshToken.SessionId, ct);
             }
 
-            var jwtToken = tokenService
-                .GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
+            var jwtToken = tokenService.GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
 
             return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
@@ -116,6 +109,7 @@ namespace LR.Infrastructure.Utils
         public async Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest emailCodeRequest)
         { 
             var user = await userManager.FindByEmailAsync(emailCodeRequest.Email);
+
             if (user is null || user.UserName != emailCodeRequest.UserName)
                 return Result<string>.Success("");
             // do not notify about wrong email/username
@@ -128,6 +122,7 @@ namespace LR.Infrastructure.Utils
         public async Task<Result> ConfirmEmailAsync(EmailConfirmationRequest emailConfirmationRequest)
         {
             var user = await userManager.FindByEmailAsync(emailConfirmationRequest.Email);
+
             if (user is null)
                 return Result.Failure(UserErrors.EmailConfirmationFailed);
 
@@ -143,6 +138,7 @@ namespace LR.Infrastructure.Utils
         public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest)
         {
             var user = await userManager.FindByEmailAsync(forgotPasswordRequest.Email);
+
             if (user is null || user.UserName != forgotPasswordRequest.UserName)
                 return Result<string>.Success("");
             // do not notify about wrong email/username
@@ -157,11 +153,12 @@ namespace LR.Infrastructure.Utils
         public async Task<Result> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
         {
             var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId);
+
             if (user is null)
                 return Result.Failure(UserErrors.PasswordResetFailed);
 
-            var result = await userManager
-                .ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
+            var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
+
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.PasswordResetFailed);
 
@@ -174,9 +171,7 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        public async Task<Result> ChangeUsernameAsync(
-            ChangeUsernameRequest changeUsernameRequest,
-            string userId)
+        public async Task<Result> ChangeUsernameAsync(ChangeUsernameRequest changeUsernameRequest, string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
 
@@ -200,9 +195,7 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        public async Task<Result> ChangePasswordAsync(
-            ChangePasswordRequest changePasswordRequest,
-            string userId)
+        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest, string userId)
         {
             var user = await userManager.FindByIdAsync(userId);
 
@@ -211,8 +204,7 @@ namespace LR.Infrastructure.Utils
                 return Result.Failure(UserErrors.NotFound);
             }
 
-            var result = await userManager.ChangePasswordAsync(
-                user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
+            var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
 
             if (!result.Succeeded)
                 return Result.Failure(UserErrors.WrongCurrentPassword);
@@ -225,8 +217,7 @@ namespace LR.Infrastructure.Utils
             if (await userManager.FindByNameAsync(userRegisterDto.UserName) is not null)
                 return Result.Failure(UserErrors.UsernameIsTaken);
 
-            if (!string.IsNullOrEmpty(userRegisterDto.Email) &&
-                await userManager.FindByEmailAsync(userRegisterDto.Email) is not null)
+            if (!string.IsNullOrEmpty(userRegisterDto.Email) && await userManager.FindByEmailAsync(userRegisterDto.Email) is not null)
                 return Result.Failure(UserErrors.EmailIsTaken);
 
             return Result.Success();
@@ -253,10 +244,7 @@ namespace LR.Infrastructure.Utils
             return Result.Success();
         }
 
-        private async Task<Result<UserProfile>> CreateProfileAsync(
-            AppUser user,
-            UserRegisterDto userRegisterDto,
-            CancellationToken ct = default)
+        private async Task<Result<UserProfile>> CreateProfileAsync(AppUser user, UserRegisterDto userRegisterDto, CancellationToken ct = default)
         {
             var profile = mapper.Map<UserProfile>(userRegisterDto);
             profile.UserId = user.Id;
@@ -270,13 +258,9 @@ namespace LR.Infrastructure.Utils
             return Result<UserProfile>.Success(profile);
         }
 
-        private async Task<Result<AuthResult>> AuthenticateUserAsync(
-            AppUser user,
-            Guid? sessionId = default,
-            CancellationToken ct = default)
+        private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default, CancellationToken ct = default)
         {
-            var jwtToken = tokenService
-                .GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
+            var jwtToken = tokenService.GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
 
             var refreshTokenGenerationDto = new RefreshTokenGenerationDto
             {
@@ -298,7 +282,7 @@ namespace LR.Infrastructure.Utils
             return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
 
-        private AuthResult BuildAuthResult(AccessTokenDto jwtToken, RefreshToken refreshToken)
+        private static AuthResult BuildAuthResult(AccessTokenDto jwtToken, RefreshToken refreshToken)
         {
             return new()
             {

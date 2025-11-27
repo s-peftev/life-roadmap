@@ -10,30 +10,13 @@ using LR.Domain.ValueObjects.UserProfile;
 
 namespace LR.Application.Services.User
 {
-    public class UserProfileService(
-        IUserProfileRepository userProfileRepository,
-        IPhotoService photoService)
-        : EntityService<UserProfile, Guid>(userProfileRepository),
-        IUserProfileService
+    public class UserProfileService(IUserProfileRepository userProfileRepository, IPhotoService photoService) 
+        : EntityService<UserProfile, Guid>(userProfileRepository), IUserProfileService
     {
         protected override Error NotFoundError() => 
             UserProfileErrors.NotFound;
 
-        public async Task<Result<UserProfile>> GetByUserIdAsync(
-            string userId,
-            CancellationToken ct = default)
-        {
-            var userProfile = await userProfileRepository.GetByUserIdAsync(userId, ct);
-
-            return userProfile is null
-                ? Result<UserProfile>.Failure(UserProfileErrors.NotFound)
-                : Result<UserProfile>.Success(userProfile);
-        }
-
-        public async Task<Result<string>> UploadProfilePhotoAsync(
-            ProfilePhotoUploadRequest request,
-            string userId,
-            CancellationToken ct = default)
+        public async Task<Result<string>> UploadProfilePhotoAsync(ProfilePhotoUploadRequest request, string userId, CancellationToken ct = default)
         { 
             var userProfileResult = await GetByUserIdAsync(userId, ct);
 
@@ -58,9 +41,16 @@ namespace LR.Application.Services.User
             return Result<string>.Success(uploadResult.Value.Url);
         }
 
-        public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(
-            string userId,
-            CancellationToken ct = default)
+        public async Task<Result<UserProfile>> GetByUserIdAsync(string userId, CancellationToken ct = default)
+        {
+            var userProfile = await userProfileRepository.GetByUserIdAsync(userId, ct);
+
+            return userProfile is null
+                ? Result<UserProfile>.Failure(UserProfileErrors.NotFound)
+                : Result<UserProfile>.Success(userProfile);
+        }
+
+        public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(string userId, CancellationToken ct = default)
         {
             var profileDetails = await userProfileRepository.GetProfileProfileDetailsAsync(userId, ct);
 
@@ -69,9 +59,29 @@ namespace LR.Application.Services.User
                 : Result<UserProfileDetailsDto>.Success(profileDetails);
         }
 
-        public async Task<Result> DeleteProfilePhotoAsync(
-            string userId,
-            CancellationToken ct = default)
+        public async Task<Result> ChangePersonalInfoAsync(string userId, ChangePersonalInfoRequest request, CancellationToken ct = default)
+        {
+            var userProfileResult = await GetByUserIdAsync(userId, ct);
+
+            if (!userProfileResult.IsSuccess)
+                return Result.Failure(userProfileResult.Error);
+
+            var userProfile = userProfileResult.Value;
+
+            userProfile.FirstName = request.FirstName;
+            userProfile.LastName = request.LastName;
+            userProfile.BirthDate = request.BirthDate;
+            userProfile.UpdatedAt = DateTime.UtcNow;
+
+            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
+
+            if (saveResult is 0)
+                throw new ProfilePersistingException();
+
+            return Result.Success();
+        }
+
+        public async Task<Result> DeleteProfilePhotoAsync(string userId, CancellationToken ct = default)
         {
             var userProfileResult = await GetByUserIdAsync(userId, ct);
 
@@ -98,31 +108,6 @@ namespace LR.Application.Services.User
             }
 
             return deletionResult;
-        }
-
-        public async Task<Result> ChangePersonalInfoAsync(
-            string userId,
-            ChangePersonalInfoRequest request,
-            CancellationToken ct = default)
-        {
-            var userProfileResult = await GetByUserIdAsync(userId, ct);
-
-            if (!userProfileResult.IsSuccess)
-                return Result.Failure(userProfileResult.Error);
-
-            var userProfile = userProfileResult.Value;
-
-            userProfile.FirstName = request.FirstName;
-            userProfile.LastName = request.LastName;
-            userProfile.BirthDate = request.BirthDate;
-            userProfile.UpdatedAt = DateTime.UtcNow;
-
-            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
-
-            if (saveResult is 0)
-                throw new ProfilePersistingException();
-
-            return Result.Success();
         }
     }
 }

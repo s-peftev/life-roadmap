@@ -6,17 +6,12 @@ using LR.Domain.Interfaces.Repositories;
 
 namespace LR.Application.Services.User
 {
-    public class RefreshTokenService(
-        IRefreshTokenRepository repository)
-        : EntityService<RefreshToken, Guid>(repository),
-        IRefreshTokenService
+    public class RefreshTokenService(IRefreshTokenRepository repository) : EntityService<RefreshToken, Guid>(repository), IRefreshTokenService
     {
         protected override Error NotFoundError() =>
             RefreshTokenErrors.NotFound;
 
-        public async Task<Result<RefreshToken>> GetByTokenValueAsync(
-            string refreshTokenValue,
-            CancellationToken ct = default)
+        public async Task<Result<RefreshToken>> GetByTokenValueAsync(string refreshTokenValue, CancellationToken ct = default)
         {
             var rt = await repository.GetByTokenValueAsync(refreshTokenValue, ct);
 

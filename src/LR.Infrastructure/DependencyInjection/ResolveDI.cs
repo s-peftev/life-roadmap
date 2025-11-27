@@ -42,10 +42,8 @@ namespace LR.Infrastructure.DependencyInjection
 
         public static void ConfigurePolicyBasedAuthorization(this IServiceCollection services)
         {
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy(Policies.RequireAdministratorRole, policy => policy.RequireRole(Role.Admin.ToString()));
-            });
+            services.AddAuthorizationBuilder()
+                .AddPolicy(Policies.RequireAdministratorRole, policy => policy.RequireRole(Role.Admin.ToString()));
         }
     }
 }

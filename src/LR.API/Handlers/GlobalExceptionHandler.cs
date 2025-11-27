@@ -7,13 +7,9 @@ using System.Net;
 
 namespace LR.API.Handlers
 {
-    public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) 
-        : IExceptionHandler
+    public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
     {
-        public async ValueTask<bool> TryHandleAsync(
-            HttpContext httpContext, 
-            Exception exception, 
-            CancellationToken ct)
+        public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken ct)
         {
             var (statusCode, error) = GetExceptionDetails(exception);
 
@@ -22,9 +18,12 @@ namespace LR.API.Handlers
                 var correlationId = httpContext.Items[HttpHeaders.XCorrelationId]?.ToString() 
                     ?? httpContext.TraceIdentifier;
 
-                var loggerMessage = $"CorrelationId: {correlationId}, Message: {exception.Message}";
-
-                logger.LogError(exception, loggerMessage);
+                logger.LogError(
+                    exception,
+                    "CorrelationId: {CorrelationId}, Message: {Message}",
+                    correlationId,
+                    exception.Message
+                );
             }
 
             httpContext.Response.StatusCode = (int)statusCode;

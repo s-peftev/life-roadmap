@@ -36,12 +36,9 @@ namespace LR.API.Controllers
             Description = "Validation errors or registration failed")]
         [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
             Description = "User with given username or email already exists")]
-        public async Task<IActionResult> Register(
-            [FromBody] UserRegisterRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> Register([FromBody] UserRegisterRequest request, CancellationToken ct)
         {
-            var validationResult = await registerValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await registerValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -51,10 +48,9 @@ namespace LR.API.Controllers
                 });
             }
 
-            var registerResult = await accountService
-                .RegisterAsync(mapper.Map<UserRegisterDto>(request), ct);
+            var result = await accountService.RegisterAsync(mapper.Map<UserRegisterDto>(request), ct);
 
-            return registerResult.Match(
+            return result.Match(
                 data =>
                 {
                     refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
@@ -70,12 +66,9 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AccessTokenDto>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
-        public async Task<IActionResult> Login(
-            [FromBody] UserLoginRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> Login([FromBody] UserLoginRequest request, CancellationToken ct)
         {
-            var validationResult = await loginValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await loginValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -85,10 +78,9 @@ namespace LR.API.Controllers
                 });
             }
 
-            var loginResult = await accountService
-                .LoginAsync(mapper.Map<UserLoginDto>(request), ct);
+            var result = await accountService.LoginAsync(mapper.Map<UserLoginDto>(request), ct);
 
-            return loginResult.Match(
+            return result.Match(
                 data =>
                 {
                     refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
@@ -111,10 +103,9 @@ namespace LR.API.Controllers
             if (string.IsNullOrEmpty(refreshTokenValue))
                 return HandleFailure(RefreshTokenErrors.TokenMissing);
 
-            var refreshResult = await accountService
-                .RefreshToken(refreshTokenValue, ct);
+            var result = await accountService.RefreshToken(refreshTokenValue, ct);
             
-            return refreshResult.Match(
+            return result.Match(
                 data =>
                 {
                     refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
@@ -157,12 +148,9 @@ namespace LR.API.Controllers
             Description = "Generates and sends a new email verification code for user confirmation.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Verification code successfully generated", typeof(ApiResponse<string>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for email confirmation code is invalid", typeof(ApiResponse<string>))]
-        public async Task<IActionResult> SendEmailVerificationCode(
-            [FromBody] EmailCodeRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> SendEmailVerificationCode([FromBody] EmailCodeRequest request, CancellationToken ct)
         {
-            var validationResult = await emailCodeValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await emailCodeValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -172,9 +160,9 @@ namespace LR.API.Controllers
                 });
             }
 
-            var codeResult = await accountService.GenerateEmailConfirmationCodeAsync(request);
+            var result = await accountService.GenerateEmailConfirmationCodeAsync(request);
 
-            return codeResult.Match(
+            return result.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
                 error => HandleFailure(error)
             ); 
@@ -186,12 +174,9 @@ namespace LR.API.Controllers
             Description = "Confirms user's email using the verification code.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Email successfully confirmed", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed", typeof(ApiResponse<object>))]
-        public async Task<IActionResult> ConfirmEmail(
-            [FromBody] EmailConfirmationRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationRequest request, CancellationToken ct)
         {
-            var validationResult = await emailConfirmationValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await emailConfirmationValidator.ValidateAsync(request, ct);
             
             if (!validationResult.IsValid)
             {
@@ -218,12 +203,9 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, 
             "Request for password change is invalid or wrong current password provided.", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found.", typeof(ApiResponse<object>))]
-        public async Task<IActionResult> ChangePassword(
-            [FromBody] ChangePasswordRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
         {
-            var validationResult = await changePasswordRequestValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await changePasswordRequestValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -247,12 +229,9 @@ namespace LR.API.Controllers
             Description = "Generates and sends a new password reset token for user confirmation.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Password reset token successfully generated", typeof(ApiResponse<string>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for password reset token is invalid", typeof(ApiResponse<string>))]
-        public async Task<IActionResult> ForgotPassword(
-            [FromBody] ForgotPasswordRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
         {
-            var validationResult = await forgotPasswordRequestValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await forgotPasswordRequestValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             {
@@ -276,12 +255,9 @@ namespace LR.API.Controllers
             Description = "Resets user's password using the reset token.")]
         [SwaggerResponse(StatusCodes.Status200OK, "Password was successfully reset", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed", typeof(ApiResponse<object>))]
-        public async Task<IActionResult> ResetPassword(
-            [FromBody] ResetPasswordRequest request,
-            CancellationToken ct)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
         { 
-            var validationResult = await resetPasswordRequestValidator
-                .ValidateAsync(request, ct);
+            var validationResult = await resetPasswordRequestValidator.ValidateAsync(request, ct);
 
             if (!validationResult.IsValid)
             { 

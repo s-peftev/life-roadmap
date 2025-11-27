@@ -62,10 +62,10 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     {
                         OnMessageReceived = context =>
                         {
-                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
                             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
-                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                                context.Token = authHeader["Bearer ".Length..].Trim();
                                 return Task.CompletedTask;
                             }
 

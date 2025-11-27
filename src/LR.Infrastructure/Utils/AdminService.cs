@@ -9,12 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LR.Infrastructure.Utils
 {
-    public class AdminService(
-        UserManager<AppUser> userManager,
-        IMapper mapper) : IAdminService
+    public class AdminService(UserManager<AppUser> userManager, IMapper mapper) : IAdminService
     {
-        public async Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(
-            CancellationToken ct)
+        public async Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(CancellationToken ct)
         {
             var dtoList = await userManager.Users
                 .Include(u => u.Profile)
