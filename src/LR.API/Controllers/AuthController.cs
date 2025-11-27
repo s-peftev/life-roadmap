@@ -28,14 +28,11 @@ namespace LR.API.Controllers
         ) : BaseApiController
     {
         [HttpPost("register")]
-        [SwaggerOperation(Summary = "Register new user",
-            Description = "Creates a new user account and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AccessTokenDto>),
-            Description = "User registered successfully")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<object>),
-            Description = "Validation errors or registration failed")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
-            Description = "User with given username or email already exists")]
+        [SwaggerOperation("Register new user", "Creates a new user account and returns tokens")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "User has been registered",                            typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors or registration failed",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict,   "User with given username or email is already exists", typeof(ApiResponse<object>))]
         public async Task<IActionResult> Register([FromBody] UserRegisterRequest request, CancellationToken ct)
         {
             var validationResult = await registerValidator.ValidateAsync(request, ct);
@@ -62,10 +59,11 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("login")]
-        [SwaggerOperation(Summary = "Login user", Description = "Authenticates and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AccessTokenDto>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
-        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
+        [SwaggerOperation("Login user", "Authenticates and returns tokens")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,           "Login successful",             typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest,   "Validation errors",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password", typeof(ApiResponse<object>))]
         public async Task<IActionResult> Login([FromBody] UserLoginRequest request, CancellationToken ct)
         {
             var validationResult = await loginValidator.ValidateAsync(request, ct);
@@ -92,10 +90,11 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("refresh")]
-        [SwaggerOperation(Summary = "Refresh jwt token", Description = "Generates new JWT token")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AccessTokenDto>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
-        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
+        [SwaggerOperation("Refresh user`s tokens", "Refreshes the JWT token and rotates refresh token as needed")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,           "Tokens has been updated",             typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest,   "Refresh token is missing",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token",    typeof(ApiResponse<object>))]
         public async Task<IActionResult> Refresh(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
@@ -122,9 +121,10 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("logout")]
-        [SwaggerOperation(Summary = "Logout user", Description = "Revokes refresh token and clears auth cookie")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Logout successful", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
+        [SwaggerOperation("Logout user", "Revokes refresh token and clears auth cookie")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Logout successful",        typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token is missing", typeof(ApiResponse<object>))]
         public async Task<IActionResult> Logout(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
@@ -143,10 +143,9 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("email/verification-code")]
-        [SwaggerOperation(
-            Summary = "Send email verification code",
-            Description = "Generates and sends a new email verification code for user confirmation.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Verification code successfully generated", typeof(ApiResponse<string>))]
+        [SwaggerOperation("Send email verification code", "Generates and sends a new email verification code for user confirmation.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Verification code has been generated",           typeof(ApiResponse<string>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for email confirmation code is invalid", typeof(ApiResponse<string>))]
         public async Task<IActionResult> SendEmailVerificationCode([FromBody] EmailCodeRequest request, CancellationToken ct)
         {
@@ -169,11 +168,10 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("email/verification")]
-        [SwaggerOperation(
-            Summary = "Confirm user email",
-            Description = "Confirms user's email using the verification code.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Email successfully confirmed", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed", typeof(ApiResponse<object>))]
+        [SwaggerOperation("Confirm user email", "Confirms user's email using the verification code.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Email has been confirmed",     typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed",    typeof(ApiResponse<object>))]
         public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationRequest request, CancellationToken ct)
         {
             var validationResult = await emailConfirmationValidator.ValidateAsync(request, ct);
@@ -196,13 +194,11 @@ namespace LR.API.Controllers
 
         [Authorize]
         [HttpPatch("password")]
-        [SwaggerOperation(
-            Summary = "Changes users` password",
-            Description = "Sets a new password for authenticated user if correct current password is provided.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Password was successfully changed.", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, 
-            "Request for password change is invalid or wrong current password provided.", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found.", typeof(ApiResponse<object>))]
+        [SwaggerOperation("Reset user`s password", "Sets a new password for authenticated user if correct current password is provided.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password has been changed.",                                            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Reset password request is invalid or wrong current password provided.", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound,   "User not found.",                                                       typeof(ApiResponse<object>))]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
         {
             var validationResult = await changePasswordRequestValidator.ValidateAsync(request, ct);
@@ -224,10 +220,9 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("password/reset-request")]
-        [SwaggerOperation(
-            Summary = "Send password reset token",
-            Description = "Generates and sends a new password reset token for user confirmation.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Password reset token successfully generated", typeof(ApiResponse<string>))]
+        [SwaggerOperation("Send password reset token", "Generates and sends a new password reset token for user confirmation.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password reset token generated",              typeof(ApiResponse<string>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for password reset token is invalid", typeof(ApiResponse<string>))]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
         {
@@ -250,11 +245,10 @@ namespace LR.API.Controllers
         }
 
         [HttpPost("password/reset")]
-        [SwaggerOperation(
-            Summary = "Reset user password",
-            Description = "Resets user's password using the reset token.")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Password was successfully reset", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed", typeof(ApiResponse<object>))]
+        [SwaggerOperation("Reset user password", "Resets user's password using the reset token.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password has been reset",         typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed",           typeof(ApiResponse<object>))]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
         { 
             var validationResult = await resetPasswordRequestValidator.ValidateAsync(request, ct);
