@@ -6,6 +6,6 @@ namespace LR.Domain.Interfaces.Repositories
     public interface IUserProfileRepository : IRepository<UserProfile, Guid>
     {
         Task<UserProfile?> GetByUserIdAsync(string userId, CancellationToken ct = default);
-        Task<UserProfileDetailsDto?> GetProfileProfileDetailsAsync(string userId, CancellationToken ct = default);
+        Task<UserProfileDetailsDto?> GetProfileDetailsAsync(string userId, CancellationToken ct = default);
     }
 }

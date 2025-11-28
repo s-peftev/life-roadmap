@@ -14,7 +14,7 @@ namespace LR.Persistance.Repositories.Users
             return await _dbSet.FirstOrDefaultAsync(up => up.UserId == userId, ct);
         }
 
-        public async Task<UserProfileDetailsDto?> GetProfileProfileDetailsAsync(string userId, CancellationToken ct = default)
+        public async Task<UserProfileDetailsDto?> GetProfileDetailsAsync(string userId, CancellationToken ct = default)
         {
             return await (
                 from p in _dbSet

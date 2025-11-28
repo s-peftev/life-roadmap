@@ -52,7 +52,7 @@ namespace LR.Application.Services.User
 
         public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(string userId, CancellationToken ct = default)
         {
-            var profileDetails = await userProfileRepository.GetProfileProfileDetailsAsync(userId, ct);
+            var profileDetails = await userProfileRepository.GetProfileDetailsAsync(userId, ct);
 
             return profileDetails is null
                 ? Result<UserProfileDetailsDto>.Failure(UserProfileErrors.NotFound)
