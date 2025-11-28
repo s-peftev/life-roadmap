@@ -124,7 +124,7 @@ namespace LR.Infrastructure.Utils
             var user = await userManager.FindByEmailAsync(emailConfirmationRequest.Email);
 
             if (user is null)
-                return Result.Failure(UserErrors.EmailConfirmationFailed);
+                return Result.Failure(UserErrors.NotFound);
 
             var result = await userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
 
@@ -155,7 +155,7 @@ namespace LR.Infrastructure.Utils
             var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId);
 
             if (user is null)
-                return Result.Failure(UserErrors.PasswordResetFailed);
+                return Result.Failure(UserErrors.NotFound);
 
             var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
 

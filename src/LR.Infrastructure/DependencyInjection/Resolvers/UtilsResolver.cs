@@ -11,6 +11,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.AddHttpContextAccessor();
 
             services.AddSingleton<ITokenService, TokenService>();
+            services.AddSingleton<IErrorResponseFactory, ErrorResponseFactory>();
 
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IAdminService, AdminService>();

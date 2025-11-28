@@ -3,22 +3,12 @@
     public static class UserErrorIDs
     {
         // user identity errors
-        public const string EmailConfirmationFailed = "EmailConfirmationFailed";
         public const string EmailIsTaken = "EmailIsTaken";
-        public const string InvalidChangePasswordRequest = "InvalidChangePasswordRequest";
-        public const string InvalidEmailCodeRequest = "InvalidEmailCodeRequest";
-        public const string InvalidForgotPasswordRequest = "InvalidForgotPasswordRequest";
-        public const string InvalidLoginRequest = "InvalidLoginRequest";
-        public const string InvalidRegisterRequest = "InvalidRegisterRequest";
         public const string LoginFailed = "LoginFailed";
-        public const string PasswordResetFailed = "PasswordResetFailed";
         public const string UsernameIsTaken = "UsernameIsTaken";
+        public const string EmailConfirmationFailed = "EmailConfirmationFailed";
+        public const string PasswordResetFailed = "PasswordResetFailed";
         public const string WrongCurrentPassword = "WrongCurrentPassword";
-
-        // profile errors
-        public const string InvalidProfilePhotoUploadRequest = "InvalidProfilePhotoUploadRequest";
-        public const string InvalidChangeUsernameRequest = "InvalidChangeUsernameRequest";
-        public const string InvalidChangePersonalInfoRequest = "InvalidChangePersonalInfoRequest";
 
         // refresh token errors
         public const string RefreshTokenInvalid = "RefreshTokenInvalid";

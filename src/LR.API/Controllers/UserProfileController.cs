@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using LR.Application.AppResult.Errors.User;
-using LR.Application.Interfaces.Services;
+﻿using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Application.Responses;
@@ -14,11 +12,9 @@ namespace LR.API.Controllers
 {
     [Authorize]
     public class UserProfileController(
+        IErrorResponseFactory errorResponseFactory,
         IAccountService accountService,
-        IUserProfileService userProfileService,
-        IValidator<ChangeUsernameRequest> changeUserNameValidator,
-        IValidator<ProfilePhotoUploadRequest> profilePhotoUploadValidator,
-        IValidator<ChangePersonalInfoRequest> changePersonalInfoValidator)
+        IUserProfileService userProfileService)
         : BaseApiController
     {
         [HttpGet("me")]
@@ -32,7 +28,7 @@ namespace LR.API.Controllers
 
             return result.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
 
@@ -43,23 +39,13 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors",          typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status409Conflict,   "Username is taken",          typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status404NotFound,   "User`s profile not found.",  typeof(ApiResponse<object>))]
-        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameRequest changeUsernameRequest, CancellationToken ct)
+        public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameRequest changeUsernameRequest)
         {
-            var validationResult = await changeUserNameValidator.ValidateAsync(changeUsernameRequest, ct);
-
-            if (!validationResult.IsValid)
-            {
-                return HandleFailure(UserProfileErrors.InvalidChangeUsernameRequest with
-                {
-                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
-                });
-            }
-
             var result = await accountService.ChangeUsernameAsync(changeUsernameRequest, User.GetAppUserId());
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
 
@@ -71,21 +57,11 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound,   "User`s profile not found.",       typeof(ApiResponse<object>))]
         public async Task<IActionResult> ChangePersonalInfo([FromBody] ChangePersonalInfoRequest changePersonalInfoRequest, CancellationToken ct)
         {
-            var validationResult = await changePersonalInfoValidator.ValidateAsync(changePersonalInfoRequest, ct);
-
-            if (!validationResult.IsValid)
-            {
-                return HandleFailure(UserProfileErrors.InvalidChangePersonalInfoRequest with
-                {
-                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
-                });
-            }
-
             var result = await userProfileService.ChangePersonalInfoAsync(User.GetAppUserId(), changePersonalInfoRequest, ct);
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
 
@@ -99,21 +75,11 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound,            "User`s profile not found.",            typeof(ApiResponse<object>))]
         public async Task<IActionResult> UploadPhoto([FromForm] ProfilePhotoUploadRequest request, CancellationToken ct)
         {
-            var validationResult = await profilePhotoUploadValidator.ValidateAsync(request, ct);
-
-            if (!validationResult.IsValid)
-            {
-                return HandleFailure(UserProfileErrors.InvalidProfilePhotoUploadRequest with
-                {
-                    Details = validationResult.Errors.Select(e => e.ErrorMessage) 
-                });
-            }
-
             var result = await userProfileService.UploadProfilePhotoAsync(request, User.GetAppUserId(), ct);
 
             return result.Match(
                 data => Ok(ApiResponse<string>.Ok(data)),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
 
@@ -130,7 +96,7 @@ namespace LR.API.Controllers
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
     }

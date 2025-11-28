@@ -12,6 +12,7 @@ namespace LR.API.Controllers
 {
     [Authorize(Policy = Policies.RequireAdministratorRole)]
     public class AdminController(
+        IErrorResponseFactory errorResponseFactory,
         IAdminService adminService,
         IUserProfileService userProfileService)
         : BaseApiController
@@ -26,7 +27,7 @@ namespace LR.API.Controllers
 
             return result.Match(
                 data => Ok(ApiResponse<IEnumerable<UserForAdminDto>>.Ok(data)),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
 
@@ -43,7 +44,7 @@ namespace LR.API.Controllers
 
             return result.Match(
                 () => Ok(ApiResponse<object>.Ok()),
-                error => HandleFailure(error)
+                error => errorResponseFactory.CreateErrorResponse(error)
             );
         }
     }

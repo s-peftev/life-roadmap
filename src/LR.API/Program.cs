@@ -1,4 +1,5 @@
 using LR.API.Extensions;
+using LR.API.Filters;
 using LR.API.Handlers;
 using LR.API.Middleware;
 using LR.Infrastructure.Constants;
@@ -9,7 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationActionFilter>();
+});
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.ConfigureCorsPolicy(builder.Configuration);

@@ -17,7 +17,7 @@ namespace LR.Application.AppResult.Errors.User
 
         public static readonly Error TokenMissing = new(
             UserErrorIDs.TokenMissing,
-            ErrorType.Validation,
+            ErrorType.Unauthorized,
             "Refresh token is missing."
         );
     }
