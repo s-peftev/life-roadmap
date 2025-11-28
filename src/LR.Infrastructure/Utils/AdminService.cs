@@ -11,12 +11,13 @@ namespace LR.Infrastructure.Utils
 {
     public class AdminService(UserManager<AppUser> userManager, IMapper mapper) : IAdminService
     {
-        public async Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(CancellationToken ct)
+        public async Task<Result<IEnumerable<UserForAdminDto>>> GetUserListAsync(string adminId, CancellationToken ct)
         {
             var dtoList = await userManager.Users
                 .Include(u => u.Profile)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
+                .Where(u => u.Id != adminId)
                 .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider)
                 .ToListAsync(ct);
 

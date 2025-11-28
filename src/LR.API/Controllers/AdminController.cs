@@ -22,14 +22,10 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<IEnumerable<UserForAdminDto>>))]
         public async Task<IActionResult> GetUsers(CancellationToken ct)
         { 
-            var result = await adminService.GetUserListAsync(ct);
+            var result = await adminService.GetUserListAsync(User.GetAppUserId(), ct);
 
             return result.Match(
-                data => Ok(
-                    ApiResponse<IEnumerable<UserForAdminDto>>.Ok(
-                        data.Where(u => u.Id != User.GetAppUserId())
-                    )
-                ),
+                data => Ok(ApiResponse<IEnumerable<UserForAdminDto>>.Ok(data)),
                 error => HandleFailure(error)
             );
         }
