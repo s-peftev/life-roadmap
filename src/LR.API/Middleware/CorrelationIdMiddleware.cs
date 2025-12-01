@@ -1,4 +1,5 @@
 ﻿using LR.Infrastructure.Constants;
+using Serilog.Context;
 
 namespace LR.API.Middleware
 {
@@ -8,15 +9,15 @@ namespace LR.API.Middleware
         {
             const string headerName = HttpHeaders.XCorrelationId;
 
-            if (!context.Request.Headers.TryGetValue(headerName, out var correlationId))
-            {
-                correlationId = Guid.NewGuid().ToString();
-            }
+            var correlationId = context.Request.Headers[headerName].FirstOrDefault() ?? Guid.NewGuid().ToString();
 
             context.Response.Headers[headerName] = correlationId;
             context.Items[headerName] = correlationId;
 
-            await next(context);
+            using (LogContext.PushProperty("CorrelationId", correlationId))
+            {
+                await next(context);
+            }
         }
     }
 }

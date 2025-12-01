@@ -29,18 +29,12 @@ namespace LR.Infrastructure.ExternalProviders
         {
             var deletionParams = new DeletionParams(publicId);
 
-            try {
-                var result = await _cloudinary.DestroyAsync(deletionParams);
+            var result = await _cloudinary.DestroyAsync(deletionParams);
 
-                if (result.Error is not null) 
-                    return Result.Failure(PhotoErrors.PhotoDeletionFailed);
+            if (result.Error is not null)
+                return Result.Failure(PhotoErrors.PhotoDeletionFailed);
 
-                return Result.Success();
-            }
-            catch (HttpRequestException)
-            {
-                return Result.Failure(PhotoErrors.ServiceUnavailable);
-            }
+            return Result.Success();
         }
 
         public async Task<Result<PhotoUploadResult>> UploadPhotoAsync(IFormFile file)

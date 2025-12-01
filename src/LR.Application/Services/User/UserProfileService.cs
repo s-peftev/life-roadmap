@@ -7,10 +7,14 @@ using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
 using LR.Domain.ValueObjects.UserProfile;
+using Microsoft.Extensions.Logging;
 
 namespace LR.Application.Services.User
 {
-    public class UserProfileService(IUserProfileRepository userProfileRepository, IPhotoService photoService) 
+    public class UserProfileService(
+        ILogger<UserProfileService> logger,
+        IUserProfileRepository userProfileRepository,
+        IPhotoService photoService) 
         : EntityService<UserProfile, Guid>(userProfileRepository), IUserProfileService
     {
         protected override Error NotFoundError() => 
@@ -91,23 +95,28 @@ namespace LR.Application.Services.User
             if (string.IsNullOrEmpty(userProfileResult.Value.ProfilePhotoPublicId))
                 return Result.Success();
 
-            var deletionResult = await photoService.DeletePhotoAsync(userProfileResult.Value.ProfilePhotoPublicId);
+            var userProfile = userProfileResult.Value;
 
-            if (deletionResult.IsSuccess)
+            try
             {
-                var userProfile = userProfileResult.Value;
+                var publicId = userProfile.ProfilePhotoPublicId;
 
                 userProfile.ProfilePhotoUrl = null;
                 userProfile.ProfilePhotoPublicId = null;
                 userProfile.UpdatedAt = DateTime.UtcNow;
 
-                var saveResult = await userProfileRepository.SaveChangesAsync(ct);
+                await userProfileRepository.SaveChangesAsync(ct);
 
-                if (saveResult is 0)
-                    throw new ProfilePersistingException();
+                var deletionResult = await photoService.DeletePhotoAsync(publicId);
+
+                return deletionResult;
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Profile photo deletion failed");
 
-            return deletionResult;
+                return Result.Failure(PhotoErrors.ServiceUnavailable);
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace LR.Application.AppResult.Errors.User
         public static readonly Error ServiceUnavailable = new(
             UserErrorIDs.ServiceUnavailable,
             Domain.Enums.ErrorType.ServiceUnavailable,
-            "Failed to connect with storage."
+            "Service is temporarily unavailable."
         );
     }
 }

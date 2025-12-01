@@ -1,6 +1,6 @@
-﻿namespace LR.API.Extensions
+﻿namespace LR.API.Configurators
 {
-    public static class SwaggerExtensions
+    public static class SwaggerConfigurator
     {
         public static void UseConfiguredSwagger(this IApplicationBuilder app)
         {
