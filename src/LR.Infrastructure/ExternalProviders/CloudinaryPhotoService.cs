@@ -27,6 +27,9 @@ namespace LR.Infrastructure.ExternalProviders
         }
         public async Task<Result> DeletePhotoAsync(string publicId)
         {
+            if (string.IsNullOrEmpty(publicId))
+                return Result.Failure(PhotoErrors.PhotoDeletionFailed);
+
             var deletionParams = new DeletionParams(publicId);
 
             var result = await _cloudinary.DestroyAsync(deletionParams);
@@ -50,23 +53,16 @@ namespace LR.Infrastructure.ExternalProviders
                     Folder = _options.Value.LibraryFolder
                 };
 
-                try
-                { 
-                    var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-                    if (uploadResult.Error is not null)
-                        return Result<PhotoUploadResult>.Failure(PhotoErrors.PhotoUploadFailed);
+                if (uploadResult.Error is not null)
+                    return Result<PhotoUploadResult>.Failure(PhotoErrors.PhotoUploadFailed);
 
-                    return Result<PhotoUploadResult>.Success(new PhotoUploadResult
-                    {
-                        PublicId = uploadResult.PublicId,
-                        Url = uploadResult.SecureUrl.AbsoluteUri
-                    });
-                }
-                catch (HttpRequestException)
+                return Result<PhotoUploadResult>.Success(new PhotoUploadResult
                 {
-                    return Result<PhotoUploadResult>.Failure(PhotoErrors.ServiceUnavailable);
-                }
+                    PublicId = uploadResult.PublicId,
+                    Url = uploadResult.SecureUrl.AbsoluteUri
+                });
             }
 
             return Result<PhotoUploadResult>.Failure(PhotoErrors.PhotoUploadFailed);

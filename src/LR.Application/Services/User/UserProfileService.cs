@@ -1,5 +1,6 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors.User;
+using LR.Application.AppResult.ResultData.Photo;
 using LR.Application.Exceptions.UserProfile;
 using LR.Application.Interfaces.ExternalProviders;
 using LR.Application.Interfaces.Services;
@@ -27,22 +28,44 @@ namespace LR.Application.Services.User
             if (!userProfileResult.IsSuccess)
                 return Result<string>.Failure(userProfileResult.Error);
 
-            var uploadResult = await photoService.UploadPhotoAsync(request.File);
+            Result<PhotoUploadResult>? uploadResult = null;
 
-            if (!uploadResult.IsSuccess)
-                return Result<string>.Failure(uploadResult.Error);
+            try 
+            {
+                uploadResult = await photoService.UploadPhotoAsync(request.File);
 
-            var userProfile = userProfileResult.Value;
-            userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
-            userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
-            userProfile.UpdatedAt = DateTime.UtcNow;
+                if (!uploadResult.IsSuccess)
+                    return Result<string>.Failure(uploadResult.Error);
 
-            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
+                var userProfile = userProfileResult.Value;
+                userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
+                userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
+                userProfile.UpdatedAt = DateTime.UtcNow;
 
-            if (saveResult is 0)
-                throw new ProfilePersistingException();
+                await userProfileRepository.SaveChangesAsync(ct);
 
-            return Result<string>.Success(uploadResult.Value.Url);
+                return Result<string>.Success(uploadResult.Value.Url);
+
+            }
+            catch (Exception ex)
+            {
+                if (uploadResult is not null && uploadResult.IsSuccess)
+                {
+                    try
+                    {
+                        // Rollback uploaded photo if saving profile failed
+                        await photoService.DeletePhotoAsync(uploadResult.Value.PublicId);
+                    }
+                    catch(Exception deleteEx)
+                    {
+                        logger.LogError(deleteEx, "Rollback photo delete failed");
+                    }
+                }
+
+                logger.LogError(ex, "Profile photo upload failed");
+
+                return Result<string>.Failure(PhotoErrors.ServiceUnavailable);
+            }
         }
 
         public async Task<Result<UserProfile>> GetByUserIdAsync(string userId, CancellationToken ct = default)
@@ -107,9 +130,22 @@ namespace LR.Application.Services.User
 
                 await userProfileRepository.SaveChangesAsync(ct);
 
-                var deletionResult = await photoService.DeletePhotoAsync(publicId);
+                Result deletionResult;
 
-                return deletionResult;
+                try
+                {
+                    deletionResult = await photoService.DeletePhotoAsync(publicId);
+
+                    if (!deletionResult.IsSuccess)
+                        logger.LogError("Cloud deletion failed: {Error}", deletionResult.Error.Description);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cloud deletion exception");
+                }
+
+                // consider photo deletion success even if cloud deletion failed
+                return Result.Success();
             }
             catch (Exception ex)
             {
