@@ -1,7 +1,6 @@
 ﻿using LR.Application.AppResult;
-using LR.Application.AppResult.Errors.User;
+using LR.Application.AppResult.Errors;
 using LR.Application.AppResult.ResultData.Photo;
-using LR.Application.Exceptions.UserProfile;
 using LR.Application.Interfaces.ExternalProviders;
 using LR.Application.Interfaces.Services;
 using LR.Application.Requests.User;
@@ -18,9 +17,6 @@ namespace LR.Application.Services.User
         IPhotoService photoService) 
         : EntityService<UserProfile, Guid>(userProfileRepository), IUserProfileService
     {
-        protected override Error NotFoundError() => 
-            UserProfileErrors.NotFound;
-
         public async Task<Result<string>> UploadProfilePhotoAsync(ProfilePhotoUploadRequest request, string userId, CancellationToken ct = default)
         { 
             var userProfileResult = await GetByUserIdAsync(userId, ct);
@@ -28,43 +24,47 @@ namespace LR.Application.Services.User
             if (!userProfileResult.IsSuccess)
                 return Result<string>.Failure(userProfileResult.Error);
 
-            Result<PhotoUploadResult>? uploadResult = null;
+            var userProfile = userProfileResult.Value;
+            Result<PhotoUploadResult> uploadResult;
 
-            try 
+            try
             {
                 uploadResult = await photoService.UploadPhotoAsync(request.File);
-
-                if (!uploadResult.IsSuccess)
-                    return Result<string>.Failure(uploadResult.Error);
-
-                var userProfile = userProfileResult.Value;
-                userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
-                userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
-                userProfile.UpdatedAt = DateTime.UtcNow;
-
-                await userProfileRepository.SaveChangesAsync(ct);
-
-                return Result<string>.Success(uploadResult.Value.Url);
-
             }
             catch (Exception ex)
             {
-                if (uploadResult is not null && uploadResult.IsSuccess)
+                logger.LogError(ex, "Uploading photo to cloud failed");
+
+                return Result<string>.Failure(GeneralErrors.ServiceUnavailable);
+            }
+
+            if (!uploadResult.IsSuccess) 
+                return Result<string>.Failure(uploadResult.Error);
+
+            userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
+            userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
+            userProfile.UpdatedAt = DateTime.UtcNow;
+
+            try 
+            {
+                await userProfileRepository.SaveChangesAsync(ct);
+
+                return Result<string>.Success(uploadResult.Value.Url);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Persisting uploaded profile photo failed");
+
+                try
                 {
-                    try
-                    {
-                        // Rollback uploaded photo if saving profile failed
-                        await photoService.DeletePhotoAsync(uploadResult.Value.PublicId);
-                    }
-                    catch(Exception deleteEx)
-                    {
-                        logger.LogError(deleteEx, "Rollback photo delete failed");
-                    }
+                    await photoService.DeletePhotoAsync(uploadResult.Value.PublicId);
+                }
+                catch (Exception deleteEx)
+                {
+                    logger.LogError(deleteEx, "Rollback photo delete failed");
                 }
 
-                logger.LogError(ex, "Profile photo upload failed");
-
-                return Result<string>.Failure(PhotoErrors.ServiceUnavailable);
+                return Result<string>.Failure(GeneralErrors.InternalServerError);
             }
         }
 
@@ -73,7 +73,7 @@ namespace LR.Application.Services.User
             var userProfile = await userProfileRepository.GetByUserIdAsync(userId, ct);
 
             return userProfile is null
-                ? Result<UserProfile>.Failure(UserProfileErrors.NotFound)
+                ? Result<UserProfile>.Failure(GeneralErrors.NotFound)
                 : Result<UserProfile>.Success(userProfile);
         }
 
@@ -82,7 +82,7 @@ namespace LR.Application.Services.User
             var profileDetails = await userProfileRepository.GetProfileDetailsAsync(userId, ct);
 
             return profileDetails is null
-                ? Result<UserProfileDetailsDto>.Failure(UserProfileErrors.NotFound)
+                ? Result<UserProfileDetailsDto>.Failure(GeneralErrors.NotFound)
                 : Result<UserProfileDetailsDto>.Success(profileDetails);
         }
 
@@ -100,10 +100,16 @@ namespace LR.Application.Services.User
             userProfile.BirthDate = request.BirthDate;
             userProfile.UpdatedAt = DateTime.UtcNow;
 
-            var saveResult = await userProfileRepository.SaveChangesAsync(ct);
+            try
+            {
+                await userProfileRepository.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to persist personal info changings");
 
-            if (saveResult is 0)
-                throw new ProfilePersistingException();
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
 
             return Result.Success();
         }
@@ -115,44 +121,40 @@ namespace LR.Application.Services.User
             if (!userProfileResult.IsSuccess)
                 return Result.Failure(userProfileResult.Error);
 
-            if (string.IsNullOrEmpty(userProfileResult.Value.ProfilePhotoPublicId))
+            var userProfile = userProfileResult.Value;
+            var publicId = userProfile.ProfilePhotoPublicId;
+
+            if (string.IsNullOrEmpty(publicId))
                 return Result.Success();
 
-            var userProfile = userProfileResult.Value;
+            userProfile.ProfilePhotoUrl = null;
+            userProfile.ProfilePhotoPublicId = null;
+            userProfile.UpdatedAt = DateTime.UtcNow;
 
             try
             {
-                var publicId = userProfile.ProfilePhotoPublicId;
-
-                userProfile.ProfilePhotoUrl = null;
-                userProfile.ProfilePhotoPublicId = null;
-                userProfile.UpdatedAt = DateTime.UtcNow;
-
                 await userProfileRepository.SaveChangesAsync(ct);
-
-                Result deletionResult;
-
-                try
-                {
-                    deletionResult = await photoService.DeletePhotoAsync(publicId);
-
-                    if (!deletionResult.IsSuccess)
-                        logger.LogError("Cloud deletion failed: {Error}", deletionResult.Error.Description);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Cloud deletion exception");
-                }
-
-                // consider photo deletion success even if cloud deletion failed
-                return Result.Success();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Profile photo deletion failed");
 
-                return Result.Failure(PhotoErrors.ServiceUnavailable);
+                return Result.Failure(GeneralErrors.InternalServerError);
             }
+
+            try
+            {
+                var deletionResult = await photoService.DeletePhotoAsync(publicId);
+
+                if (!deletionResult.IsSuccess)
+                    logger.LogError("Cloud deletion failed: {Error}", deletionResult.Error.Description);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Cloud deletion exception");
+            }
+
+            return Result.Success();
         }
     }
 }

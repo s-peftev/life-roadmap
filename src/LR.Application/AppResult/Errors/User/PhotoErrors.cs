@@ -1,4 +1,5 @@
 ﻿using LR.Application.Constants.ErrorIDs;
+using LR.Domain.Enums;
 
 namespace LR.Application.AppResult.Errors.User
 {
@@ -6,20 +7,14 @@ namespace LR.Application.AppResult.Errors.User
     {
         public static readonly Error PhotoUploadFailed = new(
             UserErrorIDs.PhotoUploadFailed,
-            Domain.Enums.ErrorType.Business,
+            ErrorType.Business,
             "Failed to upload photo to storage."
         );
 
         public static readonly Error PhotoDeletionFailed = new(
             UserErrorIDs.PhotoDeletionFailed,
-            Domain.Enums.ErrorType.Business,
+            ErrorType.Business,
             "Failed to delete photo from storage."
-        );
-
-        public static readonly Error ServiceUnavailable = new(
-            UserErrorIDs.ServiceUnavailable,
-            Domain.Enums.ErrorType.ServiceUnavailable,
-            "Service is temporarily unavailable."
         );
     }
 }

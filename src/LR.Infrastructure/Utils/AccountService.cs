@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
 using LR.Application.AppResult.Errors.User;
 using LR.Application.AppResult.ResultData.Account;
 using LR.Application.DTOs.Token;
@@ -124,7 +125,7 @@ namespace LR.Infrastructure.Utils
             var user = await userManager.FindByEmailAsync(emailConfirmationRequest.Email);
 
             if (user is null)
-                return Result.Failure(UserErrors.NotFound);
+                return Result.Failure(GeneralErrors.NotFound);
 
             var result = await userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
 
@@ -155,7 +156,7 @@ namespace LR.Infrastructure.Utils
             var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId);
 
             if (user is null)
-                return Result.Failure(UserErrors.NotFound);
+                return Result.Failure(GeneralErrors.NotFound);
 
             var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
 
@@ -177,7 +178,7 @@ namespace LR.Infrastructure.Utils
 
             if (user is null)
             { 
-                return Result.Failure(UserErrors.NotFound);
+                return Result.Failure(GeneralErrors.NotFound);
             }
 
             if (await userManager.FindByNameAsync(changeUsernameRequest.UserName) is not null)
@@ -201,7 +202,7 @@ namespace LR.Infrastructure.Utils
 
             if (user is null)
             {
-                return Result.Failure(UserErrors.NotFound);
+                return Result.Failure(GeneralErrors.NotFound);
             }
 
             var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);

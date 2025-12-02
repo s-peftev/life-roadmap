@@ -13,12 +13,14 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace LR.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthController(
         IErrorResponseFactory errorResponseFactory,
         IAccountService accountService,
         IMapper mapper,
         IRefreshTokenCookieWriter refreshTokenCookieWriter
-        ) : BaseApiController
+        ) : Controller
     {
         [HttpPost("register")]
         [SwaggerOperation("Register new user", "Creates a new user account and returns tokens")]

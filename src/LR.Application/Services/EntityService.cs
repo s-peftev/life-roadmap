@@ -1,4 +1,5 @@
 ﻿using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
 using LR.Application.Interfaces.Services;
 using LR.Domain.Interfaces;
 
@@ -8,8 +9,6 @@ namespace LR.Application.Services
         where TEntity : class
     {
         private readonly IUnitOfWork _unitOfWork = repository.UoW;
-
-        protected abstract Error NotFoundError();
 
         public virtual TEntity Add(TEntity entity)
         {
@@ -26,7 +25,7 @@ namespace LR.Application.Services
             var entity = await repository.GetByIdAsync(id, ct);
 
             if (entity is null)
-                return Result<TEntity>.Failure(NotFoundError());
+                return Result<TEntity>.Failure(GeneralErrors.NotFound);
 
             return Result<TEntity>.Success(entity);
         }
@@ -39,7 +38,7 @@ namespace LR.Application.Services
         public virtual async Task<Result> RemoveAsync(TKey id, CancellationToken ct = default)
         {
             if (!await repository.RemoveAsync(id, ct))
-                return Result.Failure(NotFoundError());
+                return Result.Failure(GeneralErrors.NotFound);
 
             return Result.Success();
         }

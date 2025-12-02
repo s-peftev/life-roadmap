@@ -10,12 +10,14 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace LR.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     [Authorize]
     public class UserProfileController(
         IErrorResponseFactory errorResponseFactory,
         IAccountService accountService,
         IUserProfileService userProfileService)
-        : BaseApiController
+        : Controller
     {
         [HttpGet("me")]
         [SwaggerOperation("Get user`s profile", "Returns detailed profile information.")]

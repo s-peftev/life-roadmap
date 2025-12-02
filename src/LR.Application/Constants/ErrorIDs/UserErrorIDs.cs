@@ -17,6 +17,5 @@
         // user photo errors
         public const string PhotoUploadFailed = "PhotoUploadFailed";
         public const string PhotoDeletionFailed = "PhotoDeletionFailed";
-        public const string ServiceUnavailable = "ServiceUnavailable";
     }
 }

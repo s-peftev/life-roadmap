@@ -10,12 +10,14 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace LR.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     [Authorize(Policy = Policies.RequireAdministratorRole)]
     public class AdminController(
         IErrorResponseFactory errorResponseFactory,
         IAdminService adminService,
         IUserProfileService userProfileService)
-        : BaseApiController
+        : Controller
     {
         [HttpGet("users")]
         [SwaggerOperation("Get list of users", "Returns all users visible to administrator")]
