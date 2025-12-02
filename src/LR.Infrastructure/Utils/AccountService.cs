@@ -10,17 +10,17 @@ using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
-using LR.Infrastructure.Exceptions.RefreshToken;
-using LR.Infrastructure.Exceptions.User;
 using LR.Infrastructure.Extensions;
 using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace LR.Infrastructure.Utils
 {
     public class AccountService(
+        ILogger<AccountService> logger,
         ITokenService tokenService,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IOptions<FrontendOptions> frontendOptions,
@@ -34,20 +34,45 @@ namespace LR.Infrastructure.Utils
         public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto userRegisterDto, CancellationToken ct = default)
         {
             var userCheck = await EnsureUserIsUniqueAsync(userRegisterDto);
+            
             if (!userCheck.IsSuccess)
                 return Result<AuthResult>.Failure(userCheck.Error);
 
             await userProfileService.BeginTransactionAsync(ct);
 
-            var userResult = await CreateUserAsync(userRegisterDto);
-            var user = userResult.Value;
+            try 
+            {
+                var user = mapper.Map<AppUser>(userRegisterDto);
 
-            await AssignDefaultRoleAsync(user);
-            await CreateProfileAsync(user, userRegisterDto, ct);
+                var createResult = await userManager.CreateAsync(user, userRegisterDto.Password);
+                
+                if (!createResult.Succeeded)
+                    throw new InvalidOperationException("User creation failed");
 
-            await userProfileService.CommitTransactionAsync(ct);
+                var roleResult = await userManager.AddToRoleAsync(user, Role.User.ToString());
 
-            return await AuthenticateUserAsync(user, ct: ct);
+                if (!roleResult.Succeeded)
+                    throw new InvalidOperationException("Assigning default role failed");
+
+                var profile = mapper.Map<UserProfile>(userRegisterDto);
+
+                profile.UserId = user.Id;
+                userProfileService.Add(profile);
+
+                await userProfileService.SaveChangesAsync(ct);
+
+                await userProfileService.CommitTransactionAsync(ct);
+
+                return await AuthenticateUserAsync(user, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "User registration failed");
+
+                await userProfileService.RollbackTransactionAsync(ct);
+
+                return Result<AuthResult>.Failure(GeneralErrors.InternalServerError);
+            }
         }
 
         public async Task<Result<AuthResult>> LoginAsync(UserLoginDto userLoginDto, CancellationToken ct = default)
@@ -79,12 +104,20 @@ namespace LR.Infrastructure.Utils
             {
                 refreshToken.IsRevoked = true;
                 refreshToken.RevokedAtUtc = DateTime.UtcNow;
-                var saveResult = await refreshTokenService.SaveChangesAsync(ct);
 
-                if (!saveResult.IsSuccess)
-                    throw new TokenRevokingException();
+                try
+                {
+                    await refreshTokenService.SaveChangesAsync(ct);
 
-                return await AuthenticateUserAsync(user, refreshToken.SessionId, ct);
+                    return await AuthenticateUserAsync(user, refreshToken.SessionId, ct);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Rotating refresh token failed");
+
+                    refreshToken.IsRevoked = false;
+                    refreshToken.RevokedAtUtc = null;
+                }
             }
 
             var jwtToken = tokenService.GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
@@ -102,7 +135,14 @@ namespace LR.Infrastructure.Utils
             rtResult.Value.IsRevoked = true;
             rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
 
-            await refreshTokenService.SaveChangesAsync(ct);
+            try
+            {
+                await refreshTokenService.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Revoking refresh token failed");
+            }
 
             return Result.Success();
         }
@@ -127,10 +167,19 @@ namespace LR.Infrastructure.Utils
             if (user is null)
                 return Result.Failure(GeneralErrors.NotFound);
 
-            var result = await userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
+            try
+            {
+                var result = await userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
 
-            if (!result.Succeeded)
-                return Result.Failure(UserErrors.EmailConfirmationFailed);
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.EmailConfirmationFailed);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Email confirmation failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
 
             return Result.Success();
         }
@@ -158,15 +207,32 @@ namespace LR.Infrastructure.Utils
             if (user is null)
                 return Result.Failure(GeneralErrors.NotFound);
 
-            var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
+            try
+            {
+                var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
 
-            if (!result.Succeeded)
-                return Result.Failure(UserErrors.PasswordResetFailed);
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.PasswordResetFailed);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Resetting password failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
 
             if (!string.IsNullOrEmpty(user.Email) && !user.EmailConfirmed)
             {
                 user.EmailConfirmed = true;
-                await userManager.UpdateAsync(user);
+
+                try
+                {
+                    await userManager.UpdateAsync(user);
+                }
+                catch(Exception ex)
+                {
+                    logger.LogError(ex, "Email auto confirmation failed");
+                }
             }
 
             return Result.Success();
@@ -188,10 +254,16 @@ namespace LR.Infrastructure.Utils
 
             user.UserName = changeUsernameRequest.UserName;
 
-            var result = await userManager.UpdateAsync(user);
+            try
+            {
+                await userManager.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Changing username failed");
 
-            if (!result.Succeeded)
-                throw new ChangeUsernameException();
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
 
             return Result.Success();
         }
@@ -205,10 +277,19 @@ namespace LR.Infrastructure.Utils
                 return Result.Failure(GeneralErrors.NotFound);
             }
 
-            var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
+            try
+            {
+                var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
 
-            if (!result.Succeeded)
-                return Result.Failure(UserErrors.WrongCurrentPassword);
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.WrongCurrentPassword);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Changing password failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
 
             return Result.Success();
         }
@@ -222,41 +303,6 @@ namespace LR.Infrastructure.Utils
                 return Result.Failure(UserErrors.EmailIsTaken);
 
             return Result.Success();
-        }
-
-        private async Task<Result<AppUser>> CreateUserAsync(UserRegisterDto userRegisterDto)
-        {
-            var user = mapper.Map<AppUser>(userRegisterDto);
-            var result = await userManager.CreateAsync(user, userRegisterDto.Password);
-
-            if (!result.Succeeded)
-                throw new UserRegisterException();
-
-            return Result<AppUser>.Success(user);
-        }
-
-        private async Task<Result> AssignDefaultRoleAsync(AppUser user)
-        {
-            var result = await userManager.AddToRoleAsync(user, Role.User.ToString());
-            
-            if (!result.Succeeded)
-                throw new UserRegisterException();
-
-            return Result.Success();
-        }
-
-        private async Task<Result<UserProfile>> CreateProfileAsync(AppUser user, UserRegisterDto userRegisterDto, CancellationToken ct = default)
-        {
-            var profile = mapper.Map<UserProfile>(userRegisterDto);
-            profile.UserId = user.Id;
-            userProfileService.Add(profile);
-
-            var saveResult = await userProfileService.SaveChangesAsync(ct);
-
-            if (saveResult.Value is 0)
-                throw new UserRegisterException();
-
-            return Result<UserProfile>.Success(profile);
         }
 
         private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default, CancellationToken ct = default)
@@ -275,10 +321,17 @@ namespace LR.Infrastructure.Utils
             var refreshToken = tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
 
             refreshTokenService.Add(refreshToken);
-            var saveResult = await refreshTokenService.SaveChangesAsync(ct);
 
-            if (saveResult.Value is 0)
-                throw new TokenPersistingException();
+            try
+            {
+                await refreshTokenService.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Persisting refresh token failed");
+
+                return Result<AuthResult>.Failure(GeneralErrors.InternalServerError);
+            }
 
             return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
