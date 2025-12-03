@@ -1,8 +1,10 @@
-﻿namespace LR.Domain.Entities.Users
+﻿using LR.Domain.Interfaces;
+
+namespace LR.Domain.Entities.Users
 {
-    public class UserProfile
+    public class UserProfile : IHasTimestamps
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; init; } = Guid.NewGuid();
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public string? ProfilePhotoUrl { get; set; }

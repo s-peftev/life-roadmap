@@ -21,6 +21,7 @@ namespace LR.Infrastructure.Utils
 {
     public class AccountService(
         ILogger<AccountService> logger,
+        IDateTimeProvider dateTimeProvider,
         ITokenService tokenService,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
         IOptions<FrontendOptions> frontendOptions,
@@ -97,13 +98,13 @@ namespace LR.Infrastructure.Utils
 
             if (user is null
                 || refreshToken.IsRevoked
-                || (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
+                || (refreshToken.ExpiresAtUtc < dateTimeProvider.UtcNow))
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
             if (IsTimeToRotateToken(refreshToken))
             {
                 refreshToken.IsRevoked = true;
-                refreshToken.RevokedAtUtc = DateTime.UtcNow;
+                refreshToken.RevokedAtUtc = dateTimeProvider.UtcNow;
 
                 try
                 {
@@ -133,7 +134,7 @@ namespace LR.Infrastructure.Utils
                 return Result.Success();
 
             rtResult.Value.IsRevoked = true;
-            rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
+            rtResult.Value.RevokedAtUtc = dateTimeProvider.UtcNow;
 
             try
             {
@@ -346,7 +347,7 @@ namespace LR.Infrastructure.Utils
         }
 
         private bool IsTimeToRotateToken(RefreshToken refreshToken) =>
-            (refreshToken.ExpiresAtUtc - DateTime.UtcNow)
+            (refreshToken.ExpiresAtUtc - dateTimeProvider.UtcNow)
                 < TimeSpan.FromDays(refreshTokenOptions.Value.RotationThresholdDays);
 
     }

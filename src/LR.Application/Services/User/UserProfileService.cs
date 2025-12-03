@@ -43,7 +43,6 @@ namespace LR.Application.Services.User
 
             userProfile.ProfilePhotoUrl = uploadResult.Value.Url;
             userProfile.ProfilePhotoPublicId = uploadResult.Value.PublicId;
-            userProfile.UpdatedAt = DateTime.UtcNow;
 
             try 
             {
@@ -98,7 +97,6 @@ namespace LR.Application.Services.User
             userProfile.FirstName = request.FirstName;
             userProfile.LastName = request.LastName;
             userProfile.BirthDate = request.BirthDate;
-            userProfile.UpdatedAt = DateTime.UtcNow;
 
             try
             {
@@ -129,7 +127,6 @@ namespace LR.Application.Services.User
 
             userProfile.ProfilePhotoUrl = null;
             userProfile.ProfilePhotoPublicId = null;
-            userProfile.UpdatedAt = DateTime.UtcNow;
 
             try
             {

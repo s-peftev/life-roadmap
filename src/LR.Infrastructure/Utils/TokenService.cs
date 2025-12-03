@@ -16,13 +16,16 @@ namespace LR.Infrastructure.Utils
     {
         private readonly JwtOptions _jwtOptions;
         private readonly SigningCredentials _signingCredentials;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
-        public TokenService(IOptions<JwtOptions> jwtOptions)
+        public TokenService(IOptions<JwtOptions> jwtOptions, IDateTimeProvider dateTimeProvider)
         {
             _jwtOptions = jwtOptions.Value;
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Secret));
             _signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+
+            _dateTimeProvider = dateTimeProvider;
         }
 
         public AccessTokenDto GenerateJwtToken(JwtGenerationDto dto)
@@ -50,7 +53,7 @@ namespace LR.Infrastructure.Utils
 
             claims.AddRange(dto.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);
+            var expires = _dateTimeProvider.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
@@ -80,7 +83,8 @@ namespace LR.Infrastructure.Utils
             return new() 
             {
                 Token = Convert.ToBase64String(randomNumber),
-                ExpiresAtUtc = DateTime.UtcNow.AddDays(dto.ExpirationDays),
+                CreatedAtUtc = _dateTimeProvider.UtcNow,
+                ExpiresAtUtc = _dateTimeProvider.UtcNow.AddDays(dto.ExpirationDays),
                 UserAgent = dto.UserAgent,
                 IpAddress = dto.IpAddress,
                 SessionId = dto.SessionId ?? Guid.NewGuid(),
