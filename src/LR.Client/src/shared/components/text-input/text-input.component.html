@@ -1,0 +1,25 @@
+<div class="h-full relative">
+    <div
+        *ngIf="indicators().length"
+        class="absolute -top-6 left-0 z-10 flex flex-wrap gap-x-4 gap-y-1 text-xs transition-all duration-200"
+        [class.opacity-0]="!shouldShowIndicators"
+        [class.-translate-y-2]="!shouldShowIndicators"
+        [class.opacity-100]="shouldShowIndicators"
+        [class.translate-y-0]="shouldShowIndicators"
+    >
+        <span *ngFor="let indicator of indicators()" class="tooltip tooltip-bottom" [attr.data-tip]="indicator.message$ | async">
+        <img [src]="getIcon(indicator)" class="w-4 h-4" alt="" />
+        </span>
+    </div>
+
+    <input 
+        [type]="type()" 
+        [formControl]="control" 
+         placeholder="{{label()}}" 
+        class="peer block w-full h-full rounded-md border focus:outline-none
+               border-neutral-300 px-3 text-sm placeholder-gray-500
+               focus:border-neutral-400 focus:ring"
+        [class.border-red-500]="control.touched && control.invalid"
+        (focus)="touchedOnce.set(true)"
+    />
+</div>

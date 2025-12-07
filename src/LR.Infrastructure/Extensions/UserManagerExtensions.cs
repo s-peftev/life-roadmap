@@ -6,9 +6,7 @@ namespace LR.Infrastructure.Extensions
 {
     public static class UserManagerExtensions
     {
-        public static async Task<AppUser?> GetByUserNameWithRolesAsync(
-            this UserManager<AppUser> userManager,
-            string userName)
+        public static async Task<AppUser?> GetByUserNameWithRolesAsync(this UserManager<AppUser> userManager, string userName)
         {
             return await userManager.Users
                 .Include(u => u.UserRoles)
@@ -16,9 +14,7 @@ namespace LR.Infrastructure.Extensions
                 .FirstOrDefaultAsync(u => u.UserName == userName);
         }
 
-        public static async Task<AppUser?> GetByIdWithRolesAsync(
-            this UserManager<AppUser> userManager,
-            string id)
+        public static async Task<AppUser?> GetByIdWithRolesAsync(this UserManager<AppUser> userManager, string id)
         {
             return await userManager.Users
                 .Include(u => u.UserRoles)

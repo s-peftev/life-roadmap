@@ -1,0 +1,5 @@
+<div *ngIf="control().errors" class="text-xs text-red-500 mt-1">
+      <div *ngFor="let err of control().errors | keyvalue">
+        {{ err.value }}
+      </div>
+    </div>

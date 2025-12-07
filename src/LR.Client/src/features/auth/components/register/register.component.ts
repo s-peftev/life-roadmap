@@ -1,0 +1,105 @@
+import { Component, inject } from '@angular/core';
+import { ASSETS } from '../../../../core/constants/assets.constants';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { TextInputComponent } from "../../../../shared/components/text-input/text-input.component";
+import { ValidationIndicator } from '../../../../core/types/utils/validation.type';
+import { USER_AUTH } from '../../../../core/constants/validation.constants';
+import { digitValidator, lowercaseValidator, matchToFieldValue, minLengthInstant, uppercaseValidator } from '../../../../shared/validators/string-pattern.validator';
+import { ValidationIndicatorService } from '../../../../core/services/utils/validation-indicator.service';
+import { RegisterRequest } from '../../../../models/auth/register-request.model';
+import { AuthStore } from '../../store/auth.store';
+import { TranslatePipe } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-register',
+  imports: [
+    TextInputComponent,
+    ReactiveFormsModule,
+    TranslatePipe
+  ],
+  templateUrl: './register.component.html'
+})
+export class RegisterComponent {
+  private authStore = inject(AuthStore);
+  private fb = inject(FormBuilder);
+  private validationIndicatorService = inject(ValidationIndicatorService);
+
+  protected registerForm: FormGroup = new FormGroup({});
+
+  public registerImage = ASSETS.IMAGES.ILLUSTRATIONS.REGISTER;
+  public validationIcons = ASSETS.IMAGES.ICONS.VALIDATION;
+  public validationIndicators: Record<string, ValidationIndicator[]> = {};
+
+  constructor() {
+    this.initForm();
+    this.initIndicators();
+  }
+
+  private initForm(): void {
+    this.registerForm = this.fb.group({
+      userName: ['', [
+        Validators.required,
+        minLengthInstant(USER_AUTH.USERNAME_MIN_LENGTH),
+        Validators.maxLength(USER_AUTH.USERNAME_MAX_LENGTH)
+      ]],
+      password: ['', [
+        Validators.required,
+        minLengthInstant(USER_AUTH.PASSWORD_MIN_LENGTH),
+        Validators.maxLength(USER_AUTH.PASSWORD_MAX_LENGTH),
+        digitValidator,
+        lowercaseValidator,
+        uppercaseValidator
+      ]],
+      confirmPassword: ['', [
+        Validators.required,
+        matchToFieldValue('password')
+      ]],
+      firstName: ['', [Validators.maxLength(USER_AUTH.NAME_MAX_LENGTH)]],
+      lastName: ['', [Validators.maxLength(USER_AUTH.NAME_MAX_LENGTH)]],
+      email: ['', [Validators.email]]
+    });
+
+    this.registerForm.controls['password'].valueChanges.subscribe({
+      next: () => this.registerForm.controls['confirmPassword'].updateValueAndValidity()
+    });
+  }
+
+  private initIndicators(): void {
+    this.validationIndicators = {
+      userName: this.validationIndicatorService.getIndicators([
+        { indicator: 'required' },
+        { indicator: 'minlength', param: USER_AUTH.USERNAME_MIN_LENGTH },
+        { indicator: 'maxlength', param: USER_AUTH.USERNAME_MAX_LENGTH }
+      ]),
+      password: this.validationIndicatorService.getIndicators([
+        { indicator: 'required' }, 
+        { indicator: 'minlength', param: USER_AUTH.PASSWORD_MIN_LENGTH },
+        { indicator: 'maxlength', param: USER_AUTH.PASSWORD_MAX_LENGTH },
+        { indicator: 'lowercase' },
+        { indicator: 'uppercase' },
+        { indicator: 'digit' }
+      ]),
+      confirmPassword: this.validationIndicatorService.getIndicators([
+        { indicator: 'required' }, 
+        { indicator: 'passwordMismatching' }
+      ]),
+      firstName: this.validationIndicatorService.getIndicators([
+        { indicator: 'maxlength', param: USER_AUTH.NAME_MAX_LENGTH }
+      ]),
+      lastName:  this.validationIndicatorService.getIndicators([
+        { indicator: 'maxlength', param: USER_AUTH.NAME_MAX_LENGTH }
+      ]),
+      email: this.validationIndicatorService.getIndicators([
+        { indicator: 'email' }
+      ]),
+    };
+  }
+
+  public register() {
+    if (this.registerForm.invalid) return;
+
+    const request: RegisterRequest = this.registerForm.value;
+
+    this.authStore.register(request);
+  };
+}

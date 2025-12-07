@@ -1,0 +1,45 @@
+@if(isBusy()) {
+  <app-busy />
+}
+<div class="p-4">
+  <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2 text-left">{{ 'common.photo' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.username' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.email' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.email_confirmed' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.first_name' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.last_name' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.birth_date' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.roles' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.created' | translate }}</th>
+        <th class="px-4 py-2 text-left">{{ 'common.last_active' | translate }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of adminStore.userList()" class="border-t border-gray-200">
+        <td class="px-4 py-2 flex flex-row gap-1">
+            <img 
+                [src]="user.profilePhotoUrl ? user.profilePhotoUrl : icons.PROFILE.DEFAULT_AVATAR" 
+                alt="avatar" 
+                class="w-16 h-16 rounded-full mr-1" 
+            />
+            @if(user.profilePhotoUrl) {
+              <button (click)="deleteUserPhoto(user.id)"
+                class="cursor-pointer font-bold text-red-600" title="Delete photo">✕</button>
+            } 
+        </td>
+        <td class="px-4 py-2">{{ user.userName }}</td>
+        <td class="px-4 py-2">{{ user.email }}</td>
+        <td class="px-4 py-2">{{ user.isEmailConfirmed }}</td>
+        <td class="px-4 py-2">{{ user.firstName }}</td>
+        <td class="px-4 py-2">{{ user.lastName }}</td>
+        <td class="px-4 py-2">{{ user.birthDate | date }}</td>
+        <td class="px-4 py-2">{{ getRolesString(user) }}</td>
+        <td class="px-4 py-2">{{ user.createdAt | date }}</td>
+        <td class="px-4 py-2">{{ user.lastActive | date }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

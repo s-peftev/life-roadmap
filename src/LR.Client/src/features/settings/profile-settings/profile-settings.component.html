@@ -1,0 +1,196 @@
+@if(profileStore.isBusy()){
+    <app-busy />
+}
+<div class="flex flex-col gap-3">
+    <div>
+        <h2 class="text-lg font-bold p-2 mb-4 border-b-gray-200 border-b-2">
+            {{ 'common.profile' | translate }}
+        </h2>
+    </div>
+    <div class="flex flex-col">
+        <h3 class="text-sm font-bold p-2">
+            {{ 'common.photo' | translate }}
+        </h3>
+
+        <div class="flex items-center gap-2">
+            <img 
+                [src]="profileStore.hasProfilePhoto() ? profileStore.profilePhotoUrl() : icons.PROFILE.DEFAULT_AVATAR" 
+                alt="avatar" 
+                class="w-22 h-22 rounded-full mr-1" 
+            />
+
+            <div class="flex flex-col gap-2">
+                <div class="flex flex-row gap-2">
+                    <label 
+                        for="fileInput" 
+                        class="px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
+                            hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
+                        {{ (profileStore.hasProfilePhoto()
+                            ? 'profile_settings.change_photo'
+                            : 'profile_settings.upload_photo') | translate }}
+                    </label>
+                    <input type="file" id="fileInput" (change)="uploadProfilePhoto($event)" hidden accept=".png, .jpg, .jpeg" />
+
+                    @if(profileStore.hasProfilePhoto()) {
+                        <a (click)="deleteProfilePhoto()"
+                            class="px-4 py-1 rounded-md border-2 border-red-500 flex items-center font-semibold text-red-500 text-sm cursor-pointer
+                            hover:text-red-700 hover:border-red-700 active:scale-95 transition duration-150 select-none">
+                            {{ 'profile_settings.remove_photo' | translate }}
+                        </a>
+                    }
+
+                </div>
+
+                <p class="text-xs text-gray-600">
+                    {{ 'profile_settings.pick_photo_hint' | translate:{ size: maxAvatarSize } }}
+                </p>
+
+                <app-base-validation-messages [control]="fileControl" />
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col">
+        <h3 class="text-sm font-bold p-2">
+            {{ 'common.username' | translate }}
+        </h3>
+
+        @if(!usernameEditMode()) {
+            <p class="text-sm p-2 font-semibold mt-5 mx-2 mb-2">
+                {{ profileStore.userName() }}
+            </p>
+
+            <a (click)="toggleUsernameEdit()"
+                class="w-fit px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer
+                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                {{ 'profile_settings.change_username' | translate }}
+            </a>
+        } @else {
+            <div class="max-w-xs w-full h-8 mt-5 mx-2 mb-3">
+                <app-text-input class="h-full"
+                    [formControl]="usernameControl"
+                    [label]="'common.username' | translate"
+                    [indicators]="validationIndicators['userName']"
+                />
+            </div>
+            
+
+            <a (click)="changeUserName()"
+                class="w-fit px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer
+                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                {{ 'profile_settings.save_username' | translate }}
+            </a>
+
+        }
+
+
+
+    </div>
+
+    <form [formGroup]="personalForm" (ngSubmit)="changePersonalInfo()" autocomplete="off" class="flex flex-col">
+        <h3 class="text-sm font-bold p-2">
+            {{ 'profile_settings.personal' | translate }}
+        </h3>
+
+        <app-profile-field
+            [label]="'common.first_name' | translate"
+            [value]="profileStore.firstName()"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['firstName'])"
+            [indicators]="validationIndicators['firstName']"
+            type="text"
+        />
+
+        <app-profile-field
+            class="mt-6"
+            [label]="'common.last_name' | translate"
+            [value]="profileStore.lastName()"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['lastName'])"
+            [indicators]="validationIndicators['lastName']"
+            type="text"
+        />
+
+        <app-profile-field
+            class="mt-6"
+            [label]="'common.birth_date' | translate"
+            [value]="profileStore.birthDate() | date"
+            [editMode]="personalEditMode()"
+            [control]="$any(personalForm.controls['birthDate'])"
+            type="date"
+        />
+
+        @if(!personalEditMode()) {
+            <a (click)="togglePersonalEdit()"
+                class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer 
+                hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                {{ 'profile_settings.change_personal' | translate }}
+            </a>
+        } @else {
+            <div class="flex flex-row gap-2 items-center">
+                <button type="submit"
+                    class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm cursor-pointer 
+                    hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none">
+                    {{ 'profile_settings.save_personal' | translate }}
+                </button>
+
+                <app-base-validation-messages [control]="$any(personalForm.controls['birthDate'])" />
+            </div>
+            
+        }
+
+    </form>
+
+    <div class="flex flex-col">
+        <h3 class="text-sm font-bold p-2">
+            {{ 'common.email' | translate }}
+        </h3>
+
+        <p class="text-sm p-2 font-semibold">
+            @if(profileStore.email()) {
+                {{ profileStore.email() }}
+            } @else {
+                {{ 'profile_settings.email_not_provided' | translate }}
+            }
+            
+        </p>
+
+        <div class="flex flex-row gap-2">
+            @if (!profileStore.email()) {
+                <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-gray-600 text-sm cursor-pointer
+                    hover:bg-gray-200 hover:text-gray-700 active:scale-95 transition duration-150 select-none">
+                    {{ 'profile_settings.provide_email' | translate }}
+                </a>
+            }
+            @if(profileStore.email() && !profileStore.isEmailConfirmed()) {
+                <a class="w-fit px-4 py-1 rounded-sm flex items-center font-semibold text-orange-400 text-sm cursor-pointer border-2 border-orange-400
+                    hover:border-orange-500 hover:text-orange-500 active:scale-95 transition duration-150 select-none">
+                    {{ 'profile_settings.verify_email' | translate }}
+                </a>
+            }
+        </div>
+
+    </div>
+
+    <div class="flex flex-col">
+        <h3 class="text-sm font-bold p-2">
+            {{ 'common.password' | translate }}
+        </h3>
+
+        <div class="relative group w-fit">
+            <button (click)="openChangePasswordTab()"
+                [disabled]="!profileStore.email()"
+                class="w-fit mt-2 px-4 py-1 rounded-md border-2 border-gray-500 flex items-center font-semibold text-gray-500 text-sm 
+                    hover:text-gray-700 hover:border-gray-700 active:scale-95 transition duration-150 select-none cursor-pointer"
+            >
+                {{ 'profile_settings.reset_password' | translate }}
+            </button>
+        </div>
+    </div>
+
+    @if(profileStore.error()) {
+        <div class="text-red-600 bg-red-100 border border-red-300 rounded-lg p-2 text-sm">
+            {{ profileStore.error()?.description }}
+        </div>
+    }
+</div>

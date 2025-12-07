@@ -1,0 +1,33 @@
+<div class="flex flex-row gap-2">
+  <p class="text-sm p-2">
+    {{ label() }}:
+  </p>
+
+  @if(!editMode()) {
+    <p class="text-sm py-2 mx-3 font-semibold">
+      @if(value()) {
+        {{ value() }}
+      } @else {
+        {{ 'common.not_provided' | translate }}
+      }
+    </p>
+  } @else {
+    <div class="max-w-xs w-full h-8">
+      @if(type() === 'text') {
+        <app-text-input
+          class="h-full"
+          [formControl]="control()"
+          [label]="label()"
+          [indicators]="indicators()!"
+        />
+      } @else if(type() === 'date') {
+        <input
+          type="date"
+          [formControl]="control()"
+          class="block w-full h-full rounded-md border border-gray-300 px-3 text-sm
+                 focus:border-blue-500 focus:ring focus:ring-blue-200"
+        />
+      }
+    </div>
+  }
+</div>

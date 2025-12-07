@@ -1,0 +1,74 @@
+<div class="flex items-center gap-6">
+    <div class="flex-1">
+        <form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off" class="flex flex-col gap-4">
+
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['userName'])"
+              [label]="'common.username' | translate"
+              [indicators]="validationIndicators['userName']"
+            />
+          </div>
+
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['password'])"
+              [label]="'common.password' | translate"
+              [type]="'password'"
+              [indicators]="validationIndicators['password']"
+            />
+          </div>
+
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['confirmPassword'])"
+              [label]="'common.confirm_password' | translate"
+              [type]="'password'"
+              [indicators]="validationIndicators['confirmPassword']"
+            />
+          </div>
+      
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['firstName'])"
+              [label]="'common.first_name' | translate"
+              [indicators]="validationIndicators['firstName']"
+              [showIndicatorsIfNotEmpty]="true"
+            />
+          </div>
+
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['lastName'])"
+              [label]="'common.last_name' | translate"
+              [indicators]="validationIndicators['lastName']"
+              [showIndicatorsIfNotEmpty]="true"
+            />
+          </div>
+
+          <div class="w-full h-14 mb-4">
+            <app-text-input class="h-full"
+              [formControl]="$any(registerForm.controls['email'])"
+              [label]="'common.email' | translate"
+              [type]="'email'"
+              [indicators]="validationIndicators['email']"
+              [showIndicatorsIfNotEmpty]="true"
+            /> 
+          </div>
+
+          <button 
+            type="submit" 
+            [disabled]="registerForm.invalid"
+            class="bg-orange-600 text-white px-4 py-2 rounded-xl text-lg font-bold 
+            hover:bg-orange-700 transition-colors disabled:opacity-50 
+            cursor-pointer disabled:cursor-not-allowed"
+          >
+            {{ 'common.sign_up' | translate }}
+          </button>
+          
+      </form>
+    </div>
+    <div class="flex-1">
+      <img [src]="[registerImage]" alt="Register Illustration" class="w-full h-auto">
+    </div>
+</div>

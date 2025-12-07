@@ -51,7 +51,7 @@ namespace LR.Persistance.Repositories
 
         public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)
         {
-            return await _dbSet.FindAsync(id, ct);
+            return await _dbSet.FindAsync([id], cancellationToken: ct);
         }
 
         public virtual async Task<int> SaveChangesAsync(CancellationToken ct = default)

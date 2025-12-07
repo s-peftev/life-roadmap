@@ -1,0 +1,70 @@
+<div class="relative">
+
+    <div (click)="toggleSidebar()"
+        class="z-50 absolute top-6 transition-all duration-300 ease-in-out p-1 cursor-pointer hover:bg-gray-100"
+        [class.left-55]="isSidebarOpen" [class.left-2]="!isSidebarOpen">
+        <img [src]="icons.SIDEBAR.SIDEBAR_TOGGLE" class="w-6 h-6" />
+    </div>
+
+    <div class="bg-orange-50 h-screen flex flex-col transform transition-transform duration-300 ease-in-out"
+        [class.-translate-x-full]="!isSidebarOpen" [class.translate-x-0]="isSidebarOpen" style="width: 16rem;">
+        <!-- User -->
+        <div class="flex items-center gap-2 p-4">
+            <div class="dropdown dropdown-start">
+                <div tabindex="0"
+                    class="m-1 flex items-center gap-2 cursor-pointer rounded px-2 py-1 hover:bg-gray-100 focus:outline-none">
+                    <img 
+                        [src]="profileStore.hasProfilePhoto() ? profileStore.profilePhotoUrl() : icons.PROFILE.DEFAULT_AVATAR" 
+                        alt="avatar" 
+                        class="w-8 h-8 rounded-full mr-1" 
+                    />
+                    <span class="font-medium">{{profileStore.userName()}}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 w-52 space-y-1 rounded-2xl">
+                    <li class="pt-3 pb-3 border-b border-b-gray-200">
+                        <div (click)="openSettingsPage()"
+                            class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
+                            <img [src]="icons.PROFILE.SETTINGS" alt="settings" class="w-5 h-5 flex-none" />
+                            <span  class="ml-2">{{ 'common.settings' | translate }}</span>
+                        </div>
+                    </li>
+                    <li class="pt-3 pb-3 mb-8 border-b border-b-gray-200">
+                        <div (click)="logout()"
+                            class="flex items-center gap-2 px-2 py-1 hover:bg-gray-100 !bg-transparent cursor-pointer">
+                            <img [src]="icons.PROFILE.LOGOUT" alt="log out" class="w-5 h-5 flex-none" />
+                            <span class="ml-2">{{ 'common.log_out' | translate }}</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Actions -->
+        <nav class="flex-1 text-sm p-2 mt-10">
+            <ul class="space-y-1">
+                <li >
+                    <a [routerLink]="routes.FINANCES" routerLinkActive="bg-orange-200 hover:bg-orange-200"
+                    class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
+                    <img [src]="icons.SIDEBAR.FINANCES" alt="dashboard" class="w-7 h-7 flex-none" />
+                    <span class="ml-2">{{ 'sidebar.finances' | translate }}</span>
+                    </a>
+                </li>
+
+                @if(authStore.isAdmin()) {
+                    <li>
+                        <a [routerLink]="routes.ADMIN.DASHBOARD" routerLinkActive="bg-orange-200 hover:bg-orange-200"
+                        class="flex items-center gap-2 w-full px-4 py-2 hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer rounded-md">
+                        <img [src]="icons.SIDEBAR.ADMIN" alt="statistics" class="w-7 h-7 flex-none" />
+                        <span class="ml-2">{{ 'sidebar.admin_dashboard' | translate }}</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>

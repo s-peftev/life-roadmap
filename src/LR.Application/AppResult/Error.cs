@@ -6,5 +6,6 @@ namespace LR.Application.AppResult
         string Id,
         ErrorType Type,
         string Description,
-        IEnumerable<string>? Details = null);
+        IEnumerable<string>? Details = null
+    );
 }

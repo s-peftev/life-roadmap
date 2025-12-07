@@ -7,9 +7,16 @@ using Microsoft.EntityFrameworkCore;
 namespace LR.Persistance
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) 
-        : IdentityDbContext<AppUser, AppRole, string,
-            IdentityUserClaim<string>, AppUserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, 
-            IdentityUserToken<string>>(options)
+        : IdentityDbContext<
+            AppUser,
+            AppRole,
+            string,
+            IdentityUserClaim<string>,
+            AppUserRole,
+            IdentityUserLogin<string>,
+            IdentityRoleClaim<string>, 
+            IdentityUserToken<string>
+        >(options)
     {
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -36,14 +43,16 @@ namespace LR.Persistance
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            builder.Entity<AppUser>()
+            builder
+                .Entity<AppUser>()
                 .HasMany(u => u.UserRoles)
                 .WithOne(ur => ur.User)
                 .HasForeignKey(ur => ur.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<AppRole>()
+            builder
+                .Entity<AppRole>()
                 .HasMany(u => u.UserRoles)
                 .WithOne(ur => ur.Role)
                 .HasForeignKey(ur => ur.RoleId)

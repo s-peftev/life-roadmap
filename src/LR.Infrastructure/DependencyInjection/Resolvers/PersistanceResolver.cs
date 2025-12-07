@@ -1,5 +1,6 @@
 ﻿using LR.Domain.Interfaces;
 using LR.Domain.Interfaces.Repositories;
+using LR.Infrastructure.EF.Interceptors;
 using LR.Persistance;
 using LR.Persistance.Repositories;
 using LR.Persistance.Repositories.Users;
@@ -12,8 +13,13 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
     {
         internal static void AddPersistance(IServiceCollection services, string connectionString)
         {
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
+            services.AddDbContext<AppDbContext>((provider, options) =>
+            {
+                var interceptor = provider.GetRequiredService<TimestampInterceptor>();
+                options
+                    .UseSqlServer(connectionString)
+                    .AddInterceptors(interceptor);
+            });
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

@@ -7,10 +7,9 @@ namespace LR.Infrastructure.Utils
     public class RequestInfoService(IHttpContextAccessor httpContextAccessor) 
         : IRequestInfoService
     {
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         public string? GetIpAddress()
         {
-            var context = _httpContextAccessor.HttpContext;
+            var context = httpContextAccessor.HttpContext;
             if (context is null) 
                 return null;
 
@@ -23,7 +22,7 @@ namespace LR.Infrastructure.Utils
 
         public string? GetUserAgent()
         {
-            var context = _httpContextAccessor.HttpContext;
+            var context = httpContextAccessor.HttpContext;
             if (context is null)
                 return null;
 

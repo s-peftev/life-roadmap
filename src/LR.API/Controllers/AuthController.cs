@@ -1,148 +1,197 @@
 ﻿using AutoMapper;
-using FluentValidation;
-using LR.Application.AppResult.Errors;
+using LR.Application.AppResult.Errors.User;
+using LR.Application.DTOs.Token;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Application.Responses;
-using LR.Application.Responses.User;
 using LR.Infrastructure.Constants;
-using LR.Infrastructure.Options;
+using LR.Infrastructure.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace LR.API.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthController(
+        IErrorResponseFactory errorResponseFactory,
         IAccountService accountService,
         IMapper mapper,
-        IOptions<JwtOptions> jwtOptions,
-        IOptions<RefreshTokenOptions> refreshTokenOptions,
-        IValidator<UserRegisterRequest> registerValidator,
-        IValidator<UserLoginRequest> loginValidator,
         IRefreshTokenCookieWriter refreshTokenCookieWriter
-        ) : BaseApiController
+        ) : Controller
     {
-        private readonly IAccountService _accountService = accountService;
-        private readonly IMapper _mapper = mapper;
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-        private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
-        private readonly IValidator<UserRegisterRequest> _registerValidator = registerValidator;
-        private readonly IValidator<UserLoginRequest> _loginValidator = loginValidator;
-        private readonly IRefreshTokenCookieWriter _refreshTokenCookieWriter = refreshTokenCookieWriter;
-
         [HttpPost("register")]
-        [SwaggerOperation(Summary = "Register new user",
-            Description = "Creates a new user account and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, Type = typeof(ApiResponse<AuthResponse>),
-            Description = "User registered successfully")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, Type = typeof(ApiResponse<object>),
-            Description = "Validation errors or registration failed")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, Type = typeof(ApiResponse<object>),
-            Description = "User with given username or email already exists")]
-        public async Task<IActionResult> Register(
-            [FromBody] UserRegisterRequest request,
-            CancellationToken ct)
+        [SwaggerOperation("Register new user", "Creates a new user account and returns tokens")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "User has been registered",                            typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors or registration failed",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict,   "User with given username or email is already exists", typeof(ApiResponse<object>))]
+        public async Task<IActionResult> Register([FromBody] UserRegisterRequest request, CancellationToken ct)
         {
-            var validationResult = await _registerValidator.ValidateAsync(request, ct);
-            if (!validationResult.IsValid)
-            {
-                return HandleFailure(UserErrors.InvalidRegisterRequest
-                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
-            }
+            var result = await accountService.RegisterAsync(mapper.Map<UserRegisterDto>(request), ct);
 
-            var registerResult = await _accountService
-                .RegisterAsync(_mapper.Map<UserRegisterDto>(request));
-
-            return registerResult.Match(
+            return result.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
-                error => HandleFailure(error));
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
         }
 
         [HttpPost("login")]
-        [SwaggerOperation(Summary = "Login user", Description = "Authenticates and returns tokens")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Login successful", typeof(ApiResponse<AuthResponse>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Validation errors")]
-        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password")]
-        public async Task<IActionResult> Login(
-            [FromBody] UserLoginRequest request,
-            CancellationToken ct)
+        [SwaggerOperation("Login user", "Authenticates and returns tokens")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,           "Login successful",             typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest,   "Validation errors",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid username or password", typeof(ApiResponse<object>))]
+        public async Task<IActionResult> Login([FromBody] UserLoginRequest request, CancellationToken ct)
         {
-            var validationResult = await _loginValidator.ValidateAsync(request, ct);
-            if (!validationResult.IsValid)
-            {
-                return HandleFailure(UserErrors.InvalidLoginRequest
-                    with { Details = validationResult.Errors.Select(e => e.ErrorMessage) });
-            }
+            var result = await accountService.LoginAsync(mapper.Map<UserLoginDto>(request), ct);
 
-            var loginResult = await _accountService
-                .LoginAsync(_mapper.Map<UserLoginDto>(request));
-
-            return loginResult.Match(
+            return result.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
-                error => HandleFailure(error));
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
         }
 
         [HttpPost("refresh")]
-        [SwaggerOperation(Summary = "Refresh tokens", Description = "Generates new JWT and Refresh token")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Tokens successfully updated", typeof(ApiResponse<AuthResponse>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
-        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token")]
-        public async Task<IActionResult> Refresh()
+        [SwaggerOperation("Refresh user`s tokens", "Refreshes the JWT token and rotates refresh token as needed")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,           "Tokens has been updated",             typeof(ApiResponse<AccessTokenDto>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest,   "Refresh token is missing",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid or expired refresh token",    typeof(ApiResponse<object>))]
+        public async Task<IActionResult> Refresh(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
             if (string.IsNullOrEmpty(refreshTokenValue))
-                return HandleFailure(RefreshTokenErrors.TokenMissing);
+                return errorResponseFactory.CreateErrorResponse(RefreshTokenErrors.TokenMissing);
 
-            var tokenPairResult = await _accountService.RefreshToken(refreshTokenValue);
+            var result = await accountService.RefreshToken(refreshTokenValue, ct);
             
-            return tokenPairResult.Match(
+            return result.Match(
                 data =>
                 {
-                    _refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
+                    refreshTokenCookieWriter.Set(data.RefreshToken.Token, data.RefreshToken.ExpiresAtUtc);
 
-                    return Ok(ApiResponse<AuthResponse>.Ok(data.AuthResponse));
+                    return Ok(ApiResponse<AccessTokenDto>.Ok(data.AccessToken));
                 },
-                error => HandleFailure(error)
+                error => 
+                {
+                    refreshTokenCookieWriter.Delete();
+
+                    return errorResponseFactory.CreateErrorResponse(error);
+                }
             );
         }
 
         [HttpPost("logout")]
-        [SwaggerOperation(Summary = "Logout user", Description = "Revokes refresh token and clears auth cookie")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Logout successful", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token missing")]
-        public async Task<IActionResult> Logout()
+        [SwaggerOperation("Logout user", "Revokes refresh token and clears auth cookie")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Logout successful",        typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Refresh token is missing", typeof(ApiResponse<object>))]
+        public async Task<IActionResult> Logout(CancellationToken ct)
         {
             var refreshTokenValue = Request.Cookies[CookieNames.RefreshToken];
 
             if(string.IsNullOrEmpty(refreshTokenValue))
-                return HandleFailure(RefreshTokenErrors.TokenMissing);
+                return errorResponseFactory.CreateErrorResponse(RefreshTokenErrors.TokenMissing);
 
-            var result = await _accountService.LogoutAsync(refreshTokenValue);
+            var result = await accountService.LogoutAsync(refreshTokenValue, ct);
 
-            _refreshTokenCookieWriter.Delete();
+            refreshTokenCookieWriter.Delete();
 
             return result.Match(
-                    () =>
-                    {
-                        _refreshTokenCookieWriter.Delete();
+                () => Ok(ApiResponse<object>.Ok()),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
+        }
 
-                        return Ok(ApiResponse<object>.Ok());
-                    },
-                    error => HandleFailure(error)
-                );
+        [HttpPost("email/verification-code")]
+        [SwaggerOperation("Send email verification code", "Generates and sends a new email verification code for user confirmation.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Verification code has been generated",           typeof(ApiResponse<string>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for email confirmation code is invalid", typeof(ApiResponse<string>))]
+        public async Task<IActionResult> SendEmailVerificationCode([FromBody] EmailCodeRequest request)
+        {
+            var result = await accountService.GenerateEmailConfirmationCodeAsync(request);
+
+            return result.Match(
+                data => Ok(ApiResponse<string>.Ok(data)),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            ); 
+        }
+
+        [HttpPost("email/verification")]
+        [SwaggerOperation("Confirm user email", "Confirms user's email using the verification code.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Email has been confirmed",     typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Email confirmation failed",    typeof(ApiResponse<object>))]
+        public async Task<IActionResult> ConfirmEmail([FromBody] EmailConfirmationRequest request)
+        {
+            var result = await accountService.ConfirmEmailAsync(request);
+
+            return result.Match(
+                () => Ok(ApiResponse<object>.Ok()),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
+        }
+
+        [Authorize]
+        [HttpPatch("password")]
+        [SwaggerOperation("Reset user`s password", "Sets a new password for authenticated user if correct current password is provided.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password has been changed.",                                            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Reset password request is invalid or wrong current password provided.", typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound,   "User not found.",                                                       typeof(ApiResponse<object>))]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var result = await accountService.ChangePasswordAsync(request, User.GetAppUserId());
+
+            return result.Match(
+                () => Ok(ApiResponse<object>.Ok()),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
+        }
+
+        [HttpPost("password/reset-request")]
+        [SwaggerOperation("Send password reset token", "Generates and sends a new password reset token for user confirmation.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password reset token generated",              typeof(ApiResponse<string>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Request for password reset token is invalid", typeof(ApiResponse<string>))]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            var result = await accountService.GeneratePasswordResetTokenAsync(request);
+
+            return result.Match(
+                data => Ok(ApiResponse<string>.Ok(data)),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
+        }
+
+        [HttpPost("password/reset")]
+        [SwaggerOperation("Reset user password", "Resets user's password using the reset token.")]
+
+        [SwaggerResponse(StatusCodes.Status200OK,         "Password has been reset",         typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Password reset failed",           typeof(ApiResponse<object>))]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        { 
+            var result = await accountService.ResetPasswordAsync(request);
+
+            return result.Match(
+                () => Ok(ApiResponse<object>.Ok()),
+                error => errorResponseFactory.CreateErrorResponse(error)
+            );
         }
     }
 }

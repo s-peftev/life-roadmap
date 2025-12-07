@@ -1,28 +1,30 @@
 ﻿using AutoMapper;
+using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
+using LR.Application.AppResult.Errors.User;
+using LR.Application.AppResult.ResultData.Account;
+using LR.Application.DTOs.Token;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
-using LR.Application.AppResult;
-using LR.Application.AppResult.Errors;
+using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Enums;
-using LR.Infrastructure.Exceptions.RefreshToken;
 using LR.Infrastructure.Extensions;
 using LR.Infrastructure.Options;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using LR.Application.DTOs.Token;
-using LR.Application.AppResult.ResultData.Account;
-using LR.Application.Responses.User;
-using LR.Infrastructure.Exceptions.User;
 
 namespace LR.Infrastructure.Utils
 {
     public class AccountService(
+        ILogger<AccountService> logger,
+        IDateTimeProvider dateTimeProvider,
         ITokenService tokenService,
-        IOptions<JwtOptions> jwtOptions,
         IOptions<RefreshTokenOptions> refreshTokenOptions,
+        IOptions<FrontendOptions> frontendOptions,
         IMapper mapper,
         IUserProfileService userProfileService,
         IRefreshTokenService refreshTokenService,
@@ -30,166 +32,323 @@ namespace LR.Infrastructure.Utils
         UserManager<AppUser> userManager
         ) : IAccountService
     {
-        private readonly ITokenService _tokenService = tokenService;
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value;
-        private readonly RefreshTokenOptions _refreshTokenOptions = refreshTokenOptions.Value;
-        private readonly IMapper _mapper = mapper;
-        private readonly UserManager<AppUser> _userManager = userManager;
-        private readonly IUserProfileService _userProfileService = userProfileService;
-        private readonly IRefreshTokenService _refreshTokenService = refreshTokenService;
-        private readonly IRequestInfoService _requestInfoService = requestInfoService;
-
-        public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto dto)
+        public async Task<Result<AuthResult>> RegisterAsync(UserRegisterDto userRegisterDto, CancellationToken ct = default)
         {
-            var userCheck = await EnsureUserIsUniqueAsync(dto);
+            var userCheck = await EnsureUserIsUniqueAsync(userRegisterDto);
+            
             if (!userCheck.IsSuccess)
                 return Result<AuthResult>.Failure(userCheck.Error);
 
-            await _userProfileService.BeginTransactionAsync();
+            await userProfileService.BeginTransactionAsync(ct);
 
-            var userResult = await CreateUserAsync(dto);
-            var user = userResult.Value;
+            try 
+            {
+                var user = mapper.Map<AppUser>(userRegisterDto);
 
-            await AssignDefaultRoleAsync(user);
-            await CreateProfileAsync(user, dto);
+                var createResult = await userManager.CreateAsync(user, userRegisterDto.Password);
+                
+                if (!createResult.Succeeded)
+                    throw new InvalidOperationException("User creation failed");
 
-            await _userProfileService.CommitTransactionAsync();
+                var roleResult = await userManager.AddToRoleAsync(user, Role.User.ToString());
 
-            return await AuthenticateUserAsync(user);
+                if (!roleResult.Succeeded)
+                    throw new InvalidOperationException("Assigning default role failed");
+
+                var profile = mapper.Map<UserProfile>(userRegisterDto);
+
+                profile.UserId = user.Id;
+                userProfileService.Add(profile);
+
+                await userProfileService.SaveChangesAsync(ct);
+
+                await userProfileService.CommitTransactionAsync(ct);
+
+                return await AuthenticateUserAsync(user, ct: ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "User registration failed");
+
+                await userProfileService.RollbackTransactionAsync(ct);
+
+                return Result<AuthResult>.Failure(GeneralErrors.InternalServerError);
+            }
         }
 
-        public async Task<Result<AuthResult>> LoginAsync(UserLoginDto dto)
+        public async Task<Result<AuthResult>> LoginAsync(UserLoginDto userLoginDto, CancellationToken ct = default)
         {
-            var user = await _userManager.GetByUserNameWithRolesAsync(dto.UserName);
+            var user = await userManager.GetByUserNameWithRolesAsync(userLoginDto.UserName);
 
-            if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
+            if (user is null || !await userManager.CheckPasswordAsync(user, userLoginDto.Password))
                 return Result<AuthResult>.Failure(UserErrors.LoginFailed);
 
-            return await AuthenticateUserAsync(user);
+            return await AuthenticateUserAsync(user, ct: ct);
         }
 
-        public async Task<Result<AuthResult>> RefreshToken(string refreshTokenValue)
+        public async Task<Result<AuthResult>> RefreshToken(string refreshTokenValue, CancellationToken ct = default)
         {
-            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
+            var rtResult = await refreshTokenService.GetByTokenValueAsync(refreshTokenValue, ct);
+
             if (!rtResult.IsSuccess)
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
             var refreshToken = rtResult.Value;
-            var user = await _userManager.GetByIdWithRolesAsync(refreshToken.UserId);
+            var user = await userManager.GetByIdWithRolesAsync(refreshToken.UserId);
 
-            if (user is null ||
-                refreshToken.IsRevoked ||
-                (refreshToken.ExpiresAtUtc < DateTime.UtcNow))
+            if (user is null
+                || refreshToken.IsRevoked
+                || (refreshToken.ExpiresAtUtc < dateTimeProvider.UtcNow))
                 return Result<AuthResult>.Failure(RefreshTokenErrors.RefreshTokenInvalid);
 
-            refreshToken.IsRevoked = true;
-            refreshToken.RevokedAtUtc = DateTime.UtcNow;
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
+            if (IsTimeToRotateToken(refreshToken))
+            {
+                refreshToken.IsRevoked = true;
+                refreshToken.RevokedAtUtc = dateTimeProvider.UtcNow;
 
-            if (!saveResult.IsSuccess)
-                throw new TokenRevokingException();
+                try
+                {
+                    await refreshTokenService.SaveChangesAsync(ct);
 
-            return await AuthenticateUserAsync(user, refreshToken.SessionId);
+                    return await AuthenticateUserAsync(user, refreshToken.SessionId, ct);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Rotating refresh token failed");
+
+                    refreshToken.IsRevoked = false;
+                    refreshToken.RevokedAtUtc = null;
+                }
+            }
+
+            var jwtToken = tokenService.GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
+
+            return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
         }
 
-        public async Task<Result> LogoutAsync(string refreshTokenValue)
+        public async Task<Result> LogoutAsync(string refreshTokenValue, CancellationToken ct = default)
         {
-            var rtResult = await _refreshTokenService.GetByTokenValueAsync(refreshTokenValue);
+            var rtResult = await refreshTokenService.GetByTokenValueAsync(refreshTokenValue, ct);
 
             if (!rtResult.IsSuccess)
                 return Result.Success();
 
             rtResult.Value.IsRevoked = true;
-            rtResult.Value.RevokedAtUtc = DateTime.UtcNow;
+            rtResult.Value.RevokedAtUtc = dateTimeProvider.UtcNow;
 
-            await _refreshTokenService.SaveChangesAsync();
+            try
+            {
+                await refreshTokenService.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Revoking refresh token failed");
+            }
 
             return Result.Success();
         }
 
-        private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto dto)
+        public async Task<Result<string>> GenerateEmailConfirmationCodeAsync(EmailCodeRequest emailCodeRequest)
+        { 
+            var user = await userManager.FindByEmailAsync(emailCodeRequest.Email);
+
+            if (user is null || user.UserName != emailCodeRequest.UserName)
+                return Result<string>.Success("");
+            // do not notify about wrong email/username
+
+            var code = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            return Result<string>.Success(code);
+        }
+
+        public async Task<Result> ConfirmEmailAsync(EmailConfirmationRequest emailConfirmationRequest)
         {
-            if (await _userManager.FindByNameAsync(dto.UserName) is not null)
+            var user = await userManager.FindByEmailAsync(emailConfirmationRequest.Email);
+
+            if (user is null)
+                return Result.Failure(GeneralErrors.NotFound);
+
+            try
+            {
+                var result = await userManager.ConfirmEmailAsync(user, emailConfirmationRequest.Code);
+
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.EmailConfirmationFailed);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Email confirmation failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
+
+            return Result.Success();
+        }
+
+        //todo after implementing Email service replace Task<Result<string>> with Task<Result>
+        public async Task<Result<string>> GeneratePasswordResetTokenAsync(ForgotPasswordRequest forgotPasswordRequest)
+        {
+            var user = await userManager.FindByEmailAsync(forgotPasswordRequest.Email);
+
+            if (user is null || user.UserName != forgotPasswordRequest.UserName)
+                return Result<string>.Success("");
+            // do not notify about wrong email/username
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+            var callbackUrl = $"{frontendOptions.Value.Url}/reset-password?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
+            return Result<string>.Success(callbackUrl);
+        }
+
+        public async Task<Result> ResetPasswordAsync(ResetPasswordRequest resetPasswordRequest)
+        {
+            var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId);
+
+            if (user is null)
+                return Result.Failure(GeneralErrors.NotFound);
+
+            try
+            {
+                var result = await userManager.ResetPasswordAsync(user, resetPasswordRequest.Token, resetPasswordRequest.Password);
+
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.PasswordResetFailed);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Resetting password failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
+
+            if (!string.IsNullOrEmpty(user.Email) && !user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+
+                try
+                {
+                    await userManager.UpdateAsync(user);
+                }
+                catch(Exception ex)
+                {
+                    logger.LogError(ex, "Email auto confirmation failed");
+                }
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ChangeUsernameAsync(ChangeUsernameRequest changeUsernameRequest, string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            { 
+                return Result.Failure(GeneralErrors.NotFound);
+            }
+
+            if (await userManager.FindByNameAsync(changeUsernameRequest.UserName) is not null)
+            {
+                return Result.Failure(UserErrors.UsernameIsTaken);
+            }
+
+            user.UserName = changeUsernameRequest.UserName;
+
+            try
+            {
+                await userManager.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Changing username failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
+
+            return Result.Success();
+        }
+
+        public async Task<Result> ChangePasswordAsync(ChangePasswordRequest changePasswordRequest, string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            {
+                return Result.Failure(GeneralErrors.NotFound);
+            }
+
+            try
+            {
+                var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.CurrentPassword, changePasswordRequest.NewPassword);
+
+                if (!result.Succeeded)
+                    return Result.Failure(UserErrors.WrongCurrentPassword);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Changing password failed");
+
+                return Result.Failure(GeneralErrors.InternalServerError);
+            }
+
+            return Result.Success();
+        }
+
+        private async Task<Result> EnsureUserIsUniqueAsync(UserRegisterDto userRegisterDto)
+        {
+            if (await userManager.FindByNameAsync(userRegisterDto.UserName) is not null)
                 return Result.Failure(UserErrors.UsernameIsTaken);
 
-            if (!string.IsNullOrEmpty(dto.Email) &&
-                await _userManager.FindByEmailAsync(dto.Email) is not null)
+            if (!string.IsNullOrEmpty(userRegisterDto.Email) && await userManager.FindByEmailAsync(userRegisterDto.Email) is not null)
                 return Result.Failure(UserErrors.EmailIsTaken);
 
             return Result.Success();
         }
 
-        private async Task<Result<AppUser>> CreateUserAsync(UserRegisterDto dto)
+        private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default, CancellationToken ct = default)
         {
-            var user = _mapper.Map<AppUser>(dto);
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (!result.Succeeded)
-                throw new UserRegisterException();
-
-            return Result<AppUser>.Success(user);
-        }
-
-        private async Task<Result> AssignDefaultRoleAsync(AppUser user)
-        {
-            var result = await _userManager.AddToRoleAsync(user, Role.User.ToString());
-            
-            if (!result.Succeeded)
-                throw new UserRegisterException();
-
-            return Result.Success();
-        }
-
-        private async Task<Result<UserProfile>> CreateProfileAsync(
-            AppUser user, UserRegisterDto dto)
-        {
-            var profile = _mapper.Map<UserProfile>(dto);
-            profile.UserId = user.Id;
-            _userProfileService.Add(profile);
-
-            var saveResult = await _userProfileService.SaveChangesAsync();
-
-            if (saveResult.Value is 0)
-                throw new UserRegisterException();
-
-            return Result<UserProfile>.Success(profile);
-        }
-
-        private async Task<Result<AuthResult>> AuthenticateUserAsync(AppUser user, Guid? sessionId = default)
-        {
-            var jwtToken = _tokenService
-                .GenerateJwtToken(_mapper.Map<JwtGenerationDto>(user));
+            var jwtToken = tokenService.GenerateJwtToken(mapper.Map<JwtGenerationDto>(user));
 
             var refreshTokenGenerationDto = new RefreshTokenGenerationDto
             {
                 UserId = user.Id,
-                ExpirationDays = _refreshTokenOptions.ExpirationTimeInDays,
+                ExpirationDays = refreshTokenOptions.Value.ExpirationTimeInDays,
                 SessionId = sessionId ?? Guid.NewGuid(),
-                UserAgent = _requestInfoService.GetUserAgent(),
-                IpAddress = _requestInfoService.GetIpAddress()
+                UserAgent = requestInfoService.GetUserAgent(),
+                IpAddress = requestInfoService.GetIpAddress()
             };
 
-            var refreshToken = _tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
+            var refreshToken = tokenService.GenerateRefreshToken(refreshTokenGenerationDto);
 
-            _refreshTokenService.Add(refreshToken);
-            var saveResult = await _refreshTokenService.SaveChangesAsync();
+            refreshTokenService.Add(refreshToken);
 
-            if (saveResult.Value is 0)
-                throw new TokenPersistingException();
+            try
+            {
+                await refreshTokenService.SaveChangesAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Persisting refresh token failed");
 
-            var authResponse = new AuthResponse
+                return Result<AuthResult>.Failure(GeneralErrors.InternalServerError);
+            }
+
+            return Result<AuthResult>.Success(BuildAuthResult(jwtToken, refreshToken));
+        }
+
+        private static AuthResult BuildAuthResult(AccessTokenDto jwtToken, RefreshToken refreshToken)
+        {
+            return new()
             {
                 AccessToken = jwtToken,
-                User = _mapper.Map<UserDto>(user)
-            };
-
-            var authResult = new AuthResult
-            {
-                AuthResponse = authResponse,
                 RefreshToken = refreshToken
             };
-
-            return Result<AuthResult>.Success(authResult);
         }
+
+        private bool IsTimeToRotateToken(RefreshToken refreshToken) =>
+            (refreshToken.ExpiresAtUtc - dateTimeProvider.UtcNow)
+                < TimeSpan.FromDays(refreshTokenOptions.Value.RotationThresholdDays);
+
     }
 }

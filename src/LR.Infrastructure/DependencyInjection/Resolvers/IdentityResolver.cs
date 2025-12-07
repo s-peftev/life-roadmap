@@ -25,6 +25,9 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                     opt.Password.RequireLowercase = true;
                     opt.Password.RequireUppercase = true;
                     opt.Password.RequiredLength = MinPasswordLenght;
+                    opt.Password.RequireNonAlphanumeric = false;
+
+                    opt.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
                 })
                 .AddRoles<AppRole>()
                 .AddRoleManager<RoleManager<AppRole>>()
@@ -51,17 +54,18 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = jwtOptions.Issuer,
                         ValidAudience = jwtOptions.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret))
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     opt.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
-                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            var authHeader = context.Request.Headers.Authorization.FirstOrDefault();
                             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
-                                context.Token = authHeader.Substring("Bearer ".Length).Trim();
+                                context.Token = authHeader["Bearer ".Length..].Trim();
                                 return Task.CompletedTask;
                             }
 
