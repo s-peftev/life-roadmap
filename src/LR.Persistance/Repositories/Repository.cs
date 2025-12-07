@@ -18,6 +18,11 @@ namespace LR.Persistance.Repositories
             _dbSet = _context.Set<TEntity>();
         }
 
+        public virtual IQueryable<TEntity> BuildQuery()
+        {
+            return _dbSet.AsQueryable();
+        }
+
         public virtual TEntity Add(TEntity entity)
         {
             _dbSet.Add(entity);
@@ -47,6 +52,14 @@ namespace LR.Persistance.Repositories
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
         {
             return await _dbSet.ToListAsync(ct);
+        }
+
+        public virtual async Task<IEnumerable<TProjected>> GetAllPaginatedAsync<TProjected>(IQueryable<TProjected> query, int pageNumber, int pageSize, CancellationToken ct = default)
+        {
+            return await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
         }
 
         public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)

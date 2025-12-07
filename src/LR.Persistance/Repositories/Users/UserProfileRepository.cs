@@ -1,4 +1,5 @@
 ﻿using LR.Domain.Entities.Users;
+using LR.Domain.Enums;
 using LR.Domain.Interfaces;
 using LR.Domain.Interfaces.Repositories;
 using LR.Domain.ValueObjects.UserProfile;

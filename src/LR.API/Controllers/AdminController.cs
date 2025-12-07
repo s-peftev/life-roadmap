@@ -1,6 +1,8 @@
-﻿using LR.Application.DTOs.Admin;
+﻿using LR.Application.AppResult.ResultData;
+using LR.Application.DTOs.Admin;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
+using LR.Application.Requests;
 using LR.Application.Responses;
 using LR.Infrastructure.Constants;
 using LR.Infrastructure.Extensions;
@@ -23,12 +25,12 @@ namespace LR.API.Controllers
         [SwaggerOperation("Get list of users", "Returns all users visible to administrator")]
 
         [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<IEnumerable<UserForAdminDto>>))]
-        public async Task<IActionResult> GetUsers(CancellationToken ct)
+        public async Task<IActionResult> GetUsers(PaginatedRequest request, CancellationToken ct)
         { 
-            var result = await adminService.GetUserListAsync(User.GetAppUserId(), ct);
+            var result = await adminService.GetUserListAsync(request, User.GetAppUserId(), ct);
 
             return result.Match(
-                data => Ok(ApiResponse<IEnumerable<UserForAdminDto>>.Ok(data)),
+                data => Ok(ApiResponse<PaginatedResult<UserForAdminDto>>.Ok(data)),
                 error => errorResponseFactory.CreateErrorResponse(error)
             );
         }

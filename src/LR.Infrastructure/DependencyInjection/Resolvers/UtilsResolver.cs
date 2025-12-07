@@ -1,5 +1,6 @@
 ﻿using LR.Application.Interfaces.Utils;
 using LR.Infrastructure.EF.Interceptors;
+using LR.Infrastructure.ModelBinding.Pagination;
 using LR.Infrastructure.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.AddSingleton<ITokenService, TokenService>();
             services.AddSingleton<IErrorResponseFactory, ErrorResponseFactory>();
             services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+            services.AddSingleton<PaginatedRequestBinder>();
 
             services.AddScoped<TimestampInterceptor>();
             services.AddScoped<IAccountService, AccountService>();
