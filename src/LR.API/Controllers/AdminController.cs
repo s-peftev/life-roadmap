@@ -17,7 +17,7 @@ namespace LR.API.Controllers
     [Authorize(Policy = Policies.RequireAdministratorRole)]
     public class AdminController(
         IErrorResponseFactory errorResponseFactory,
-        IAdminService adminService,
+        IAppUserService appUserService,
         IUserProfileService userProfileService)
         : Controller
     {
@@ -27,7 +27,7 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<IEnumerable<UserForAdminDto>>))]
         public async Task<IActionResult> GetUsers(PaginatedRequest request, CancellationToken ct)
         { 
-            var result = await adminService.GetUserListAsync(request, User.GetAppUserId(), ct);
+            var result = await appUserService.GetUsersForAdminAsync(request, User.GetAppUserId(), ct);
 
             return result.Match(
                 data => Ok(ApiResponse<PaginatedResult<UserForAdminDto>>.Ok(data)),

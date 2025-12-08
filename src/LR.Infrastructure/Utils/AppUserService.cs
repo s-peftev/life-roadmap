@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using LR.Application.AppResult;
+using LR.Application.AppResult.Errors;
 using LR.Application.AppResult.ResultData;
 using LR.Application.DTOs.Admin;
+using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests;
 using LR.Domain.Interfaces.Repositories;
@@ -12,13 +14,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LR.Infrastructure.Utils
 {
-    public class AdminService(
+    public class AppUserService(
         UserManager<AppUser> userManager,
         IUserProfileRepository userProfileRepository,
         IMapper mapper) 
-        : IAdminService
+        : IAppUserService
     {
-        public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUserListAsync(PaginatedRequest request, string adminId, CancellationToken ct)
+        public async Task<Result<UserProfileDetailsDto>> GetProfileDetailsAsync(string userId, CancellationToken ct = default)
+        { 
+            var profileDetails = await userManager.Users
+                .Where(u => u.Id == userId)
+                .ProjectTo<UserProfileDetailsDto>(mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync(ct);
+
+            return profileDetails is null 
+                ? Result<UserProfileDetailsDto>.Failure(GeneralErrors.NotFound)
+                : Result<UserProfileDetailsDto>.Success(profileDetails);
+
+        }
+        public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUsersForAdminAsync(PaginatedRequest request, string adminId, CancellationToken ct)
         {
             var q = userManager.Users
                 .Include(u => u.Profile)

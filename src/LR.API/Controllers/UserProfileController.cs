@@ -1,8 +1,8 @@
-﻿using LR.Application.Interfaces.Services;
+﻿using LR.Application.DTOs.User;
+using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Application.Responses;
-using LR.Domain.ValueObjects.UserProfile;
 using LR.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -19,7 +19,7 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
 
             services.AddScoped<TimestampInterceptor>();
             services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IAdminService, AdminService>();
+            services.AddScoped<IAppUserService, AppUserService>();
             services.AddScoped<IRefreshTokenCookieWriter, RefreshTokenCookieWriter>();
             services.AddScoped<IRequestInfoService, RequestInfoService>();
         }

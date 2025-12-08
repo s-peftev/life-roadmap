@@ -1,7 +1,7 @@
 ﻿using LR.Application.AppResult;
+using LR.Application.DTOs.User;
 using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
-using LR.Domain.ValueObjects.UserProfile;
 
 namespace LR.Application.Interfaces.Services
 {
