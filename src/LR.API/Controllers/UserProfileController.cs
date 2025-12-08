@@ -16,7 +16,8 @@ namespace LR.API.Controllers
     public class UserProfileController(
         IErrorResponseFactory errorResponseFactory,
         IAccountService accountService,
-        IUserProfileService userProfileService)
+        IUserProfileService userProfileService,
+        IAppUserService appUserService)
         : Controller
     {
         [HttpGet("me")]
@@ -26,7 +27,7 @@ namespace LR.API.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User`s profile not found.", typeof(ApiResponse<object>))]
         public async Task<IActionResult> GetMyProfile(CancellationToken ct)
         {
-            var result = await userProfileService.GetMyProfileAsync(User.GetAppUserId(), ct);
+            var result = await appUserService.GetProfileDetailsAsync(User.GetAppUserId(), ct);
 
             return result.Match(
                 data => Ok(ApiResponse<UserProfileDetailsDto>.Ok(data)),

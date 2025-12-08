@@ -1,10 +1,8 @@
 ﻿using LR.Application.AppResult;
 using LR.Application.AppResult.Errors;
 using LR.Application.AppResult.ResultData.Photo;
-using LR.Application.DTOs.User;
 using LR.Application.Interfaces.ExternalProviders;
 using LR.Application.Interfaces.Services;
-using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
@@ -15,7 +13,6 @@ namespace LR.Application.Services.User
     public class UserProfileService(
         ILogger<UserProfileService> logger,
         IUserProfileRepository userProfileRepository,
-        IAppUserService appUserService,
         IPhotoService photoService) 
         : EntityService<UserProfile, Guid>(userProfileRepository), IUserProfileService
     {
@@ -76,11 +73,6 @@ namespace LR.Application.Services.User
             return userProfile is null
                 ? Result<UserProfile>.Failure(GeneralErrors.NotFound)
                 : Result<UserProfile>.Success(userProfile);
-        }
-
-        public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(string userId, CancellationToken ct = default)
-        {
-            return await appUserService.GetProfileDetailsAsync(userId, ct);
         }
 
         public async Task<Result> ChangePersonalInfoAsync(string userId, ChangePersonalInfoRequest request, CancellationToken ct = default)
