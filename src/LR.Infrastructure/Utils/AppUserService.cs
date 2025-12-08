@@ -11,52 +11,58 @@ using LR.Domain.Interfaces.Repositories;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LR.Infrastructure.Utils
 {
     public class AppUserService(
+        ILogger<AppUserService> logger,
         UserManager<AppUser> userManager,
         IUserProfileRepository userProfileRepository,
         IMapper mapper) 
         : IAppUserService
     {
         public async Task<Result<UserProfileDetailsDto>> GetProfileDetailsAsync(string userId, CancellationToken ct = default)
-        { 
-            var profileDetails = await userManager.Users
-                .Where(u => u.Id == userId)
-                .ProjectTo<UserProfileDetailsDto>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(ct);
+        {
+            try
+            {
+                var profileDetails = await userManager.Users
+                    .Where(u => u.Id == userId)
+                    .ProjectTo<UserProfileDetailsDto>(mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(ct);
 
-            return profileDetails is null 
-                ? Result<UserProfileDetailsDto>.Failure(GeneralErrors.NotFound)
-                : Result<UserProfileDetailsDto>.Success(profileDetails);
+                return profileDetails is null
+                    ? Result<UserProfileDetailsDto>.Failure(GeneralErrors.NotFound)
+                    : Result<UserProfileDetailsDto>.Success(profileDetails);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed fetch data.");
+
+                return Result<UserProfileDetailsDto>.Failure(GeneralErrors.InternalServerError);
+            }
 
         }
         public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUsersForAdminAsync(PaginatedRequest request, string adminId, CancellationToken ct)
         {
-            var q = userManager.Users
-                .Include(u => u.Profile)
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
+            try
+            {
+                var userProfilesForAdminQuery = userManager.Users
                 .Where(u => u.Id != adminId)
                 .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider);
 
-            var totalCount = await q.CountAsync(ct);
-            var profiles = await userProfileRepository.GetAllPaginatedAsync(q, request.PageNumber, request.PageSize, ct);
+                var profilesPagedResult = await userProfileRepository.GetPagedAsync(userProfilesForAdminQuery, request.PageNumber, request.PageSize, ct);
 
-            var paginatedResult = new PaginatedResult<UserForAdminDto>
+                var paginatedResult = new PaginatedResult<UserForAdminDto>(profilesPagedResult);
+
+                return Result<PaginatedResult<UserForAdminDto>>.Success(paginatedResult);
+            }
+            catch (Exception ex)
             {
-                Metadata = new PaginationMetadata
-                {
-                    CurrentPage = request.PageNumber,
-                    PageSize = request.PageSize,
-                    TotalCount = totalCount,
-                    TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
-                },
-                Items = profiles
-            };
+                logger.LogError(ex, "Failed fetch data.");
 
-            return Result<PaginatedResult<UserForAdminDto>>.Success(paginatedResult);
+                return Result<PaginatedResult<UserForAdminDto>>.Failure(GeneralErrors.InternalServerError);
+            }
         }
     }
 }

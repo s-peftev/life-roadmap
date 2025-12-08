@@ -24,7 +24,7 @@ namespace LR.API.Controllers
         [HttpGet("users")]
         [SwaggerOperation("Get list of users", "Returns all users visible to administrator")]
 
-        [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<IEnumerable<UserForAdminDto>>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<PaginatedResult<UserForAdminDto>>))]
         public async Task<IActionResult> GetUsers(PaginatedRequest request, CancellationToken ct)
         { 
             var result = await appUserService.GetUsersForAdminAsync(request, User.GetAppUserId(), ct);
@@ -40,8 +40,8 @@ namespace LR.API.Controllers
 
         [SwaggerResponse(StatusCodes.Status200OK,                  "User`s profile photo has been deleted.", typeof(ApiResponse<object>))]
         [SwaggerResponse(StatusCodes.Status422UnprocessableEntity, "Failed to delete user`s profile photo.", typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status503ServiceUnavailable,  "Service is unavailable.",              typeof(ApiResponse<object>))]
-        [SwaggerResponse(StatusCodes.Status404NotFound,            "User`s profile not found.",            typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status503ServiceUnavailable,  "Service is unavailable.",                typeof(ApiResponse<object>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound,            "User`s profile not found.",              typeof(ApiResponse<object>))]
         public async Task<IActionResult> DeleteUserProfilePhoto(string userId, CancellationToken ct)
         {
             var result = await userProfileService.DeleteProfilePhotoAsync(userId, ct);
