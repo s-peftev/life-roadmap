@@ -2,11 +2,16 @@
   <app-busy />
 }
 <div class="p-4">
-  <app-pagination
-    [currentPage]="adminStore.userList().metadata.currentPage" 
-    [totalPages]="adminStore.userList().metadata.totalPages" 
-    (changePage)="adminStore.loadUserList($event)" 
-  />
+  <div class="flex justify-between align-middle my-4">
+    <app-pagination
+      [currentPage]="adminStore.userList().metadata.currentPage" 
+      [totalPages]="adminStore.userList().metadata.totalPages" 
+      (changePage)="adminStore.loadUserList($event)" 
+    />
+
+    <h2 class="font-bold text-xl">{{ 'admin_dashboard.user_list' | translate }}</h2>
+  </div>
+  
   <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
     <thead class="bg-gray-100">
       <tr>

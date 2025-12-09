@@ -1,30 +1,19 @@
 <div class="join">
     <button class="join-item btn" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1">«</button>
 
-
-    <button class="join-item btn" [class.btn-disabled]="currentPage() === 1" (click)="goToPage(1)">1</button>
-
+    <button *ngIf="currentPage() > 1" class="join-item btn" (click)="goToPage(1)">1</button>
 
     <button *ngIf="currentPage() > 3" class="join-item btn btn-disabled">...</button>
 
-
-    <button *ngIf="currentPage() > 2" class="join-item btn" (click)="goToPage(currentPage() - 1)">{{ currentPage() - 1
-        }}</button>
-
+    <button *ngIf="currentPage() > 2" class="join-item btn" (click)="goToPage(currentPage() - 1)">{{ currentPage() - 1 }}</button>   
 
     <button class="join-item btn btn-primary">{{ currentPage() }}</button>
 
-
-    <button *ngIf="currentPage() < totalPages() - 1" class="join-item btn" (click)="goToPage(currentPage() + 1)">{{
-        currentPage() + 1 }}</button>
-
+    <button *ngIf="currentPage() < totalPages() - 1" class="join-item btn" (click)="goToPage(currentPage() + 1)">{{ currentPage() + 1 }}</button>
 
     <button *ngIf="currentPage() < totalPages() - 2" class="join-item btn btn-disabled">...</button>
 
-
-    <button *ngIf="totalPages() > 1" class="join-item btn" [class.btn-disabled]="currentPage === totalPages"
-        (click)="goToPage(totalPages())">{{ totalPages() }}</button>
-
-
-    <button class="join-item btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage === totalPages">»</button>
+    <button *ngIf="totalPages() > 1 && currentPage() != totalPages()" class="join-item btn" (click)="goToPage(totalPages())">{{ totalPages() }}</button>
+        
+    <button class="join-item btn" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()">»</button>
 </div>
