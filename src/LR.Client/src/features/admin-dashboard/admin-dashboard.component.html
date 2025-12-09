@@ -2,6 +2,11 @@
   <app-busy />
 }
 <div class="p-4">
+  <app-pagination
+    [currentPage]="adminStore.userList().metadata.currentPage" 
+    [totalPages]="adminStore.userList().metadata.totalPages" 
+    (changePage)="adminStore.loadUserList($event)" 
+  />
   <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
     <thead class="bg-gray-100">
       <tr>
@@ -18,7 +23,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let user of adminStore.userList()" class="border-t border-gray-200">
+      <tr *ngFor="let user of adminStore.userList().items" class="border-t border-gray-200">
         <td class="px-4 py-2 flex flex-row gap-1">
             <img 
                 [src]="user.profilePhotoUrl ? user.profilePhotoUrl : icons.PROFILE.DEFAULT_AVATAR" 

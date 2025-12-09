@@ -6,6 +6,7 @@ import { ASSETS } from '../../core/constants/assets.constants';
 import { UserForAdmin } from '../../models/admin/user-for-admin.model';
 import { Role } from '../../core/enums/role.enum';
 import { TranslatePipe } from '@ngx-translate/core';
+import { PaginationComponent } from "../../shared/components/pagination/pagination.component";
 
 
 @Component({
@@ -14,8 +15,9 @@ import { TranslatePipe } from '@ngx-translate/core';
     NgFor,
     BusyComponent,
     DatePipe,
-    TranslatePipe
-  ],
+    TranslatePipe,
+    PaginationComponent
+],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit {
@@ -24,7 +26,7 @@ export class AdminDashboardComponent implements OnInit {
   public icons = ASSETS.IMAGES.ICONS
 
   ngOnInit(): void {
-    this.adminStore.loadUserList();
+    this.adminStore.loadUserList(this.adminStore.userList().metadata.currentPage);
   }
 
   public getRolesString(user: UserForAdmin): string {
