@@ -1,4 +1,5 @@
-﻿using LR.Domain.Interfaces;
+﻿using LR.Domain.Common.Models;
+using LR.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace LR.Persistance.Repositories
@@ -47,6 +48,23 @@ namespace LR.Persistance.Repositories
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken ct = default)
         {
             return await _dbSet.ToListAsync(ct);
+        }
+
+        public virtual async Task<RepositoryPagedResult<TItem>> GetPagedAsync<TItem>(IQueryable<TItem> query, int pageNumber, int pageSize, CancellationToken ct = default)
+        {
+            var totalCount = await query.CountAsync(ct);
+
+            var pagedList = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(ct);
+
+            return new RepositoryPagedResult<TItem>(
+                Items: pagedList,
+                TotalCount: totalCount,
+                PageNumber: pageNumber,
+                PageSize: pageSize
+            );
         }
 
         public virtual async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken ct = default)

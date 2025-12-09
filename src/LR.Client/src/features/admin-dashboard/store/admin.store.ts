@@ -24,10 +24,10 @@ export const AdminStore = signalStore(
         }
     }),
     withMethods((store) => {
-        const _refreshUserList = rxMethod<void>(trigger$ => trigger$.pipe(
+        const _refreshUserList = rxMethod<number>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
-                exhaustMap(_ => 
-                    store._adminService.getUserList().pipe(
+                exhaustMap(pageNumber => 
+                    store._adminService.getUserList(pageNumber).pipe(
                         tapResponse({
                             next: response => patchState(store, setUserList(response)),
                             error: () => {},
@@ -38,14 +38,14 @@ export const AdminStore = signalStore(
             ));
 
         return {
-            loadUserList: _refreshUserList,
+            loadUserList: (pageNumber: number) => _refreshUserList(pageNumber),
 
             deleteUserPhoto: rxMethod<string>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
                 exhaustMap(userId => 
                     store._adminService.deleteUserPhoto(userId).pipe(
                         tapResponse({
-                            next: () => _refreshUserList(),
+                            next: () => _refreshUserList(store.userList().metadata.currentPage),
                             error: () => {},
                             finalize: () => patchState(store, setIdle())
                         })

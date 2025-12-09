@@ -4,6 +4,7 @@ using LR.API.Handlers;
 using LR.API.Middleware;
 using LR.Infrastructure.Constants;
 using LR.Infrastructure.DependencyInjection;
+using LR.Infrastructure.ModelBinding.Pagination;
 using LR.Infrastructure.Seeders;
 using Serilog;
 
@@ -13,6 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(options =>
 {
+    options.ModelBinderProviders.Insert(0, new PaginatedRequestBinderProvider());
+
     options.Filters.Add<FluentValidationActionFilter>();
 });
 

@@ -12,6 +12,8 @@ namespace LR.Infrastructure.DependencyInjection.Resolvers
             services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.RefreshTokenOptionsKey));
             services.Configure<FrontendOptions>(configuration.GetSection(FrontendOptions.FrontendOptionsKey));
             services.Configure<CloudinaryOptions>(configuration.GetSection(CloudinaryOptions.CloudinaryOptionsKey));
+            services.Configure<SeedOptions>(configuration.GetSection(SeedOptions.SeedOptionsKey));
+            services.Configure<PaginationOptions>(configuration.GetSection(PaginationOptions.PaginationOptionsKey));
         }
     }
 }

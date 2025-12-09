@@ -5,5 +5,9 @@ export const environment = {
     apiUrl: 'api/',
     assetsBasePath: '/assets',
     roleClaimJwtKey: 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role',
-    defaultAppLanguage: AppLanguage.En
+    defaultAppLanguage: AppLanguage.En,
+    paginationDefaults: {
+        pageNumber: 1,
+        pageSize: 10
+    }
 };
