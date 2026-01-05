@@ -2,7 +2,7 @@
 using LR.Application.DTOs.Admin;
 using LR.Application.Interfaces.Services;
 using LR.Application.Interfaces.Utils;
-using LR.Application.Requests;
+using LR.Application.Requests.Admin;
 using LR.Application.Responses;
 using LR.Infrastructure.Constants;
 using LR.Infrastructure.Extensions;
@@ -25,7 +25,7 @@ namespace LR.API.Controllers
         [SwaggerOperation("Get list of users", "Returns all users visible to administrator")]
 
         [SwaggerResponse(StatusCodes.Status200OK, "List of users", typeof(ApiResponse<PaginatedResult<UserForAdminDto>>))]
-        public async Task<IActionResult> GetUsers(PaginatedRequest request, CancellationToken ct)
+        public async Task<IActionResult> GetUsers([FromQuery]UsersForAdminRequest request, CancellationToken ct)
         { 
             var result = await appUserService.GetUsersForAdminAsync(request, User.GetAppUserId(), ct);
 

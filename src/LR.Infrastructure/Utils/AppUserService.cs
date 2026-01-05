@@ -6,8 +6,8 @@ using LR.Application.AppResult.ResultData;
 using LR.Application.DTOs.Admin;
 using LR.Application.DTOs.User;
 using LR.Application.Interfaces.Utils;
-using LR.Application.Requests;
-using LR.Domain.Interfaces.Repositories;
+using LR.Application.Requests.Admin;
+using LR.Persistance.Extensions;
 using LR.Persistance.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,6 @@ namespace LR.Infrastructure.Utils
     public class AppUserService(
         ILogger<AppUserService> logger,
         UserManager<AppUser> userManager,
-        IUserProfileRepository userProfileRepository,
         IMapper mapper) 
         : IAppUserService
     {
@@ -43,17 +42,15 @@ namespace LR.Infrastructure.Utils
             }
 
         }
-        public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUsersForAdminAsync(PaginatedRequest request, string adminId, CancellationToken ct)
+        public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUsersForAdminAsync(UsersForAdminRequest request, string adminId, CancellationToken ct)
         {
             try
             {
-                var userProfilesForAdminQuery = userManager.Users
-                .Where(u => u.Id != adminId)
-                .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider);
-
-                var profilesPagedResult = await userProfileRepository.GetPagedAsync(userProfilesForAdminQuery, request.PageNumber, request.PageSize, ct);
-
-                var paginatedResult = new PaginatedResult<UserForAdminDto>(profilesPagedResult);
+                var paginatedResult = await userManager.Users
+                    .Where(u => u.Id != adminId)
+                    .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider)
+                    .ApplySorting(request.Sort)
+                    .ToPagedAsync(request.PageNumber, request.PageSize, ct);
 
                 return Result<PaginatedResult<UserForAdminDto>>.Success(paginatedResult);
             }

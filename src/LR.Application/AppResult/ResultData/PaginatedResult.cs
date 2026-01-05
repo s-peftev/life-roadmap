@@ -1,23 +1,21 @@
-﻿using LR.Domain.Common.Models;
-
-namespace LR.Application.AppResult.ResultData
+﻿namespace LR.Application.AppResult.ResultData
 {
     public class PaginatedResult<T>
     {
         public PaginationMetadata Metadata { get; init; } = new PaginationMetadata();
         public IEnumerable<T> Items { get; init; } = [];
 
-        public PaginatedResult(RepositoryPagedResult<T> repositoryPagedResult)
+        public PaginatedResult(int pageNumber, int pageSize, int totalCount, IEnumerable<T> items)
         {
             Metadata = new PaginationMetadata
             {
-                CurrentPage = repositoryPagedResult.PageNumber,
-                PageSize = repositoryPagedResult.PageSize,
-                TotalCount = repositoryPagedResult.TotalCount,
-                TotalPages = (int)Math.Ceiling(repositoryPagedResult.TotalCount / (double)repositoryPagedResult.PageSize)
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
             };
 
-            Items = repositoryPagedResult.Items;
+            Items = items;
         }
     }
 
