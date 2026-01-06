@@ -79,5 +79,8 @@
     },
     "admin_dashboard": {
         "user_list": "List of application users"
+    },
+    "search_panel": {
+        "search_by": "Search by fields:"
     }
 }

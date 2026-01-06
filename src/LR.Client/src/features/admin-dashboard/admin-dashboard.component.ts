@@ -7,6 +7,10 @@ import { UserForAdmin } from '../../models/admin/user-for-admin.model';
 import { Role } from '../../core/enums/role.enum';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PaginationComponent } from "../../shared/components/pagination/pagination.component";
+import { SearchPanelComponent } from "../../shared/components/search-panel/search-panel.component";
+import { UserSearchField } from '../../core/enums/search-fields/user-search-field.enum';
+import { SearchFieldOption } from '../../core/interfaces/search-field-option.interface';
+import { TextSearchable } from '../../core/interfaces/text-searchable.interface';
 
 
 @Component({
@@ -16,7 +20,8 @@ import { PaginationComponent } from "../../shared/components/pagination/paginati
     BusyComponent,
     DatePipe,
     TranslatePipe,
-    PaginationComponent
+    PaginationComponent,
+    SearchPanelComponent
 ],
   templateUrl: './admin-dashboard.component.html',
 })
@@ -24,6 +29,13 @@ export class AdminDashboardComponent implements OnInit {
   public adminStore = inject(AdminStore);
   public isBusy = computed(() => this.adminStore.isBusy());
   public icons = ASSETS.IMAGES.ICONS
+
+  public searchFields: SearchFieldOption<UserSearchField>[] = [
+    { key: UserSearchField.UserName, label: 'Username' },
+    { key: UserSearchField.Email, label: 'Email' },
+    { key: UserSearchField.FirstName, label: 'First Name' },
+    { key: UserSearchField.LastName, label: 'Last Name' },
+  ]
 
   ngOnInit(): void {
     this.adminStore.loadUserList(this.adminStore.userList().metadata.currentPage);
@@ -35,5 +47,9 @@ export class AdminDashboardComponent implements OnInit {
 
   public deleteUserPhoto(userId: string) {
     this.adminStore.deleteUserPhoto(userId);
+  }
+
+  public onSearchTextChange(searchRequest: TextSearchable) {
+    console.log(searchRequest);
   }
 }

@@ -1,0 +1,30 @@
+<div class="flex flex-row items-center gap-4">
+
+    <input 
+        #input 
+        type="text" 
+        class="flex-1 peer h-10 rounded-md border border-neutral-300 px-3 text-sm placeholder-gray-500
+               focus:outline-none focus:border-neutral-400 focus:ring" 
+        placeholder="Search..."
+        (input)="onInput(input.value)" />
+
+    <p class="whitespace-nowrap px-2 py-1">
+        {{ 'search_panel.search_by' | translate }}
+    </p>
+
+    <div class="flex-2 flex flex-wrap gap-4">
+        @for (field of fields(); track field.key) {
+        <label class="label cursor-pointer gap-2 flex items-center">
+            <input 
+                type="checkbox" 
+                class="checkbox checkbox-sm" 
+                [checked]="selected.has(field.key)"
+                (change)="onToggle(field.key, input.value)" 
+            />
+
+            <span class="label-text">{{ field.label }}</span>
+        </label>
+        }
+    </div>
+
+</div>

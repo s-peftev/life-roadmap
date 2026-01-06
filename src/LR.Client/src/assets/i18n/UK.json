@@ -79,5 +79,8 @@
     },
     "admin_dashboard": {
         "user_list": "Перелік користувачів"
+    },
+    "search_panel": {
+        "search_by": "Шукати за полями:"
     }
 }
