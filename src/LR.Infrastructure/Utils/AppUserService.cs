@@ -9,6 +9,8 @@ using LR.Application.Interfaces.Utils;
 using LR.Application.Requests.Admin;
 using LR.Persistance.Extensions;
 using LR.Persistance.Identity;
+using LR.Persistance.SearchConfig;
+using LR.Persistance.SearchConfig.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -42,12 +44,16 @@ namespace LR.Infrastructure.Utils
             }
 
         }
+
         public async Task<Result<PaginatedResult<UserForAdminDto>>> GetUsersForAdminAsync(UsersForAdminRequest request, string adminId, CancellationToken ct)
         {
             try
             {
+                var searchFields = SearchFieldResolver.Resolve(request.SearchIn, UserSearchConfig.Map);
+
                 var paginatedResult = await userManager.Users
                     .Where(u => u.Id != adminId)
+                    .ApplyTextSearch(request.Search, searchFields)
                     .ProjectTo<UserForAdminDto>(mapper.ConfigurationProvider)
                     .ApplySorting(request.Sort)
                     .ToPagedAsync(request.PageNumber, request.PageSize, ct);

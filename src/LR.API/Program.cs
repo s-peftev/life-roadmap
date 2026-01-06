@@ -13,8 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<PaginationNormalizationFilter>();
     options.Filters.Add<FluentValidationActionFilter>();
+    options.Filters.Add<PaginationNormalizationFilter>();
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
