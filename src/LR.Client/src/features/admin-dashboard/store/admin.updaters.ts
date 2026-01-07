@@ -1,25 +1,23 @@
 import { PartialStateUpdater } from "@ngrx/signals";
 import { UserForAdmin } from "../../../models/admin/user-for-admin.model";
 import { AdminSlice } from "./admin.slice";
-import { PaginatedResult } from "../../../models/paginated-result.model";
 import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
 import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
+import { PaginatedResult } from "../../../models/paginated-result.model";
 
-export function setUserList(userList: PaginatedResult<UserForAdmin>): PartialStateUpdater<AdminSlice> {
-    return _ => ({
-        userList
+export function setUserList(paginatedResult: PaginatedResult<UserForAdmin>): PartialStateUpdater<AdminSlice> {
+    return store => ({
+        ...store,
+        userList: paginatedResult.items,
+        totalCount: paginatedResult.metadata.totalCount,
+        totalPages: paginatedResult.metadata.totalPages
     })
 }
 
 export function setCurrentPage(pageNumber: number): PartialStateUpdater<AdminSlice> {
     return state => ({
-        userList: {
-            ...state.userList,
-            metadata: {
-                ...state.userList.metadata,
-                currentPage: pageNumber
-            }
-        }
+        ...state,
+        currentPage: pageNumber
     })
 }
 

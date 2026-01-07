@@ -1,4 +1,4 @@
-import { Component, input, OnInit, output } from '@angular/core';
+import { Component, computed, input, OnInit, output } from '@angular/core';
 import { SearchFieldOption } from '../../../core/interfaces/search-field-option.interface';
 import { TranslatePipe } from '@ngx-translate/core';
 import { TextSearchable } from '../../../core/interfaces/text-searchable.interface';
@@ -10,24 +10,30 @@ import { TextSearchable } from '../../../core/interfaces/text-searchable.interfa
   ],
   templateUrl: './search-panel.component.html'
 })
-export class SearchPanelComponent<T> {
+export class SearchPanelComponent<T> implements OnInit {
   public fields = input.required<SearchFieldOption<T>[]>()
-  public selectedFields = input.required<Set<T>>();
+  public initialFields = input.required<T[]>();
   public searchRequest = output<TextSearchable<T>>();
 
-  public onToggle(key: T, inputValue: string) {
-    this.selectedFields().has(key)
-      ? this.selectedFields().delete(key)
-      : this.selectedFields().add(key);
+  public selectedFields: T[] = [];
 
-    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields()));
+  ngOnInit() {
+    this.selectedFields = this.initialFields();
+  }
+
+  public onToggle(key: T, inputValue: string) {
+    this.selectedFields = this.selectedFields.includes(key) 
+      ? this.selectedFields.filter(x => x !== key) 
+      : [...this.selectedFields, key];
+
+    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields));
   }
 
   public onInput(inputValue: string) {
-    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields()));
+    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields));
   }
 
-  private buildSearchRequest(searchText: string, fields: Set<T>): TextSearchable<T> {
+  private buildSearchRequest(searchText: string, fields: T[]): TextSearchable<T> {
     return {
       searchText,
       fields

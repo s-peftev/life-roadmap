@@ -26,7 +26,7 @@ export class AdminService {
     if (request.search?.trim()) {
       params = params.set('search', request.search.trim());
 
-      if (request.searchIn && request.searchIn.size > 0) {
+      if (request.searchIn && request.searchIn.length > 0) {
         for (const field of request.searchIn) {
           params = params.append('searchIn', UserSearchField[field]);
         }

@@ -3,5 +3,5 @@ import { PaginatedRequest } from "../paginated-request.model";
 
 export interface UsersForAdminRequest extends PaginatedRequest {
     search: string,
-    searchIn: Set<UserSearchField>
+    searchIn: readonly UserSearchField[]
 }

@@ -1,28 +1,26 @@
 import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
 import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
+import { environment } from "../../../environments/environment";
 import { UserForAdmin } from "../../../models/admin/user-for-admin.model";
-import { PaginatedResult } from "../../../models/paginated-result.model";
 
 export interface AdminSlice {
-    readonly userList: PaginatedResult<UserForAdmin>
+    readonly userList: UserForAdmin[],
+    readonly currentPage: number,
+    readonly pageSize: number,
+    readonly totalCount: number,
+    readonly totalPages: number,
     readonly textSearch: TextSearchable<UserSearchField>
 }
 
 export const initialAdminSlice: AdminSlice = {
-    userList: {
-        metadata: {
-            currentPage: 0,
-            pageSize: 0,
-            totalCount: 0,
-            totalPages: 0
-        },
-        items: []
-    },
+    userList: [],
+    currentPage: 1,
+    pageSize: environment.paginationDefaults.pageSize,
+    totalCount: 0,
+    totalPages: 0,
     textSearch: {
         searchText: '',
-        fields: new Set(
-            Object.values(UserSearchField)
+        fields: Object.values(UserSearchField)
             .filter(v => typeof v === 'number') as UserSearchField[]
-        )
     }
 }
