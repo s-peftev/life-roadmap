@@ -2,6 +2,7 @@
   <div>
     <app-search-panel
       [fields]="searchFields"
+      [selectedFields]="adminStore.textSearch.fields()"
       (searchRequest)="onSearchTextChange($event)"
     />
   </div>
@@ -10,7 +11,7 @@
     <app-pagination
       [currentPage]="adminStore.userList().metadata.currentPage" 
       [totalPages]="adminStore.userList().metadata.totalPages" 
-      (changePage)="adminStore.loadUserList($event)" 
+      (changePage)="onChangePage($event)" 
     />
 
     <h2 class="font-bold text-xl">{{ 'admin_dashboard.user_list' | translate }}</h2>

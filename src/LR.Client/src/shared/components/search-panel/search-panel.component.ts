@@ -10,36 +10,27 @@ import { TextSearchable } from '../../../core/interfaces/text-searchable.interfa
   ],
   templateUrl: './search-panel.component.html'
 })
-export class SearchPanelComponent<T> implements OnInit {
+export class SearchPanelComponent<T> {
   public fields = input.required<SearchFieldOption<T>[]>()
-  public searchRequest = output<TextSearchable>();
-
-  public selected = new Set<T>();
-  
-  ngOnInit() {
-    this.selectAll();
-  }
+  public selectedFields = input.required<Set<T>>();
+  public searchRequest = output<TextSearchable<T>>();
 
   public onToggle(key: T, inputValue: string) {
-    this.selected.has(key)
-      ? this.selected.delete(key)
-      : this.selected.add(key);
+    this.selectedFields().has(key)
+      ? this.selectedFields().delete(key)
+      : this.selectedFields().add(key);
 
-    this.searchRequest.emit(this.buildRequest(inputValue, this.selected));
+    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields()));
   }
 
   public onInput(inputValue: string) {
-    this.searchRequest.emit(this.buildRequest(inputValue, this.selected));
+    this.searchRequest.emit(this.buildSearchRequest(inputValue, this.selectedFields()));
   }
 
-  private buildRequest(searchText: string, fields: Set<T>): TextSearchable {
+  private buildSearchRequest(searchText: string, fields: Set<T>): TextSearchable<T> {
     return {
       searchText,
       fields
     }
-  }
-
-  private selectAll() {
-    this.selected = new Set(this.fields().map(f => f.key));
   }
 }

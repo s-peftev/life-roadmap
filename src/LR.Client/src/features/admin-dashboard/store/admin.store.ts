@@ -1,4 +1,4 @@
-import { patchState, signalStore, withMethods, withProps, withState } from "@ngrx/signals";
+import { patchState, signalStore, withHooks, withMethods, withProps, withState } from "@ngrx/signals";
 import { initialAdminSlice } from "./admin.slice";
 import { withBusy } from "../../../store-extentions/features/with-busy/with-busy.feature";
 import { withLocalError } from "../../../store-extentions/features/with-local-error/with-local-error.feature";
@@ -9,7 +9,10 @@ import { rxMethod } from "@ngrx/signals/rxjs-interop";
 import { exhaustMap, tap } from "rxjs";
 import { setBusy, setIdle } from "../../../store-extentions/features/with-busy/with-busy.updaters";
 import { tapResponse } from "@ngrx/operators";
-import { setUserList } from "./admin.updaters";
+import { setCurrentPage, setSearch, setUserList } from "./admin.updaters";
+import { UsersForAdminRequest } from "../../../models/admin/users-for-admin-request.model";
+import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
+import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
 
 export const AdminStore = signalStore(
     { providedIn: 'root' },
@@ -24,10 +27,10 @@ export const AdminStore = signalStore(
         }
     }),
     withMethods((store) => {
-        const _refreshUserList = rxMethod<number>(input$ => input$.pipe(
+        const _refreshUserList = rxMethod<UsersForAdminRequest>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
-                exhaustMap(pageNumber => 
-                    store._adminService.getUserList(pageNumber).pipe(
+                exhaustMap(request => 
+                    store._adminService.getUserList(request).pipe(
                         tapResponse({
                             next: response => patchState(store, setUserList(response)),
                             error: () => {},
@@ -38,20 +41,43 @@ export const AdminStore = signalStore(
             ));
 
         return {
-            loadUserList: (pageNumber: number) => _refreshUserList(pageNumber),
+            loadUserList: (request: UsersForAdminRequest) => _refreshUserList(request),
 
             deleteUserPhoto: rxMethod<string>(input$ => input$.pipe(
                 tap(_ => patchState(store, setBusy())),
                 exhaustMap(userId => 
                     store._adminService.deleteUserPhoto(userId).pipe(
                         tapResponse({
-                            next: () => _refreshUserList(store.userList().metadata.currentPage),
+                            next: () => {},
                             error: () => {},
                             finalize: () => patchState(store, setIdle())
                         })
                     )
                 )
             )),
+
+            setCurrentPage: (pageNumber: number) => patchState(store, setCurrentPage(pageNumber)),
+
+            setSearch: (textSearch: TextSearchable<UserSearchField>) => patchState(store, setSearch(textSearch))
+        }
+    }),
+    withHooks((store) => {
+        return {
+            onInit: () => {
+                const page = store.userList().metadata.currentPage;
+                const search = store.textSearch().searchText;
+
+                if (!search?.trim()) return;
+
+                const request: UsersForAdminRequest = {
+                    pageNumber: page,
+                    pageSize: store.userList().metadata.pageSize,
+                    search: search.trim(),
+                    searchIn: store.textSearch().fields
+                };
+
+                store.loadUserList(request);
+            }
         }
     }),
     withDevtools('admin-store')

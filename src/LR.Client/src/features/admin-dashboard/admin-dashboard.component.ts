@@ -25,7 +25,7 @@ import { TextSearchable } from '../../core/interfaces/text-searchable.interface'
 ],
   templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent {
   public adminStore = inject(AdminStore);
   public isBusy = computed(() => this.adminStore.isBusy());
   public icons = ASSETS.IMAGES.ICONS
@@ -37,19 +37,19 @@ export class AdminDashboardComponent implements OnInit {
     { key: UserSearchField.LastName, label: 'Last Name' },
   ]
 
-  ngOnInit(): void {
-    this.adminStore.loadUserList(this.adminStore.userList().metadata.currentPage);
-  }
-
   public getRolesString(user: UserForAdmin): string {
     return user.roles.map(role => Role[role]).join(', ');
   }
 
-  public deleteUserPhoto(userId: string) {
+  public deleteUserPhoto(userId: string): void {
     this.adminStore.deleteUserPhoto(userId);
   }
 
-  public onSearchTextChange(searchRequest: TextSearchable) {
-    console.log(searchRequest);
+  public onSearchTextChange(searchRequest: TextSearchable<UserSearchField>): void {
+    this.adminStore.setSearch(searchRequest);
+  }
+
+  public onChangePage(pageNumber: number): void {
+    this.adminStore.setCurrentPage(pageNumber);
   }
 }

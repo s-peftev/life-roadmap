@@ -18,7 +18,7 @@
             <input 
                 type="checkbox" 
                 class="checkbox checkbox-sm" 
-                [checked]="selected.has(field.key)"
+                [checked]="selectedFields().has(field.key)"
                 (change)="onToggle(field.key, input.value)" 
             />
 
