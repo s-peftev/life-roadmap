@@ -32,6 +32,13 @@ export class AdminService {
         }
       }
     }
+
+    if (request.sort && request.sort.length > 0) {
+      request.sort.forEach((descriptor, index) => {
+        params = params.set(`Sort[${index}].Property`, descriptor.field.toString());
+        params = params.set(`Sort[${index}].Desc`, (descriptor.order === 'desc').toString());
+      });
+    }
     
     return this._apiClient.get<PaginatedResult<UserForAdmin>>(AdminApi.USERS, { params });
   }

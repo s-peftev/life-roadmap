@@ -9,10 +9,12 @@ import { rxMethod } from "@ngrx/signals/rxjs-interop";
 import { exhaustMap, switchMap, tap } from "rxjs";
 import { setBusy, setIdle } from "../../../store-extentions/features/with-busy/with-busy.updaters";
 import { tapResponse } from "@ngrx/operators";
-import { setCurrentPage, setSearch, setUserList } from "./admin.updaters";
+import { setCurrentPage, setSearch, setSortCriteria, setUserList } from "./admin.updaters";
 import { UsersForAdminRequest } from "../../../models/admin/users-for-admin-request.model";
 import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
 import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
+import { SortDescriptor } from "../../../core/interfaces/sort-descriptor.interface";
+import { UserSortField } from "../../../core/enums/sort/user-sort-field.enum";
 
 export const AdminStore = signalStore(
     { providedIn: 'root' },
@@ -63,7 +65,9 @@ export const AdminStore = signalStore(
 
             setCurrentPage: (pageNumber: number) => patchState(store, setCurrentPage(pageNumber)),
 
-            setSearch: (textSearch: TextSearchable<UserSearchField>) => patchState(store, setSearch(textSearch))
+            setSearch: (textSearch: TextSearchable<UserSearchField>) => patchState(store, setSearch(textSearch)),
+
+            setSortCriteria: (sortCriteria: SortDescriptor<UserSortField>[]) => patchState(store, setSortCriteria(sortCriteria))
         }
     }),
     withHooks((store) => {
@@ -87,7 +91,8 @@ export const AdminStore = signalStore(
                             pageNumber: page,
                             pageSize: store.pageSize(),
                             search: store.textSearch().searchText.trim(),
-                            searchIn: store.textSearch().fields
+                            searchIn: store.textSearch().fields,
+                            sort: store.sortCriteria()
                         });
                     });
                 });
@@ -101,7 +106,8 @@ export const AdminStore = signalStore(
                             pageNumber: 1,
                             pageSize: store.pageSize(),
                             search,
-                            searchIn: store.textSearch().fields
+                            searchIn: store.textSearch().fields,
+                            sort: store.sortCriteria()
                         });
                     });
                 });
@@ -118,7 +124,23 @@ export const AdminStore = signalStore(
                             pageNumber: 1,
                             pageSize: store.pageSize(),
                             search: search,
-                            searchIn: searchIn
+                            searchIn: searchIn,
+                            sort: store.sortCriteria()
+                        });
+                    });
+                });
+
+                effect(() => {
+                    const sort = store.sortCriteria();
+
+                    untracked(() => {
+                        store.setCurrentPage(1);
+                        store.loadUserList({
+                            pageNumber: 1,
+                            pageSize: store.pageSize(),
+                            search: store.textSearch().searchText.trim(),
+                            searchIn: store.textSearch().fields,
+                            sort
                         });
                     });
                 });

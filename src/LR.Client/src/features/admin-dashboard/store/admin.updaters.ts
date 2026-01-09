@@ -4,6 +4,8 @@ import { AdminSlice } from "./admin.slice";
 import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
 import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
 import { PaginatedResult } from "../../../models/paginated-result.model";
+import { SortDescriptor } from "../../../core/interfaces/sort-descriptor.interface";
+import { UserSortField } from "../../../core/enums/sort/user-sort-field.enum";
 
 export function setUserList(paginatedResult: PaginatedResult<UserForAdmin>): PartialStateUpdater<AdminSlice> {
     return store => ({
@@ -25,5 +27,12 @@ export function setSearch(textSearch: TextSearchable<UserSearchField>): PartialS
     return state => ({
         ...state,
         textSearch
+    })
+}
+
+export function setSortCriteria(sortCriteria: SortDescriptor<UserSortField>[]): PartialStateUpdater<AdminSlice> {
+    return state => ({
+        ...state,
+        sortCriteria
     })
 }
