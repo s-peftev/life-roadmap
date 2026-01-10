@@ -13,6 +13,7 @@ import { TextSearchable } from '../../../core/interfaces/text-searchable.interfa
 export class SearchPanelComponent<T> implements OnInit {
   public fields = input.required<SearchFieldOption<T>[]>()
   public initialFields = input.required<T[]>();
+  public initialSearchText = input<string>('');
   public searchRequest = output<TextSearchable<T>>();
 
   public selectedFields: T[] = [];

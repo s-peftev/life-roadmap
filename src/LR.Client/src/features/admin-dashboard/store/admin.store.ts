@@ -51,8 +51,8 @@ export const AdminStore = signalStore(
                     store._adminService.deleteUserPhoto(userId).pipe(
                         tapResponse({
                             next: () => _refreshUserList({
-                                pageNumber: store.currentPage(),
-                                pageSize: store.pageSize(),
+                                pageNumber: store.userList().metadata.currentPage,
+                                pageSize: store.userList().metadata.pageSize,
                                 search: store.textSearch().searchText.trim(),
                                 searchIn: store.textSearch().fields
                             }),
@@ -74,22 +74,23 @@ export const AdminStore = signalStore(
         return {
             onInit: () => {
                 store.loadUserList({
-                    pageNumber: store.currentPage(),
-                    pageSize: store.pageSize(),
+                    pageNumber: store.userList().metadata.currentPage,
+                    pageSize: store.userList().metadata.pageSize,
                     search: '',
                     searchIn: store.textSearch().fields
                 });
 
+                const changePageSig = computed(() => store.userList().metadata.currentPage);
                 const searchTextSig = computed(() => store.textSearch().searchText);
                 const searchFieldsSig = computed(() => store.textSearch().fields);
 
                 effect(() => {
-                    const page = store.currentPage();
+                    const page = changePageSig();
 
                     untracked(() => {
                         store.loadUserList({
                             pageNumber: page,
-                            pageSize: store.pageSize(),
+                            pageSize: store.userList().metadata.pageSize,
                             search: store.textSearch().searchText.trim(),
                             searchIn: store.textSearch().fields,
                             sort: store.sortCriteria()
@@ -104,7 +105,7 @@ export const AdminStore = signalStore(
                         store.setCurrentPage(1);
                         store.loadUserList({
                             pageNumber: 1,
-                            pageSize: store.pageSize(),
+                            pageSize: store.userList().metadata.pageSize,
                             search,
                             searchIn: store.textSearch().fields,
                             sort: store.sortCriteria()
@@ -122,7 +123,7 @@ export const AdminStore = signalStore(
                         store.setCurrentPage(1);
                         store.loadUserList({
                             pageNumber: 1,
-                            pageSize: store.pageSize(),
+                            pageSize: store.userList().metadata.pageSize,
                             search: search,
                             searchIn: searchIn,
                             sort: store.sortCriteria()
@@ -137,7 +138,7 @@ export const AdminStore = signalStore(
                         store.setCurrentPage(1);
                         store.loadUserList({
                             pageNumber: 1,
-                            pageSize: store.pageSize(),
+                            pageSize: store.userList().metadata.pageSize,
                             search: store.textSearch().searchText.trim(),
                             searchIn: store.textSearch().fields,
                             sort

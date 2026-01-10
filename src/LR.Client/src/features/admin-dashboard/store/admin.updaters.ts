@@ -10,16 +10,20 @@ import { UserSortField } from "../../../core/enums/sort/user-sort-field.enum";
 export function setUserList(paginatedResult: PaginatedResult<UserForAdmin>): PartialStateUpdater<AdminSlice> {
     return store => ({
         ...store,
-        userList: paginatedResult.items,
-        totalCount: paginatedResult.metadata.totalCount,
-        totalPages: paginatedResult.metadata.totalPages
+        userList: paginatedResult
     })
 }
 
 export function setCurrentPage(pageNumber: number): PartialStateUpdater<AdminSlice> {
     return state => ({
         ...state,
-        currentPage: pageNumber
+        userList: {
+            ...state.userList,
+            metadata: {
+                ...state.userList.metadata,
+                currentPage: pageNumber
+            }
+        }
     })
 }
 
@@ -33,6 +37,6 @@ export function setSearch(textSearch: TextSearchable<UserSearchField>): PartialS
 export function setSortCriteria(sortCriteria: SortDescriptor<UserSortField>[]): PartialStateUpdater<AdminSlice> {
     return state => ({
         ...state,
-        sortCriteria
+        sortCriteria: [...sortCriteria]
     })
 }

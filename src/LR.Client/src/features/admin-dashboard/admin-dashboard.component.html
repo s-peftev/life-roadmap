@@ -3,14 +3,15 @@
     <app-search-panel
       [fields]="searchFields"
       [initialFields]="adminStore.textSearch.fields()"
+      [initialSearchText]="adminStore.textSearch.searchText()"
       (searchRequest)="onSearchTextChange($event)"
     />
   </div>
 
   <div class="flex justify-between align-middle my-4">
     <app-pagination
-      [currentPage]="adminStore.currentPage()" 
-      [totalPages]="adminStore.totalPages()" 
+      [currentPage]="adminStore.userList().metadata.currentPage" 
+      [totalPages]="adminStore.userList().metadata.totalPages" 
       (changePage)="onChangePage($event)" 
     />
 
@@ -105,7 +106,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of adminStore.userList()" class="border-t border-gray-200">
+        <tr *ngFor="let user of adminStore.userList().items" class="border-t border-gray-200">
           <td class="px-4 py-2 flex flex-row gap-1">
               <img 
                   [src]="user.profilePhotoUrl ? user.profilePhotoUrl : icons.PROFILE.DEFAULT_AVATAR" 

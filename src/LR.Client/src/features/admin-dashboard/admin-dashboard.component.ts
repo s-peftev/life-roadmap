@@ -30,7 +30,7 @@ import { MultiSortIndicatorComponent } from "../../shared/components/multi-sort-
 ],
   templateUrl: './admin-dashboard.component.html',
 })
-export class AdminDashboardComponent {
+export class AdminDashboardComponent implements OnInit {
   public adminStore = inject(AdminStore);
   public isBusy = computed(() => this.adminStore.isBusy());
   public icons = ASSETS.IMAGES.ICONS
@@ -45,6 +45,10 @@ export class AdminDashboardComponent {
     { key: UserSearchField.FirstName, label: 'First Name' },
     { key: UserSearchField.LastName, label: 'Last Name' },
   ]
+
+  ngOnInit(): void {
+    this.sortCriteria = this.adminStore.sortCriteria();
+  }
 
   public getRolesString(user: UserForAdmin): string {
     return user.roles.map(role => Role[role]).join(', ');
