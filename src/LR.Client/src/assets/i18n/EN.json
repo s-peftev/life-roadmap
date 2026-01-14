@@ -76,5 +76,11 @@
         "verify_email": "Verify email",
         "pick_photo_hint": "Pick a photo up to {{size}}MB. Your avatar photo will be public.",
         "too_big_photo": "That photo is a bit too large. Try something smaller."
+    },
+    "admin_dashboard": {
+        "user_list": "List of application users"
+    },
+    "search_panel": {
+        "search_by": "Search by fields:"
     }
 }

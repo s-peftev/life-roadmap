@@ -1,9 +1,31 @@
+import { UserSearchField } from "../../../core/enums/search-fields/user-search-field.enum";
+import { UserSortField } from "../../../core/enums/sort/user-sort-field.enum";
+import { SortDescriptor } from "../../../core/interfaces/sort-descriptor.interface";
+import { TextSearchable } from "../../../core/interfaces/text-searchable.interface";
+import { environment } from "../../../environments/environment";
 import { UserForAdmin } from "../../../models/admin/user-for-admin.model";
+import { PaginatedResult } from "../../../models/paginated-result.model";
 
 export interface AdminSlice {
-    readonly userList: UserForAdmin[] | null;
+    readonly userList: PaginatedResult<UserForAdmin>,
+    readonly textSearch: TextSearchable<UserSearchField>,
+    readonly sortCriteria: SortDescriptor<UserSortField>[]
 }
 
 export const initialAdminSlice: AdminSlice = {
-    userList: null,
+    userList: {
+        items: [],
+        metadata: {
+            currentPage: 1,
+            pageSize: environment.paginationDefaults.pageSize,
+            totalCount: 0,
+            totalPages: 0
+        }
+    },
+    textSearch: {
+        searchText: '',
+        fields: Object.values(UserSearchField)
+            .filter(v => typeof v === 'number') as UserSearchField[]
+    },
+    sortCriteria: []
 }

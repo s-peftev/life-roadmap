@@ -1,6 +1,8 @@
 <div class="flex items-center gap-2">
   @if(authStore.isBusy()) {
-  <app-busy />
+    <div class="fixed inset-0 flex items-center justify-center bg-white/70 z-50">
+      <app-busy />
+    </div>
   }
   <div class="flex-1">
     <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off" class="flex flex-col gap-4">

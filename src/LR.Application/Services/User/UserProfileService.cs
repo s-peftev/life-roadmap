@@ -6,7 +6,6 @@ using LR.Application.Interfaces.Services;
 using LR.Application.Requests.User;
 using LR.Domain.Entities.Users;
 using LR.Domain.Interfaces.Repositories;
-using LR.Domain.ValueObjects.UserProfile;
 using Microsoft.Extensions.Logging;
 
 namespace LR.Application.Services.User
@@ -74,15 +73,6 @@ namespace LR.Application.Services.User
             return userProfile is null
                 ? Result<UserProfile>.Failure(GeneralErrors.NotFound)
                 : Result<UserProfile>.Success(userProfile);
-        }
-
-        public async Task<Result<UserProfileDetailsDto>> GetMyProfileAsync(string userId, CancellationToken ct = default)
-        {
-            var profileDetails = await userProfileRepository.GetProfileDetailsAsync(userId, ct);
-
-            return profileDetails is null
-                ? Result<UserProfileDetailsDto>.Failure(GeneralErrors.NotFound)
-                : Result<UserProfileDetailsDto>.Success(profileDetails);
         }
 
         public async Task<Result> ChangePersonalInfoAsync(string userId, ChangePersonalInfoRequest request, CancellationToken ct = default)

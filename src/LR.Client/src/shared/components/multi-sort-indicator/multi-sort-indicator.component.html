@@ -1,0 +1,7 @@
+<span class="sort-icon">
+    {{ sortOrder() === 'asc' ? '▲' : sortOrder() === 'desc' ? '▼' : '' }}
+</span>
+
+<span *ngIf="sortCriteria().length > 1 && sortOrder()">
+    {{ sortIndex() }}
+</span>
